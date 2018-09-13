@@ -4,6 +4,14 @@ var crypto = require('crypto'),
     ObjectID = require('mongodb').ObjectID;
 
 const _Functions = require('../../src/modules/functions');
+const _LOCAL_FUNCTIONS = {
+  _throwNewInstanceError: (collectionName) => {
+    const _COLLECTION_NAME_AS_SINGLE = (collectionName.match(/\w+s$/ig) != null)? collectionName.slice(0, -1): collectionName,
+          RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
+
+    return RECURSIVE_CONTENT;
+  }
+};
 
 module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
   app.post('/:collection', (req, res) => {
@@ -61,18 +69,109 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
 
             _IS_COLLECTION_READY_TO_ABSORB = true;
           }else{
-            const _COLLECTION_NAME_AS_SINGLE = (_COLLECTION_NAME.match(/\w+s$/ig) != null)? _COLLECTION_NAME.slice(0, -1): _COLLECTION_NAME,
-                  RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
-
-            res.json(RECURSIVE_CONTENT);
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
           }
           break;
 
         case 'endusers':
-          _THREAD.viewed = 0;
-          _THREAD.user_id = new ObjectID(_THREAD.user_id);
+          if ((typeof _THREAD.user_id != 'undefined')){
+            _THREAD.viewed = 0;
+            _THREAD.user_id = new ObjectID(_THREAD.user_id);
 
-          _IS_COLLECTION_READY_TO_ABSORB = true;
+            //End User detection for user groups
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'usergroups':
+          if ((typeof _THREAD.type != 'undefined') && (typeof _THREAD.role != 'undefined')){
+            _THREAD.type = _Function._convertTokenToKeyword(_THREAD.type);
+
+            if (typeof _THREAD.role.type != 'undefined'){
+              _THREAD.role.type = _Function._convertTokenToKeyword(_THREAD.role.type);
+            }
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'wallets':
+          if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.currency != 'undefined') && (typeof _THREAD.name != 'undefined')){
+            _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
+            _THREAD.currency = _Function._convertTokenToKeyword(_THREAD.currency);
+            _THREAD.balance = 0;
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'messages':
+          if ((typeof _THREAD.receiver_id != 'undefined') && (typeof _THREAD.message != 'undefined')){
+            _THREAD.receiver_id = new ObjectID(_THREAD.receiver_id);
+
+            if (typeof _THREAD.message.type != 'undefined'){
+              _THREAD.message.type = _Function._convertTokenToKeyword(_THREAD.message.type);
+            }
+
+            if (typeof _THREAD.message.status != 'undefined'){
+              _THREAD.message.status = _Function._convertTokenToKeyword(_THREAD.message.status);
+            }
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'warehouses':
+          if ((typeof _THREAD.user_id != 'undefined') && (typeof _THREAD.name != 'undefined')){
+            _THREAD.user_id = new ObjectID(_THREAD.user_id);
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'turnovers':
+          if ((typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.beginning_inventory != 'undefined') && ((typeof _THREAD.purchase != 'undefined') || (typeof _THREAD.sold != 'undefined')) && (typeof _THREAD.ending_inventory != 'undefined')){
+            _THREAD.warehouse_id = new ObjectID(_THREAD.warehouse_id);
+            _THREAD.product_id = new ObjectID(_THREAD.product_id);
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'orders':
+          if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.items != 'undefined') && (typeof _THREAD.taxes != 'undefined') && (typeof _THREAD.discounts != 'undefined') && (typeof _THREAD.status != 'undefined') && (typeof _THREAD.shipping != 'undefined') && (typeof _THREAD.total_amount != 'undefined')) {
+            _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
+
+            if (Array.isArray(_THREAD.items)){
+              _THREAD.items = _THREAD.items.map((item, i) => {
+                if (typeof item.product_id != 'undefined'){
+                  item.product_id = new ObjectID(item.product_id)
+                }
+
+                return item;
+              });
+            }
+
+            _THREAD.status = _Functions._convertTokenToKeyword(_THREAD.status);
+            _THREAD.shipping = _Functions._convertTokenToKeyword(_THREAD.shipping);
+
+            _IS_COLLECTION_READY_TO_ABSORB = true;
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
           break;
 
         default:
