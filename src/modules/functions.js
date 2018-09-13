@@ -1,3 +1,8 @@
+var os = require('os'),
+    fs = require('fs'),
+    fx = require('mkdir-recursive'),
+    path = require('path');
+
 module.exports = {
   _convertDigitsToEnglish: (string) => {
       return string.replace(/[\u0660-\u0669]/g, function (c) {
@@ -99,5 +104,39 @@ module.exports = {
      },
      data: response
    }
+ },
+ _uploadBase64DataURI: (base64DataURI, specificDirectory) => {
+   const _REQUESTED_PATH = path.resolve(__dirname, '..', specificDirectory),
+         _REQUESTED_FILE_NAME = (_REQUESTED_PATH.match(/.+\.\w/ig) !== null)? path.basename(_REQUESTED_PATH): '',
+         _REQUESTED_DIRECTORY = _REQUESTED_PATH.replace(_REQUESTED_FILE_NAME, '');
+
+   fs.access(_REQUESTED_DIRECTORY, fs.constants.F_OK, (accessError) => {
+     if (accessError){
+       if (accessError.code === 'ENOENT'){
+         fx.mkdir(_REQUESTED_DIRECTORY, (mkdirError) => {
+           if (!mkdirError){
+             const _FILE_MIME_TYPE = base64DataURI.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, ''),
+                   _FILE_EXTENSION_REGEX = new RegExp(`.+\.${_FILE_MIME_TYPE}$`, 'g');
+
+             if (_REQUESTED_FILE_NAME.match(_FILE_EXTENSION_REGEX) !== null){
+               const _FINAL_BASE64_DATA_URI = base64DataURI.replace(/data:\w+\/\w+;base64,/i, ''),
+                     _FINAL_DATA_BUFFER = new Buffer(_FINAL_BASE64_DATA_URI, 'base64');
+
+               fs.writeFile(_REQUESTED_PATH, _FINAL_DATA_BUFFER, (writeFileError) => {
+                 if (writeFileError){
+                   return module.exports._throwErrorWithCodeAndMessage(writeFileError, 700);
+                 }
+
+                 return module.exports._throwResponseWithData(_REQUESTED_PATH);
+               })
+             }
+           }
+         });
+       }
+     }
+   });
+ },
+ _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
+   module.exports._uploadBase64DataURI(base64DataURI, `img/profile/${photoDirectoryWithOptionalExtendedPath}`);
  }
 };

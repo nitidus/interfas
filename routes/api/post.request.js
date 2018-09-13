@@ -1,9 +1,7 @@
 var crypto = require('crypto'),
     MongoClient = require('mongodb').MongoClient,
     assert = require('assert'),
-    ObjectID = require('mongodb').ObjectID,
-    fs = require('fs'),
-    path = require('path');
+    ObjectID = require('mongodb').ObjectID;
 
 const _Functions = require('../../src/modules/functions');
 
@@ -23,6 +21,16 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
                   _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
 
             _THREAD.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
+
+            if (typeof _THREAD.personal.profile != 'undefined'){
+              const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
+                    _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
+                    _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                    _SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex').slice(0, 7),
+                    _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+
+              _Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+            }
 
             if (typeof _THREAD.email != 'undefined'){
               const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.password}`,
