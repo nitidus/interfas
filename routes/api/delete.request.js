@@ -1,4 +1,4 @@
-module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
+module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.delete('/', (req, res) => {
     res.json({
       hello: "World!"

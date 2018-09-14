@@ -13,7 +13,7 @@ const _LOCAL_FUNCTIONS = {
   }
 };
 
-module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
+module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.post('/:collection', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase(),
@@ -88,10 +88,10 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
 
         case 'usergroups':
           if ((typeof _THREAD.type != 'undefined') && (typeof _THREAD.role != 'undefined')){
-            _THREAD.type = _Function._convertTokenToKeyword(_THREAD.type);
+            _THREAD.type = _Functions._convertTokenToKeyword(_THREAD.type);
 
-            if (typeof _THREAD.role.type != 'undefined'){
-              _THREAD.role.type = _Function._convertTokenToKeyword(_THREAD.role.type);
+            if (typeof _THREAD.role != 'undefined'){
+              _THREAD.role = _Functions._convertTokenToKeyword(_THREAD.role);
             }
 
             _IS_COLLECTION_READY_TO_ABSORB = true;
@@ -103,7 +103,7 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
         case 'wallets':
           if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.currency != 'undefined') && (typeof _THREAD.name != 'undefined')){
             _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
-            _THREAD.currency = _Function._convertTokenToKeyword(_THREAD.currency);
+            _THREAD.currency = _Functions._convertTokenToKeyword(_THREAD.currency);
             _THREAD.balance = 0;
 
             _IS_COLLECTION_READY_TO_ABSORB = true;
@@ -117,11 +117,11 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
             _THREAD.receiver_id = new ObjectID(_THREAD.receiver_id);
 
             if (typeof _THREAD.message.type != 'undefined'){
-              _THREAD.message.type = _Function._convertTokenToKeyword(_THREAD.message.type);
+              _THREAD.message.type = _Functions._convertTokenToKeyword(_THREAD.message.type);
             }
 
             if (typeof _THREAD.message.status != 'undefined'){
-              _THREAD.message.status = _Function._convertTokenToKeyword(_THREAD.message.status);
+              _THREAD.message.status = _Functions._convertTokenToKeyword(_THREAD.message.status);
             }
 
             _IS_COLLECTION_READY_TO_ABSORB = true;
@@ -183,13 +183,18 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
       if (_IS_COLLECTION_READY_TO_ABSORB){
         _THREAD.modified_at = _THREAD.created_at = _TODAY;
 
-        MongoClient.connect(CONNECTION_URL, function(connectionError, db){
+        MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
           if (connectionError != null){
               const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
 
               res.json(RECURSIVE_CONTENT);
+
+              client.close();
             }else{
-              db.collection(_COLLECTION_NAME).insert(_THREAD, function(userInsertQueryError, doc){
+              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                    _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
+              _COLLECTION.insert(_THREAD, function(userInsertQueryError, doc){
                 if (userInsertQueryError != null){
                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
@@ -204,7 +209,7 @@ module.exports = (app, CONNECTION_URL, INTERFAS_KEY) => {
 
                     res.json(RECURSIVE_CONTENT);
 
-                    db.close();
+                    client.close();
                   }
                 }
               });

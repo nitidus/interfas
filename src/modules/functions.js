@@ -106,7 +106,7 @@ module.exports = {
    }
  },
  _convertTokenToKeyword: (token) => {
-   return token.replace(/ +/ig, '').replace(/ /ig, '_').toUpperCase();
+   return token.replace(/ +/ig, ' ').replace(/ /ig, '_').toUpperCase();
  },
  _uploadBase64DataURI: (base64DataURI, specificDirectory) => {
    const _REQUESTED_PATH = path.resolve(__dirname, '..', specificDirectory),
