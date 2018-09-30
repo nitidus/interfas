@@ -24,7 +24,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
       switch (_COLLECTION_NAME) {
         case 'users':
-          if ((typeof _THREAD.personal != 'undefined') && (typeof _THREAD.user_group != 'undefined') && (typeof _THREAD.password != 'undefined') && ((typeof _THREAD.email != 'undefined') || (typeof _THREAD.phone != 'undefined'))){
+          if ((typeof _THREAD.personal != 'undefined') && (typeof _THREAD.user_group_id != 'undefined') && (typeof _THREAD.password != 'undefined') && ((typeof _THREAD.email != 'undefined') || (typeof _THREAD.phone != 'undefined'))){
             const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
                   _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
 
@@ -59,9 +59,21 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   content: _THREAD.phone.mobile,
                   validation: {
                     token: Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString(),
-                    value: false
+                    value: false,
+                    created_at: _TODAY,
+                    modified_at: _TODAY
                   }
                 };
+
+                _Functions._sendMessage(_THREAD.phone.mobile.content, _THREAD.phone.mobile.validation.token)
+                .then((response) => {
+                  //YOU CAN STORE YOUR RESPONSE IN DB
+                })
+                .catch((error) => {
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+
+                  res.json(RECURSIVE_CONTENT);
+                })
               }
             }
 
@@ -194,8 +206,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                     _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
-              _COLLECTION.insert(_THREAD, function(userInsertQueryError, doc){
-                if (userInsertQueryError != null){
+              _COLLECTION.insert(_THREAD, function(insertQueryError, doc){
+                if (insertQueryError != null){
                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
@@ -205,7 +217,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc.ops[0]);
 
                     res.json(RECURSIVE_CONTENT);
 

@@ -1,7 +1,10 @@
 var os = require('os'),
     fs = require('fs'),
     fx = require('mkdir-recursive'),
-    path = require('path');
+    path = require('path'),
+    axios = require('axios');
+
+const GLOBAL = require('./global');
 
 module.exports = {
   _convertDigitsToEnglish: (string) => {
@@ -141,5 +144,23 @@ module.exports = {
  },
  _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
    module.exports._uploadBase64DataURI(base64DataURI, `img/profile/${photoDirectoryWithOptionalExtendedPath}`);
+ },
+ _sendMessage: async (receptorPhoneNumber, receptorToken) => {
+   const _TARGET_URL = `${GLOBAL.URLS.SMS_PROVIDER.HOST_NAME}/verify/lookup.json`,
+         _SEED = {
+           receptor: receptorPhoneNumber,
+           token: receptorToken,
+           template: GLOBAL.URLS.SMS_PROVIDER.PATTERN_NAME
+         };
+
+   try {
+     const _RESPONSE = await axios.post(_TARGET_URL, _SEED);
+
+     return _RESPONSE;
+   } catch (error) {
+     if (typeof error.return != 'undefined'){
+       throw new Error(error.return);
+     }
+   }
  }
 };
