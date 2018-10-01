@@ -78,8 +78,70 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             }
 
             _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
+            _THREAD.modified_at = _THREAD.created_at = _TODAY;
 
-            _IS_COLLECTION_READY_TO_ABSORB = true;
+            MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+              if (connectionError != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }else{
+                  const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                        _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
+                  var _CHECKING_CRITERIA = {
+                    "$or": []
+                  };
+
+                  if (typeof _THREAD.phone.mobile.content != 'undefined'){
+                    _CHECKING_CRITERIA["$or"].push({
+                      "email.content": _THREAD.phone.mobile.content
+                    })
+                  }
+
+                  if (typeof _THREAD.email.content != 'undefined'){
+                    _CHECKING_CRITERIA["$or"].push({
+                      "phone.mobile.content": _THREAD.email.content
+                    })
+                  }
+
+                  _COLLECTION.findOne(_CHECKING_CRITERIA, function(existingCheckQueryError, existingDoc){
+                    if (existingCheckQueryError != null){
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(existingCheckQueryError, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      if (existingDoc != null){
+                        const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The selected email or phone number is not available.', 700);
+
+                        res.json(RECURSIVE_CONTENT);
+                      }else{
+                        _COLLECTION.insert(_THREAD, function(insertQueryError, doc){
+                          if (insertQueryError != null){
+                            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
+
+                            res.json(RECURSIVE_CONTENT);
+                          }else{
+                            if (doc.insertedCount != 1){
+                              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+
+                              res.json(RECURSIVE_CONTENT);
+                            }else{
+                              const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc.ops[0]);
+
+                              res.json(RECURSIVE_CONTENT);
+                            }
+                          }
+                        });
+                      }
+                    }
+
+                    client.close();
+                  })
+                }
+            });
           }else{
             res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
           }
@@ -183,6 +245,85 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             _IS_COLLECTION_READY_TO_ABSORB = true;
           }else{
             res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+          }
+          break;
+
+        case 'auth':
+          if (((typeof _THREAD.user_name != 'undefined') || (typeof _THREAD.userName != 'undefined') || (typeof _THREAD.email != 'undefined') || (typeof _THREAD.token != 'undefined') || (typeof _THREAD.phoneNumber != 'undefined') || (typeof _THREAD.phone_number != 'undefined')) && (typeof _THREAD.password != 'undefined')){
+            const _TOKEN = _THREAD.user_name || _THREAD.userName || _THREAD.email || _THREAD.token || _THREAD.phone_number || _THREAD.phoneNumber,
+                  _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
+                  _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
+
+            MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+              if (connectionError != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The users collection could not be reached.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }else{
+                  const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                        _COLLECTION = _DB.collection('users');
+
+                  const _CRITERIA = [
+                    {
+                      "$match": {
+                        "$and": [
+                          {
+                            "$or": [
+                              {
+                                "email.content": _TOKEN
+                              },
+                              {
+                                "phone.mobile.content": _TOKEN
+                              }
+                            ]
+                          },
+                          {
+                            "password": _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "$lookup": {
+                        "from": "usergroups",
+                        "localField": "user_group_id",
+                        "foreignField": "_id",
+                        "as": "usergroup"
+                      }
+                    },
+                    {
+                      "$unwind": "$usergroup"
+                    },
+                    {
+                      "$project": {
+                        "user_group_id": 0
+                      }
+                    },
+                    {
+                      "$limit": 1
+                    }
+                  ];
+
+                  _COLLECTION.aggregate(_CRITERIA)
+                  .toArray(function(userAuthQueryError, doc){
+                    if (userAuthQueryError != null){
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The authentication request could\'t be processed.`, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc[0]);
+
+                      res.json(RECURSIVE_CONTENT);
+
+                      client.close();
+                    }
+                  });
+                }
+            });
+          }else{
+            res.json(_LOCAL_FUNCTIONS._throwNewInstanceError('users'));
           }
           break;
 
