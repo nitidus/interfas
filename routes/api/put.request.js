@@ -23,7 +23,124 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
       var _THREAD = req.body,
           _IS_COLLECTION_READY_TO_UPDATE = false;
 
+      if (typeof _THREAD._id != 'undefined') {
+        delete _THREAD._id;
+      }
+
       switch (_COLLECTION_NAME) {
+        case 'users':
+          var _TARGET = {},
+              _IS__LOCAL_COLLECTION_READY_TO_UPDATE = true;
+
+          if (typeof _THREAD.password != 'undefined'){
+            const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
+                  _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
+
+            _TARGET.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
+          }
+
+          if (typeof _THREAD.email != 'undefined'){
+            const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.password}`,
+                  _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex');
+
+            _TARGET.email = {
+              content: _THREAD.email,
+              validation: {
+                token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
+                value: false
+              }
+            };
+          }
+
+          if (typeof _THREAD.phone != 'undefined') {
+            _TARGET.phone = {};
+
+            if (typeof _THREAD.phone.mobile != 'undefined'){
+              _TARGET.phone.mobile = {
+                content: _THREAD.phone.mobile,
+                validation: {
+                  token: Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString(),
+                  value: false,
+                  created_at: _TODAY,
+                  modified_at: _TODAY
+                }
+              };
+
+              _Functions._sendMessage(_TARGET.phone.mobile.content, _TARGET.phone.mobile.validation.token)
+              .then((response) => {
+                //YOU CAN STORE YOUR RESPONSE IN DB
+              })
+              .catch((error) => {
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+
+                res.json(RECURSIVE_CONTENT);
+              })
+            }
+          }
+
+          if (typeof _THREAD.user_group_id != 'undefined') {
+            _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
+          }
+
+          _TARGET.modified_at = _TODAY;
+
+          MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+            if (connectionError != null){
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+
+                res.json(RECURSIVE_CONTENT);
+
+                client.close();
+              }else{
+                const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                      _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                      _CRITERIA = {
+                        _id: new ObjectID(_TOKEN)
+                      };
+
+                if ((typeof _THREAD.personal.profile != 'undefined') || (typeof _THREAD.profile != 'undefined') || (typeof _THREAD.profile_photo != 'undefined') || (typeof _THREAD.profilePhoto != 'undefined')){
+                  const _PROFILE_DIRECTORY = _THREAD.personal.profile || _THREAD.profile || _THREAD.profile_photo || _THREAD.profilePhoto;
+
+                  _COLLECTION.findOne(_CRITERIA, function(existingCheckQueryError, existingDoc){
+                    if (existingCheckQueryError != null){
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(existingCheckQueryError, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+
+                      _IS__LOCAL_COLLECTION_READY_TO_UPDATE = false;
+                    }else{
+                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_TARGET.password}`,
+                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_TARGET.password}`,
+                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex').slice(0, 7),
+                            _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+
+                      _Functions._removeFileWithEmptyDirectory(existingDoc.personal.profile);
+
+                      _TARGET["personal.profile"] = _Functions._uploadUserProfilePhoto(_PROFILE_DIRECTORY, `${_SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                    }
+                  })
+                }
+
+                if (_IS__LOCAL_COLLECTION_READY_TO_UPDATE){
+                  _COLLECTION.updateOne(_CRITERIA, _THREAD, function(updateQueryError, doc){
+                    if (updateQueryError != null){
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+
+                      res.json(RECURSIVE_CONTENT);
+
+                      client.close();
+                    }
+                  });
+                }
+              }
+          });
+          break;
+
         case 'verify':
           switch (_TOKEN.toLowerCase()) {
             case 'phone-number':
@@ -176,34 +293,37 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     }
 
       if (_IS_COLLECTION_READY_TO_UPDATE){
-        // _THREAD.modified_at = _THREAD.created_at = _TODAY;
-        //
-        // MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-        //   if (connectionError != null){
-        //       const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-        //
-        //       res.json(RECURSIVE_CONTENT);
-        //
-        //       client.close();
-        //     }else{
-        //       const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-        //             _COLLECTION = _DB.collection(_COLLECTION_NAME);
-        //
-        //       _COLLECTION.insert(_THREAD, function(updateQueryError, doc){
-        //         if (updateQueryError != null){
-        //           const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
-        //
-        //           res.json(RECURSIVE_CONTENT);
-        //         }else{
-        //           const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
-        //
-        //        res.json(RECURSIVE_CONTENT);
-        //
-        //        client.close();
-        //         }
-        //       });
-        //     }
-        // });
+        _THREAD.modified_at = _TODAY;
+
+        MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+          if (connectionError != null){
+              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+
+              res.json(RECURSIVE_CONTENT);
+
+              client.close();
+            }else{
+              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                    _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                    _CRITERIA = {
+                      _id: new ObjectID(_TOKEN)
+                    };
+
+              _COLLECTION.updateOne(_THREAD, function(updateQueryError, doc){
+                if (updateQueryError != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }
+              });
+            }
+        });
       }
     }
   });

@@ -142,8 +142,29 @@ module.exports = {
      }
    });
  },
+ _removeFileWithEmptyDirectory: (directory) => {
+   const _REQUESTED_PATH = path.resolve(__dirname, '..', directory),
+         _REQUESTED_FILE_NAME = (_REQUESTED_PATH.match(/.+\.\w/ig) !== null)? path.basename(_REQUESTED_PATH): '',
+         _REQUESTED_DIRECTORY = _REQUESTED_PATH.replace(_REQUESTED_FILE_NAME, '');
+
+   fs.access(_REQUESTED_DIRECTORY, fs.constants.F_OK, (accessError) => {
+     if (accessError){
+       if (accessError.code === 'ENOENT'){
+         fx.rmdir(_REQUESTED_PATH, (rmpathError) => {
+           if (!rmpathError){
+             //handle if elimination was successful
+           }
+         });
+       }
+     }
+   });
+ },
  _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
-   module.exports._uploadBase64DataURI(base64DataURI, `img/profile/${photoDirectoryWithOptionalExtendedPath}`);
+   const _FILE_DIRECTORY = `img/profile/${photoDirectoryWithOptionalExtendedPath}`;
+
+   module.exports._uploadBase64DataURI(base64DataURI, _FILE_DIRECTORY);
+
+   return _FILE_DIRECTORY;
  },
  _sendMessage: async (receptorPhoneNumber, receptorToken) => {
    const _TARGET_URL = `${GLOBAL.URLS.SMS_PROVIDER.HOST_NAME}/verify/lookup.json`,
