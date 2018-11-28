@@ -27,71 +27,71 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
         delete _THREAD._id;
       }
 
-      switch (_COLLECTION_NAME) {
-        case 'users':
-          var _TARGET = {},
-              _IS__LOCAL_COLLECTION_READY_TO_UPDATE = true;
+      MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+        if (connectionError != null){
+            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
 
-          if (typeof _THREAD.password != 'undefined'){
-            const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
-                  _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
+            res.json(RECURSIVE_CONTENT);
 
-            _TARGET.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
-          }
+            client.close();
+          }else{
+            switch (_COLLECTION_NAME) {
+              case 'users':
+                var _TARGET = {},
+                    _IS__LOCAL_COLLECTION_READY_TO_UPDATE = true;
 
-          if (typeof _THREAD.email != 'undefined'){
-            const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.password}`,
-                  _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex');
+                if (typeof _THREAD.password != 'undefined'){
+                  const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
+                        _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
 
-            _TARGET.email = {
-              content: _THREAD.email,
-              validation: {
-                token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
-                value: false
-              }
-            };
-          }
-
-          if (typeof _THREAD.phone != 'undefined') {
-            _TARGET.phone = {};
-
-            if (typeof _THREAD.phone.mobile != 'undefined'){
-              _TARGET.phone.mobile = {
-                content: _THREAD.phone.mobile,
-                validation: {
-                  token: Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString(),
-                  value: false,
-                  created_at: _TODAY,
-                  modified_at: _TODAY
+                  _TARGET.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
                 }
-              };
 
-              _Functions._sendMessage(_TARGET.phone.mobile.content, _TARGET.phone.mobile.validation.token)
-              .then((response) => {
-                //YOU CAN STORE YOUR RESPONSE IN DB
-              })
-              .catch((error) => {
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+                if (typeof _THREAD.email != 'undefined'){
+                  const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.password}`,
+                        _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex');
 
-                res.json(RECURSIVE_CONTENT);
-              })
-            }
-          }
+                  _TARGET.email = {
+                    content: _THREAD.email,
+                    validation: {
+                      token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
+                      value: false
+                    }
+                  };
+                }
 
-          if (typeof _THREAD.user_group_id != 'undefined') {
-            _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
-          }
+                if (typeof _THREAD.phone != 'undefined') {
+                  _TARGET.phone = {};
 
-          _TARGET.modified_at = _TODAY;
+                  if (typeof _THREAD.phone.mobile != 'undefined'){
+                    _TARGET.phone.mobile = {
+                      content: _THREAD.phone.mobile,
+                      validation: {
+                        token: Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString(),
+                        value: false,
+                        created_at: _TODAY,
+                        modified_at: _TODAY
+                      }
+                    };
 
-          MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-            if (connectionError != null){
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+                    _Functions._sendMessage(_TARGET.phone.mobile.content, _TARGET.phone.mobile.validation.token)
+                    .then((response) => {
+                      //YOU CAN STORE YOUR RESPONSE IN DB
+                    })
+                    .catch((error) => {
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(error.message, error.status);
 
-                res.json(RECURSIVE_CONTENT);
+                      res.json(RECURSIVE_CONTENT);
+                    })
+                  }
+                }
 
-                client.close();
-              }else{
+                if (typeof _THREAD.user_group_id != 'undefined') {
+                  _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
+                }
+
+                _TARGET.modified_at = _TODAY;
+
                 const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                       _COLLECTION = _DB.collection(_COLLECTION_NAME),
                       _CRITERIA = {
@@ -137,30 +137,20 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   });
                 }
-              }
-          });
-          break;
+                break;
 
-        case 'verify':
-          switch (_TOKEN.toLowerCase()) {
-            case 'phone-number':
-            case 'phone':
-            case 'mobile-phone':
-            case 'mobile-phone-number':
-            case 'mobile-number':
-              if ((typeof _THREAD.user_id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.user != 'undefined')){
-                const _USER_ID = _THREAD.user_id || _THREAD._id || _THREAD.user;
+              case 'verify':
+                switch (_TOKEN.toLowerCase()) {
+                  case 'phone-number':
+                  case 'phone':
+                  case 'mobile-phone':
+                  case 'mobile-phone-number':
+                  case 'mobile-number':
+                    if ((typeof _THREAD.user_id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.user != 'undefined')){
+                      const _USER_ID = _THREAD.user_id || _THREAD._id || _THREAD.user;
 
-                _THREAD.user_id = new ObjectID(_USER_ID);
+                      _THREAD.user_id = new ObjectID(_USER_ID);
 
-                MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-                  if (connectionError != null){
-                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-
-                      res.json(RECURSIVE_CONTENT);
-
-                      client.close();
-                    }else{
                       const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                             _COLLECTION = _DB.collection('users'),
                             _CRITERIA = {
@@ -186,42 +176,32 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           client.close();
                         }
                       });
+                    }else{
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+
+                      res.json(RECURSIVE_CONTENT);
                     }
-                });
-              }else{
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+                break;
+
+              default:
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
                 res.json(RECURSIVE_CONTENT);
-              }
-          break;
+            }
+            break;
 
-        default:
-          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+            case 'regenerate':
+              switch (_TOKEN.toLowerCase()) {
+                case 'phone-number':
+                case 'phone':
+                case 'mobile-phone':
+                case 'mobile-phone-number':
+                case 'mobile-number':
+                  if ((typeof _THREAD.user_id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.user != 'undefined')){
+                    const _USER_ID = _THREAD.user_id || _THREAD._id || _THREAD.user;
 
-          res.json(RECURSIVE_CONTENT);
-      }
-      break;
+                    _THREAD.user_id = new ObjectID(_USER_ID);
 
-      case 'regenerate':
-        switch (_TOKEN.toLowerCase()) {
-          case 'phone-number':
-          case 'phone':
-          case 'mobile-phone':
-          case 'mobile-phone-number':
-          case 'mobile-number':
-            if ((typeof _THREAD.user_id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.user != 'undefined')){
-              const _USER_ID = _THREAD.user_id || _THREAD._id || _THREAD.user;
-
-              _THREAD.user_id = new ObjectID(_USER_ID);
-
-              MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-                if (connectionError != null){
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-
-                    res.json(RECURSIVE_CONTENT);
-
-                    client.close();
-                  }else{
                     const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                           _COLLECTION = _DB.collection('users'),
                           _CRITERIA = {
@@ -270,61 +250,52 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         client.close();
                       }
                     });
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+
+                    res.json(RECURSIVE_CONTENT);
                   }
-              });
-            }else{
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+              break;
+
+            default:
+              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
 
               res.json(RECURSIVE_CONTENT);
-            }
-        break;
+          }
+          break;
 
-      default:
-        const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+          default:
+            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
 
-        res.json(RECURSIVE_CONTENT);
-    }
-    break;
+            res.json(RECURSIVE_CONTENT);
+          }
 
-    default:
-      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+          if (_IS_COLLECTION_READY_TO_UPDATE){
+            _THREAD.modified_at = _TODAY;
 
-      res.json(RECURSIVE_CONTENT);
-    }
+            const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                  _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                  _CRITERIA = {
+                    _id: new ObjectID(_TOKEN)
+                  };
 
-      if (_IS_COLLECTION_READY_TO_UPDATE){
-        _THREAD.modified_at = _TODAY;
+            _COLLECTION.updateOne(_THREAD, function(updateQueryError, doc){
+              if (updateQueryError != null){
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
-        MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-          if (connectionError != null){
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+                res.json(RECURSIVE_CONTENT);
+              }else{
+                const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
 
-              res.json(RECURSIVE_CONTENT);
+                res.json(RECURSIVE_CONTENT);
 
-              client.close();
-            }else{
-              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                    _COLLECTION = _DB.collection(_COLLECTION_NAME),
-                    _CRITERIA = {
-                      _id: new ObjectID(_TOKEN)
-                    };
+                client.close();
+              }
+            });
+          }
 
-              _COLLECTION.updateOne(_THREAD, function(updateQueryError, doc){
-                if (updateQueryError != null){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
-
-                  res.json(RECURSIVE_CONTENT);
-                }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
-
-                  res.json(RECURSIVE_CONTENT);
-
-                  client.close();
-                }
-              });
-            }
+          }
         });
-      }
     }
   });
 };

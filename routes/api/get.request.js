@@ -15,33 +15,70 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
       var _IS_COLLECTION_READY_TO_RESPONSE = false;
 
-      switch (_COLLECTION_NAME) {
-        case 'users':
-        case 'endusers':
-        case 'usergroups':
-        case 'wallets':
-        case 'messages':
-        case 'warehouses':
-        case 'turnovers':
-        case 'orders':
-          _IS_COLLECTION_READY_TO_RESPONSE = true;
-          break;
+      MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+        if (connectionError != null){
+            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
 
-        default:
-          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+            res.json(RECURSIVE_CONTENT);
 
-          res.json(RECURSIVE_CONTENT);
-      }
+            client.close();
+          }else{
+            switch (_COLLECTION_NAME) {
+              case 'users':
+                const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                      _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
-      if (_IS_COLLECTION_READY_TO_RESPONSE){
-        MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-          if (connectionError != null){
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+                const _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "usergroups",
+                      "localField": "user_group_id",
+                      "foreignField": "_id",
+                      "as": "usergroup"
+                    }
+                  },
+                  {
+                    "$unwind": "$usergroup"
+                  },
+                  {
+                    "$project": {
+                      "user_group_id": 0
+                    }
+                  }
+                ];
 
-              res.json(RECURSIVE_CONTENT);
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(userFindQueryError, doc){
+                  if (userFindQueryError != null){
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
-              client.close();
-            }else{
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+                break;
+              case 'endusers':
+              case 'usergroups':
+              case 'wallets':
+              case 'messages':
+              case 'warehouses':
+              case 'turnovers':
+              case 'orders':
+                _IS_COLLECTION_READY_TO_RESPONSE = true;
+                break;
+
+              default:
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+
+                res.json(RECURSIVE_CONTENT);
+            }
+
+            if (_IS_COLLECTION_READY_TO_RESPONSE){
               const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                     _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
@@ -60,8 +97,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
               });
             }
-        });
-      }
+          }
+      });
     }
   });
 
@@ -72,57 +109,57 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
       var _IS_COLLECTION_READY_TO_RESPONSE = false;
 
-      switch (_COLLECTION_NAME) {
-        case 'users':
-        case 'endusers':
-        case 'usergroups':
-        case 'wallets':
-        case 'messages':
-        case 'warehouses':
-        case 'turnovers':
-        case 'orders':
-          _IS_COLLECTION_READY_TO_RESPONSE = true;
-          break;
+      MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+        if (connectionError != null){
+            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
 
-        default:
-          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+            res.json(RECURSIVE_CONTENT);
 
-          res.json(RECURSIVE_CONTENT);
-      }
+            client.close();
+        }else{
+          switch (_COLLECTION_NAME) {
+            case 'users':
+            case 'endusers':
+            case 'usergroups':
+            case 'wallets':
+            case 'messages':
+            case 'warehouses':
+            case 'turnovers':
+            case 'orders':
+              _IS_COLLECTION_READY_TO_RESPONSE = true;
+              break;
 
-      if (_IS_COLLECTION_READY_TO_RESPONSE){
-        MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
-          if (connectionError != null){
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
+            default:
+              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
               res.json(RECURSIVE_CONTENT);
+          }
 
-              client.close();
-            }else{
-              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                    _COLLECTION = _DB.collection(_COLLECTION_NAME);
+          if (_IS_COLLECTION_READY_TO_RESPONSE){
+            const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                  _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
-              const _CRITERIA = {
-                _id: _TOKEN
-              };
+            const _CRITERIA = {
+              _id: _TOKEN
+            };
 
-              _COLLECTION.find(_CRITERIA)
-              .toArray(function(userFindQueryError, doc){
-                if (userFindQueryError != null){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+            _COLLECTION.find(_CRITERIA)
+            .toArray(function(userFindQueryError, doc){
+              if (userFindQueryError != null){
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
-                  res.json(RECURSIVE_CONTENT);
-                }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                res.json(RECURSIVE_CONTENT);
+              }else{
+                const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
 
-                  res.json(RECURSIVE_CONTENT);
+                res.json(RECURSIVE_CONTENT);
 
-                  client.close();
-                }
-              });
-            }
-        });
-      }
+                client.close();
+              }
+            });
+          }
+        }
+      });
     }
   });
 
