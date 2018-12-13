@@ -1,10 +1,10 @@
-var express = require('express'),
+var app = require('express')(),
+    http = require('http').Server(app),
+    io = require('socket.io')(http),
     session = require('express-session'),
     MongoStore = require('connect-mongo')(session),
     bodyParser = require('body-parser'),
     cookieParser = require('cookie-parser');
-
-var app = express();
 
 const CONNECTION_URL = 'mongodb://localhost:27017/interfas',
       CONNECTION_CONFIG = {
@@ -13,7 +13,8 @@ const CONNECTION_URL = 'mongodb://localhost:27017/interfas',
           useNewUrlParser: true
         }
       },
-      INTERFAS_KEY = 'vqoE3yZn+BRN01pwhCvzWqeDXaot7Nix81qX3bZUgY36LMqjPdYd17H8oJID3I4W5CejHp/ozVshq8yu6KLhsA==';
+      INTERFAS_KEY = 'vqoE3yZn+BRN01pwhCvzWqeDXaot7Nix81qX3bZUgY36LMqjPdYd17H8oJID3I4W5CejHp/ozVshq8yu6KLhsA==',
+      TARGET_PORT = (typeof process.env.APP_PORT != 'undefined')? process.env.APP_PORT: 16374;
 
 app.set('json spaces', 2);
 
@@ -40,6 +41,6 @@ app.use(bodyParser.urlencoded({
 
 const ROUTES = require('./routes/interfas')(app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
 
-app.listen(16374, () => {
-  console.log('Interfas is running on port 16374!');
+http.listen(TARGET_PORT, () => {
+  console.log(`Interfas is running on port ${TARGET_PORT}!`);
 });
