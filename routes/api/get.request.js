@@ -24,11 +24,22 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             client.close();
           }else{
             switch (_COLLECTION_NAME) {
-              case 'users':
+              case 'endusers':
                 const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                       _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
                 const _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "users",
+                      "localField": "user_id",
+                      "foreignField": "_id",
+                      "as": "user"
+                    }
+                  },
+                  {
+                    "$unwind": "$user"
+                  },
                   {
                     "$lookup": {
                       "from": "usergroups",
@@ -42,14 +53,15 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   },
                   {
                     "$project": {
+                      "user_id": 0,
                       "user_group_id": 0
                     }
                   }
                 ];
 
                 _COLLECTION.aggregate(_CRITERIA)
-                .toArray(function(userFindQueryError, doc){
-                  if (userFindQueryError != null){
+                .toArray(function(endUserFindQueryError, doc){
+                  if (endUserFindQueryError != null){
                     const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
@@ -62,7 +74,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 });
                 break;
-              case 'endusers':
+              case 'users':
               case 'usergroups':
               case 'wallets':
               case 'messages':
@@ -118,8 +130,58 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             client.close();
         }else{
           switch (_COLLECTION_NAME) {
-            case 'users':
             case 'endusers':
+              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                    _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
+              const _CRITERIA = [
+                {
+                  "$lookup": {
+                    "from": "users",
+                    "localField": "user_id",
+                    "foreignField": "_id",
+                    "as": "user"
+                  }
+                },
+                {
+                  "$unwind": "$user"
+                },
+                {
+                  "$lookup": {
+                    "from": "usergroups",
+                    "localField": "user_group_id",
+                    "foreignField": "_id",
+                    "as": "usergroup"
+                  }
+                },
+                {
+                  "$unwind": "$usergroup"
+                },
+                {
+                  "$project": {
+                    "user_id": 0,
+                    "user_group_id": 0
+                  }
+                }
+              ];
+
+              _COLLECTION.aggregate(_CRITERIA)
+              .limit(1)
+              .toArray(function(userFindQueryError, docs){
+                if (userFindQueryError != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs[0]);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }
+              });
+              break;
+            case 'users':
             case 'usergroups':
             case 'wallets':
             case 'messages':
@@ -143,8 +205,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               _id: _TOKEN
             };
 
-            _COLLECTION.find(_CRITERIA)
-            .toArray(function(userFindQueryError, doc){
+            _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
               if (userFindQueryError != null){
                 const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 

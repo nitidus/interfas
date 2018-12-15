@@ -89,7 +89,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   _THREAD.modified_at = _THREAD.created_at = _TODAY;
 
                   const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                        _COLLECTION = _DB.collection(_COLLECTION_NAME);
+                        _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                        _DEPENDED_COLLECTION = _DB.collection('endusers');
 
                   var _CHECKING_CRITERIA = {
                     "$or": []
@@ -118,20 +119,43 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        _COLLECTION.insert(_THREAD, function(insertQueryError, doc){
-                          if (insertQueryError != null){
+                        const _END_USER_SEED = {
+                          user_group_id: _THREAD.user_group_id
+                        };
+
+                        delete _THREAD.user_group_id;
+
+                        _COLLECTION.insertOne(_THREAD, function(insertUserQueryError, userDoc){
+                          if (insertUserQueryError != null){
                             const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
                             res.json(RECURSIVE_CONTENT);
                           }else{
-                            if (doc.insertedCount != 1){
+                            if (userDoc.insertedCount != 1){
                               const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
 
                               res.json(RECURSIVE_CONTENT);
                             }else{
-                              const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc.ops[0]);
+                              _DEPENDED_COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
+                                if (insertEndUserQueryError != null){
+                                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The End User collection insert request could\'t be processed.`, 700);
 
-                              res.json(RECURSIVE_CONTENT);
+                                  res.json(RECURSIVE_CONTENT);
+                                }else{
+                                  if (endUserDoc.insertedCount != 1){
+                                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The document in End User collection could\'t be inserted.`, 700);
+
+                                    res.json(RECURSIVE_CONTENT);
+                                  }else{
+                                    const RECURSIVE_CONTENT = {
+                                      user: userDoc.ops[0],
+                                      endUser: endUserDoc.ops[0]
+                                    };
+
+                                    res.redirect(`/endusers/${RECURSIVE_CONTENT.endUser._id}`);
+                                  }
+                                }
+                              })
                             }
                           }
                         });
@@ -149,10 +173,54 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 if ((typeof _THREAD.user_id != 'undefined')){
                   _THREAD.viewed = 0;
                   _THREAD.user_id = new ObjectID(_THREAD.user_id);
+                  _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
 
                   //End User detection for user groups
 
                   _IS_COLLECTION_READY_TO_ABSORB = true;
+                }else if ((typeof _THREAD.user_groups_depended_count != 'undefined') || (typeof _THREAD.user_groups_count != 'undefined') || (typeof _THREAD.user_roles_depended_count != 'undefined') || (typeof _THREAD.user_roles_count != 'undefined') || (typeof _THREAD.roles_depended_count != 'undefined') || (typeof _THREAD.roles_count != 'undefined')){
+                  const _ROLES_COUNT_IN_STRING_MODE = _THREAD.user_groups_depended_count || _THREAD.user_groups_count || _THREAD.user_roles_depended_count || _THREAD.user_roles_count || _THREAD.roles_depended_count || _THREAD.roles_count;
+
+                  if ((typeof _ROLES_COUNT_IN_STRING_MODE != 'undefined') && Number.isInteger(_ROLES_COUNT_IN_STRING_MODE)){
+                    const _ROLES_COUNT = parseInt(_ROLES_COUNT_IN_STRING_MODE);
+
+                    var _ENDUSERS = [];
+
+                    for (var i = 0; i < _ROLES_COUNT; i++) {
+                      _ENDUSERS.push({
+                        user_group_id: new ObjectID(_THREAD.user_group_id),
+                        modified_at: _TODAY,
+                        created_at: _TODAY
+                      });
+                    }
+
+                    const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                          _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
+                    _COLLECTION.insertMany(_ENDUSERS, function(insertsQueryError, docs){
+                      if (insertsQueryError != null){
+                        const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection inserts request could\'t be processed.`, 700);
+
+                        res.json(RECURSIVE_CONTENT);
+                      }else{
+                        if (docs.insertedCount === 0){
+                          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The documents in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+
+                          res.json(RECURSIVE_CONTENT);
+                        }else{
+                          const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs.ops);
+
+                          res.json(RECURSIVE_CONTENT);
+
+                          client.close();
+                        }
+                      }
+                    });
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You should define user groups (Roles) count.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }
                 }else{
                   res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
                 }
@@ -253,27 +321,19 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
 
                   const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                        _COLLECTION = _DB.collection('users');
+                        _COLLECTION = _DB.collection('endusers');
 
                   const _CRITERIA = [
                     {
-                      "$match": {
-                        "$and": [
-                          {
-                            "$or": [
-                              {
-                                "email.content": _TOKEN
-                              },
-                              {
-                                "phone.mobile.content": _TOKEN
-                              }
-                            ]
-                          },
-                          {
-                            "password": _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY
-                          }
-                        ]
+                      "$lookup": {
+                        "from": "users",
+                        "localField": "user_id",
+                        "foreignField": "_id",
+                        "as": "user"
                       }
+                    },
+                    {
+                      "$unwind": "$user"
                     },
                     {
                       "$lookup": {
@@ -288,7 +348,27 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     },
                     {
                       "$project": {
+                        "user_id": 0,
                         "user_group_id": 0
+                      }
+                    },
+                    {
+                      "$match": {
+                        "$and": [
+                          {
+                            "$or": [
+                              {
+                                "user.email.content": _TOKEN
+                              },
+                              {
+                                "user.phone.mobile.content": _TOKEN
+                              }
+                            ]
+                          },
+                          {
+                            "user.password": _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY
+                          }
+                        ]
                       }
                     },
                     {
@@ -327,7 +407,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                     _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
-              _COLLECTION.insert(_THREAD, function(insertQueryError, doc){
+              _COLLECTION.insertOne(_THREAD, function(insertQueryError, doc){
                 if (insertQueryError != null){
                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
