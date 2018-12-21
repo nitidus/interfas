@@ -333,7 +333,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       }
                     },
                     {
-                      "$unwind": "$user"
+                      "$unwind": {
+                        "path": "$user",
+                        "preserveNullAndEmptyArrays": true
+                      }
                     },
                     {
                       "$lookup": {

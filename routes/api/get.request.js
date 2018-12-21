@@ -23,12 +23,13 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             client.close();
           }else{
+            var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                _CRITERIA = [];
+
             switch (_COLLECTION_NAME) {
               case 'endusers':
-                const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                      _COLLECTION = _DB.collection(_COLLECTION_NAME);
-
-                const _CRITERIA = [
+                _CRITERIA = [
                   {
                     "$lookup": {
                       "from": "users",
@@ -38,7 +39,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   },
                   {
-                    "$unwind": "$user"
+                    "$unwind": {
+                      "path": "$user",
+                      "preserveNullAndEmptyArrays": true
+                    }
                   },
                   {
                     "$lookup": {
@@ -91,12 +95,14 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             }
 
             if (_IS_COLLECTION_READY_TO_RESPONSE){
-              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                    _COLLECTION = _DB.collection(_COLLECTION_NAME);
+              if (_CRITERIA.length === 0){
+                _CRITERIA = {};
+              }
 
-              _COLLECTION.find()
+              _COLLECTION.find(_CRITERIA)
               .toArray(function(userFindQueryError, doc){
                 if (userFindQueryError != null){
+                  console.log(userFindQueryError)
                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
@@ -129,12 +135,13 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             client.close();
         }else{
+          var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+              _COLLECTION = _DB.collection(_COLLECTION_NAME),
+              _CRITERIA = [];
+
           switch (_COLLECTION_NAME) {
             case 'endusers':
-              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                    _COLLECTION = _DB.collection(_COLLECTION_NAME);
-
-              const _CRITERIA = [
+              _CRITERIA = [
                 {
                   "$lookup": {
                     "from": "users",
@@ -144,7 +151,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 },
                 {
-                  "$unwind": "$user"
+                  "$unwind": {
+                    "path": "$user",
+                    "preserveNullAndEmptyArrays": true
+                  }
                 },
                 {
                   "$lookup": {
@@ -181,6 +191,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
               });
               break;
+
             case 'users':
             case 'usergroups':
             case 'wallets':
@@ -191,17 +202,82 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               _IS_COLLECTION_READY_TO_RESPONSE = true;
               break;
 
+            case 'roles':
+              _COLLECTION = _DB.collection('endusers')
+
+              _CRITERIA = [
+                    {
+                      "$lookup": {
+                        "from": "users",
+                        "localField": "user_id",
+                        "foreignField": "_id",
+                        "as": "user"
+                      }
+                    },
+                    {
+                      "$unwind": {
+                        "path": "$user",
+                        "preserveNullAndEmptyArrays": true
+                      }
+                    },
+                    {
+                      "$lookup": {
+                        "from": "usergroups",
+                        "localField": "user_group_id",
+                        "foreignField": "_id",
+                        "as": "usergroup"
+                      }
+                    },
+                    {
+                      "$unwind": "$usergroup"
+                    },
+                    {
+                      "$project": {
+                        "user_id": 0,
+                        "user_group_id": 0
+                      }
+                    },
+                    {
+                      "$match": {
+                        "$and": [
+                          {
+                            "usergroup.reference_id": {
+                              "$exists": true
+                            }
+                          },
+                          {
+                            "usergroup.reference_id": _TOKEN
+                          }
+                        ]
+                      }
+                    }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(userFindQueryError, docs){
+                  if (userFindQueryError != null){
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+              break;
+
             default:
               const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
               res.json(RECURSIVE_CONTENT);
+              break;
           }
 
           if (_IS_COLLECTION_READY_TO_RESPONSE){
-            const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                  _COLLECTION = _DB.collection(_COLLECTION_NAME);
-
-            const _CRITERIA = {
+            _CRITERIA = {
               _id: _TOKEN
             };
 
@@ -225,7 +301,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   });
 
   app.get('/usergroups/type/:token', (req, res) => {
-    const _TOKEN = req.params.token;
+    const _TOKEN = req.params.token,
+          _THREAD = req.query;
 
     MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
       if (connectionError != null){
@@ -241,6 +318,14 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           const _CRITERIA = {
             type: _Functions._convertTokenToKeyword(_TOKEN)
           };
+
+          if ((typeof _THREAD.priority != 'undefined') || (typeof _THREAD._priority != 'undefined')){
+            const _PRIORITY = _THREAD.priority || _THREAD._priority;
+
+            _CRITERIA.priority = {
+              "$gt": parseInt(_PRIORITY)
+            };
+          }
 
           _COLLECTION.find(_CRITERIA)
           .toArray(function(userFindQueryError, doc){

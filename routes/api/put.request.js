@@ -263,6 +263,21 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               res.json(RECURSIVE_CONTENT);
           }
           break;
+        case 'usergroups':
+          if (typeof _THREAD.reference_id != 'undefined'){
+            _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
+          }
+
+          if (typeof _THREAD.type != 'undefined'){
+            _THREAD.type = _Functions._convertTokenToKeyword(_THREAD.type);
+          }
+
+          if (typeof _THREAD.role != 'undefined'){
+            _THREAD.role = _Functions._convertTokenToKeyword(_THREAD.role);
+          }
+
+          _IS_COLLECTION_READY_TO_UPDATE = true;
+          break;
 
           default:
             const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
@@ -277,9 +292,12 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   _COLLECTION = _DB.collection(_COLLECTION_NAME),
                   _CRITERIA = {
                     _id: new ObjectID(_TOKEN)
+                  },
+                  _TARGET = {
+                    "$set": _THREAD
                   };
 
-            _COLLECTION.updateOne(_THREAD, function(updateQueryError, doc){
+            _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
               if (updateQueryError != null){
                 const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
