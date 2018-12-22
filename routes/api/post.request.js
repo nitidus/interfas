@@ -187,11 +187,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     var _ENDUSERS = [];
 
                     for (var i = 0; i < _ROLES_COUNT; i++) {
-                      _ENDUSERS.push({
+                      const _SINGLE_ENDUSER = {
                         user_group_id: new ObjectID(_THREAD.user_group_id),
                         modified_at: _TODAY,
                         created_at: _TODAY
-                      });
+                      };
+
+                      if (typeof _THREAD.reference_id != 'undefined'){
+                        _SINGLE_ENDUSER.reference_id = new ObjectID(_THREAD.reference_id);
+                      }
+
+                      _ENDUSERS.push(_SINGLE_ENDUSER);
                     }
 
                     const _DB = client.db(CONNECTION_CONFIG.DB_NAME),

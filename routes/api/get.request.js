@@ -123,7 +123,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.get('/:collection/:token', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase(),
-            _TOKEN = new ObjectID(req.params.token);
+            _TOKEN = new ObjectID(req.params.token),
+            _THREAD = req.query;
 
       var _IS_COLLECTION_READY_TO_RESPONSE = false;
 
@@ -203,70 +204,88 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               break;
 
             case 'roles':
-              _COLLECTION = _DB.collection('endusers')
+              _COLLECTION = _DB.collection('endusers');
 
-              _CRITERIA = [
-                    {
-                      "$lookup": {
-                        "from": "users",
-                        "localField": "user_id",
-                        "foreignField": "_id",
-                        "as": "user"
-                      }
-                    },
-                    {
-                      "$unwind": {
-                        "path": "$user",
-                        "preserveNullAndEmptyArrays": true
-                      }
-                    },
-                    {
-                      "$lookup": {
-                        "from": "usergroups",
-                        "localField": "user_group_id",
-                        "foreignField": "_id",
-                        "as": "usergroup"
-                      }
-                    },
-                    {
-                      "$unwind": "$usergroup"
-                    },
-                    {
-                      "$project": {
-                        "user_id": 0,
-                        "user_group_id": 0
-                      }
-                    },
-                    {
-                      "$match": {
-                        "$and": [
-                          {
-                            "usergroup.reference_id": {
-                              "$exists": true
+              const _REFERENCE_ID = _THREAD.reference_id || _THREAD.reference || _THREAD.id || _THREAD._id || _THREAD.token;
+
+              if (typeof _REFERENCE_ID != 'undefined'){
+                _CRITERIA = [
+                      {
+                        "$lookup": {
+                          "from": "users",
+                          "localField": "user_id",
+                          "foreignField": "_id",
+                          "as": "user"
+                        }
+                      },
+                      {
+                        "$unwind": {
+                          "path": "$user",
+                          "preserveNullAndEmptyArrays": true
+                        }
+                      },
+                      {
+                        "$lookup": {
+                          "from": "usergroups",
+                          "localField": "user_group_id",
+                          "foreignField": "_id",
+                          "as": "usergroup"
+                        }
+                      },
+                      {
+                        "$unwind": "$usergroup"
+                      },
+                      {
+                        "$project": {
+                          "user_id": 0,
+                          "user_group_id": 0
+                        }
+                      },
+                      {
+                        "$match": {
+                          "$and": [
+                            {
+                              "reference_id": {
+                                "$exists": true
+                              }
+                            },
+                            {
+                              "reference_id": _TOKEN
+                            },
+                            {
+                              "$or": [
+                                {
+                                  "usergroup._id": new ObjectID(_REFERENCE_ID)
+                                },
+                                {
+                                  "usergroup.reference_id": new ObjectID(_REFERENCE_ID)
+                                }
+                              ]
                             }
-                          },
-                          {
-                            "usergroup.reference_id": _TOKEN
-                          }
-                        ]
+                          ]
+                        }
                       }
+                  ];
+                  
+                  _COLLECTION.aggregate(_CRITERIA)
+                  .toArray(function(userFindQueryError, docs){
+                    if (userFindQueryError != null){
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
+
+                      res.json(RECURSIVE_CONTENT);
+
+                      client.close();
                     }
-                ];
+                  });
+              }else{
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You should define the usergroup id.');
 
-                _COLLECTION.aggregate(_CRITERIA)
-                .toArray(function(userFindQueryError, docs){
-                  if (userFindQueryError != null){
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
-
-                    res.json(RECURSIVE_CONTENT);
-                  }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
-
-                    res.json(RECURSIVE_CONTENT);
-
-                    client.close();
-                  }
-                });
+                res.json(RECURSIVE_CONTENT);
+              }
               break;
 
             default:
