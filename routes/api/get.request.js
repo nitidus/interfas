@@ -206,86 +206,87 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'roles':
               _COLLECTION = _DB.collection('endusers');
 
-              const _REFERENCE_ID = _THREAD.reference_id || _THREAD.reference || _THREAD.id || _THREAD._id || _THREAD.token;
+              var _PREFERED_ID;
 
-              if (typeof _REFERENCE_ID != 'undefined'){
-                _CRITERIA = [
-                      {
-                        "$lookup": {
-                          "from": "users",
-                          "localField": "user_id",
-                          "foreignField": "_id",
-                          "as": "user"
-                        }
-                      },
-                      {
-                        "$unwind": {
-                          "path": "$user",
-                          "preserveNullAndEmptyArrays": true
-                        }
-                      },
-                      {
-                        "$lookup": {
-                          "from": "usergroups",
-                          "localField": "user_group_id",
-                          "foreignField": "_id",
-                          "as": "usergroup"
-                        }
-                      },
-                      {
-                        "$unwind": "$usergroup"
-                      },
-                      {
-                        "$project": {
-                          "user_id": 0,
-                          "user_group_id": 0
-                        }
-                      },
-                      {
-                        "$match": {
-                          "$and": [
-                            {
-                              "reference_id": {
-                                "$exists": true
-                              }
-                            },
-                            {
-                              "reference_id": _TOKEN
-                            },
-                            {
-                              "$or": [
-                                {
-                                  "usergroup._id": new ObjectID(_REFERENCE_ID)
-                                },
-                                {
-                                  "usergroup.reference_id": new ObjectID(_REFERENCE_ID)
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                  ];
-                  
-                  _COLLECTION.aggregate(_CRITERIA)
-                  .toArray(function(userFindQueryError, docs){
-                    if (userFindQueryError != null){
-                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+              if ((typeof _THREAD.reference_id != 'undefined') || (typeof _THREAD.reference != 'undefined')){
+                const _PREFERED_TOKEN = _THREAD.reference_id || _THREAD.reference;
 
-                      res.json(RECURSIVE_CONTENT);
-                    }else{
-                      const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
-
-                      res.json(RECURSIVE_CONTENT);
-
-                      client.close();
-                    }
-                  });
-              }else{
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You should define the usergroup id.');
-
-                res.json(RECURSIVE_CONTENT);
+                _PREFERED_ID = {
+                  "usergroup.reference_id": new ObjectID(_PREFERED_TOKEN)
+                };
               }
+
+              if ((typeof _THREAD.id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.token != 'undefined')){
+                const _PREFERED_TOKEN = _THREAD.id || _THREAD._id || _THREAD.token;
+
+                _PREFERED_ID = {
+                  "usergroup._id": new ObjectID(_PREFERED_TOKEN)
+                };
+              }
+
+              _CRITERIA = [
+                    {
+                      "$lookup": {
+                        "from": "users",
+                        "localField": "user_id",
+                        "foreignField": "_id",
+                        "as": "user"
+                      }
+                    },
+                    {
+                      "$unwind": {
+                        "path": "$user",
+                        "preserveNullAndEmptyArrays": true
+                      }
+                    },
+                    {
+                      "$lookup": {
+                        "from": "usergroups",
+                        "localField": "user_group_id",
+                        "foreignField": "_id",
+                        "as": "usergroup"
+                      }
+                    },
+                    {
+                      "$unwind": "$usergroup"
+                    },
+                    {
+                      "$project": {
+                        "user_id": 0,
+                        "user_group_id": 0
+                      }
+                    },
+                    {
+                      "$match": {
+                        "$and": [
+                          {
+                            "reference_id": {
+                              "$exists": true
+                            }
+                          },
+                          {
+                            "reference_id": _TOKEN
+                          },
+                          _PREFERED_ID
+                        ]
+                      }
+                    }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(userFindQueryError, docs){
+                  if (userFindQueryError != null){
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
               break;
 
             default:
