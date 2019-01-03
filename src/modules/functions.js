@@ -111,6 +111,24 @@ module.exports = {
  _convertTokenToKeyword: (token) => {
    return token.replace(/ +/ig, ' ').replace(/ /ig, '_').toUpperCase();
  },
+ _writeBase64DataOnFile: (base64DataURI, requestedDirectoryPath) => {
+   const _REQUESTED_FILE_NAME = (requestedDirectoryPath.match(/.+\.\w/ig) !== null)? path.basename(requestedDirectoryPath): '',
+         _FILE_MIME_TYPE = base64DataURI.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, ''),
+         _FILE_EXTENSION_REGEX = new RegExp(`.+\.${_FILE_MIME_TYPE}$`, 'g');
+
+   if (_REQUESTED_FILE_NAME.match(_FILE_EXTENSION_REGEX) !== null){
+     const _FINAL_BASE64_DATA_URI = base64DataURI.replace(/data:\w+\/\w+;base64,/i, ''),
+           _FINAL_DATA_BUFFER = new Buffer(_FINAL_BASE64_DATA_URI, 'base64');
+
+     fs.writeFile(requestedDirectoryPath, _FINAL_DATA_BUFFER, (writeFileError) => {
+       if (writeFileError){
+         return module.exports._throwErrorWithCodeAndMessage(writeFileError, 700);
+       }
+
+       return module.exports._throwResponseWithData(requestedDirectoryPath);
+     })
+   }
+ },
  _uploadBase64DataURI: (base64DataURI, specificDirectory) => {
    const _REQUESTED_PATH = path.resolve(__dirname, '..', specificDirectory),
          _REQUESTED_FILE_NAME = (_REQUESTED_PATH.match(/.+\.\w/ig) !== null)? path.basename(_REQUESTED_PATH): '',
@@ -121,24 +139,14 @@ module.exports = {
        if (accessError.code === 'ENOENT'){
          fx.mkdir(_REQUESTED_DIRECTORY, (mkdirError) => {
            if (!mkdirError){
-             const _FILE_MIME_TYPE = base64DataURI.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, ''),
-                   _FILE_EXTENSION_REGEX = new RegExp(`.+\.${_FILE_MIME_TYPE}$`, 'g');
-
-             if (_REQUESTED_FILE_NAME.match(_FILE_EXTENSION_REGEX) !== null){
-               const _FINAL_BASE64_DATA_URI = base64DataURI.replace(/data:\w+\/\w+;base64,/i, ''),
-                     _FINAL_DATA_BUFFER = new Buffer(_FINAL_BASE64_DATA_URI, 'base64');
-
-               fs.writeFile(_REQUESTED_PATH, _FINAL_DATA_BUFFER, (writeFileError) => {
-                 if (writeFileError){
-                   return module.exports._throwErrorWithCodeAndMessage(writeFileError, 700);
-                 }
-
-                 return module.exports._throwResponseWithData(_REQUESTED_PATH);
-               })
-             }
+             module.exports._writeBase64DataOnFile(base64DataURI, _REQUESTED_PATH);
            }
          });
+       }else{
+         module.exports._writeBase64DataOnFile(base64DataURI, _REQUESTED_PATH);
        }
+     }else{
+       module.exports._writeBase64DataOnFile(base64DataURI, _REQUESTED_PATH);
      }
    });
  },
@@ -151,16 +159,38 @@ module.exports = {
      if (accessError){
        if (accessError.code === 'ENOENT'){
          fx.rmdir(_REQUESTED_PATH, (rmpathError) => {
-           if (!rmpathError){
-             //handle if elimination was successful
+           if (rmpathError){
+             return false;
+           }
+         });
+       }else{
+         fx.rmdir(_REQUESTED_PATH, (rmpathError) => {
+           if (rmpathError){
+             return false;
            }
          });
        }
      }
    });
  },
+ _removeFileWithPath: (directory) => {
+   const _REQUESTED_PATH = path.resolve(__dirname, '..', directory);
+
+   fs.unlink(_REQUESTED_PATH, (unlinkError) => {
+      if (unlinkError){
+        return false;
+      }
+    });
+ },
  _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
-   const _FILE_DIRECTORY = `img/profile/${photoDirectoryWithOptionalExtendedPath}`;
+   const _FILE_DIRECTORY = `img/profile/users/${photoDirectoryWithOptionalExtendedPath}`;
+
+   module.exports._uploadBase64DataURI(base64DataURI, _FILE_DIRECTORY);
+
+   return _FILE_DIRECTORY;
+ },
+ _uploadBrandProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
+   const _FILE_DIRECTORY = `img/profile/brands/${photoDirectoryWithOptionalExtendedPath}`;
 
    module.exports._uploadBase64DataURI(base64DataURI, _FILE_DIRECTORY);
 

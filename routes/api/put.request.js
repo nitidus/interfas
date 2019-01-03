@@ -278,6 +278,115 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
           _IS_COLLECTION_READY_TO_UPDATE = true;
           break;
+        case 'endusers':
+          _CRITERIA = {
+            _id: new ObjectID(_TOKEN)
+          };
+
+          var _TARGET = {
+            "$set": {
+              modified_at: _TODAY
+            }
+          };
+
+          if (typeof _THREAD.brand != 'undefined'){
+            if (typeof _THREAD.brand.name != 'undefined'){
+              _TARGET["$set"]["brand.name"] = _THREAD.brand.name;
+            }
+
+            if (typeof _THREAD.brand.photo != 'undefined'){
+              var _IS_REMOVED_THE_RECENT_HOSTED_FILE = true;
+
+              const _CRITERIA = [
+                {
+                  "$lookup": {
+                    "from": "users",
+                    "localField": "user_id",
+                    "foreignField": "_id",
+                    "as": "user"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$user",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "usergroups",
+                    "localField": "user_group_id",
+                    "foreignField": "_id",
+                    "as": "usergroup"
+                  }
+                },
+                {
+                  "$unwind": "$usergroup"
+                },
+                {
+                  "$project": {
+                    "user_id": 0,
+                    "user_group_id": 0
+                  }
+                },
+                {
+                  "$match": {
+                    "_id": _TOKEN
+                  }
+                },
+                {
+                  "$limit": 1
+                }
+              ];
+
+              _COLLECTION.aggregate(_CRITERIA)
+              .toArray(function(userAuthQueryError, doc){
+                if (userAuthQueryError != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
+
+                  _IS_REMOVED_THE_RECENT_HOSTED_FILE = false;
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const _CHECKED_ENDUSER = doc[0];
+
+                  if (typeof _CHECKED_ENDUSER.brand.photo != 'undefined'){
+                    const _IS_REMOVE_REQUEST_DONE = _Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
+
+                    if (_IS_REMOVE_REQUEST_DONE !== false){
+                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.password}`,
+                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_CHECKED_ENDUSER.password}`,
+                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                            _FILE_EXTENSION_MIMETYPE = _THREAD.brand.photo.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+
+                      _TARGET["$set"]["brand.photo"] = _Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                    }
+                  }
+                }
+              });
+            }
+          }
+
+          if (_THREAD.user_group_id){
+            _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
+          }
+
+          if (_IS_REMOVED_THE_RECENT_HOSTED_FILE){
+            _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
+              if (updateQueryError != null){
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+
+                res.json(RECURSIVE_CONTENT);
+              }else{
+                const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+
+                res.json(RECURSIVE_CONTENT);
+
+                client.close();
+              }
+            });
+          }
+          break;
 
           default:
             const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
