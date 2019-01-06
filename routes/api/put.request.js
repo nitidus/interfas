@@ -297,7 +297,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             if (typeof _THREAD.brand.photo != 'undefined'){
               var _IS_REMOVED_THE_RECENT_HOSTED_FILE = true;
 
-              const _CRITERIA = [
+              const _CHECK_REQUEST_CRITERIA = [
                 {
                   "$lookup": {
                     "from": "users",
@@ -339,7 +339,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
               ];
 
-              _COLLECTION.aggregate(_CRITERIA)
+              _COLLECTION.aggregate(_CHECK_REQUEST_CRITERIA)
               .toArray(function(userAuthQueryError, doc){
                 if (userAuthQueryError != null){
                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
