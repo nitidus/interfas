@@ -85,6 +85,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               case 'warehouses':
               case 'turnovers':
               case 'orders':
+              case 'currencies':
                 _IS_COLLECTION_READY_TO_RESPONSE = true;
                 break;
 
@@ -200,6 +201,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'warehouses':
             case 'turnovers':
             case 'orders':
+            case 'currencies':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
               break;
 

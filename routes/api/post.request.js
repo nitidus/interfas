@@ -319,6 +319,20 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
                 break;
 
+              case 'currencies':
+                if (((typeof _THREAD.type != 'undefined') || (typeof _THREAD.name != 'undefined') || (typeof _THREAD.currency_type != 'undefined') || (typeof _THREAD.currency_name != 'undefined')) && ((typeof _THREAD.sign != 'undefined') || (typeof _THREAD.currency_sign != 'undefined'))){
+                  const _CURRENCY_TYPE = _THREAD.type || _THREAD.name || _THREAD.currency_type || _THREAD.currency_name,
+                        _CURRENCY_SIGN = _THREAD.sign || _THREAD.currency_sign;
+
+                  if (_CURRENCY_TYPE != '' && _CURRENCY_SIGN != ''){
+                    _THREAD.type = _Functions._convertTokenToKeyword(_CURRENCY_TYPE);
+                    _THREAD.sign = _CURRENCY_SIGN;
+
+                    _IS_COLLECTION_READY_TO_ABSORB = true;
+                  }
+                }
+                break;
+
               case 'auth':
                 if (((typeof _THREAD.user_name != 'undefined') || (typeof _THREAD.userName != 'undefined') || (typeof _THREAD.email != 'undefined') || (typeof _THREAD.token != 'undefined') || (typeof _THREAD.phoneNumber != 'undefined') || (typeof _THREAD.phone_number != 'undefined')) && (typeof _THREAD.password != 'undefined')){
                   const _TOKEN = _THREAD.user_name || _THREAD.userName || _THREAD.email || _THREAD.token || _THREAD.phone_number || _THREAD.phoneNumber,
