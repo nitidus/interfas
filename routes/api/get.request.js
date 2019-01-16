@@ -101,6 +101,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               }
 
               _COLLECTION.find(_CRITERIA)
+              .sort({
+                created_at: -1
+              })
               .toArray(function(userFindQueryError, doc){
                 if (userFindQueryError != null){
                   console.log(userFindQueryError)
@@ -337,9 +340,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                 _COLLECTION = _DB.collection('usergroups');
 
-          const _CRITERIA = {
-            type: _Functions._convertTokenToKeyword(_TOKEN)
-          };
+          var _CRITERIA = {
+                type: _Functions._convertTokenToKeyword(_TOKEN)
+              };
 
           if ((typeof _THREAD.priority != 'undefined') || (typeof _THREAD._priority != 'undefined')){
             const _PRIORITY = _THREAD.priority || _THREAD._priority;
@@ -350,6 +353,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           }
 
           _COLLECTION.find(_CRITERIA)
+          .sort({
+            priority: 1
+          })
           .toArray(function(userFindQueryError, doc){
             if (userFindQueryError != null){
               const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);

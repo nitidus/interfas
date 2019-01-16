@@ -31,7 +31,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             client.close();
           }else{
             switch (_COLLECTION_NAME) {
-              case 'users':
+              case 'users'://here
                 if ((typeof _THREAD.personal != 'undefined') && (typeof _THREAD.user_group_id != 'undefined') && (typeof _THREAD.password != 'undefined') && ((typeof _THREAD.email != 'undefined') || (typeof _THREAD.phone != 'undefined'))){
                   const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
                         _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
