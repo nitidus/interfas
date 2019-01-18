@@ -358,7 +358,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           })
           .toArray(function(userFindQueryError, doc){
             if (userFindQueryError != null){
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The usergroups collection find request could\'t be processed.`, 700);
 
               res.json(RECURSIVE_CONTENT);
             }else{
@@ -371,5 +371,63 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           });
         }
     });
+  });
+
+  app.get('/usergroups/type/:token/:head', (req, res) => {
+    const _TOKEN = req.params.token,
+          _HEAD = req.params.head;
+
+    if (_HEAD != ''){
+      const _HEAD_KEYWORD = _Functions._convertTokenToKeyword(_HEAD);
+
+      switch (_HEAD_KEYWORD) {
+        case 'HEAD':
+        case 'MASTER':
+        case 'HEAD_MASTER':
+        case 'TOP':
+        case 'HIGHEST':
+        case 'HIGHEST_PRIORITY':
+          MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+            if (connectionError != null){
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The usergroups collection could not be reached.`, 700);
+
+                res.json(RECURSIVE_CONTENT);
+
+                client.close();
+              }else{
+                const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                      _COLLECTION = _DB.collection('usergroups');
+
+                var _CRITERIA = {
+                      type: _Functions._convertTokenToKeyword(_TOKEN),
+                      reference_id: {
+                        "$exists": false
+                      }
+                    };
+
+                _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
+                  if (userFindQueryError != null){
+                    //`The usergroups collection find request could\'t be processed.`
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(_CRITERIA, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+              }
+          });
+          break;
+        default:
+          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You should choose the user level type.`, 700);
+
+          res.json(RECURSIVE_CONTENT);
+          break;
+      }
+    }
   });
 };
