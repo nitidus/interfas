@@ -21,7 +21,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             _TOKEN = req.params.token;
 
       var _THREAD = req.body,
-          _IS_COLLECTION_READY_TO_UPDATE = false;
+          _IS_COLLECTION_READY_TO_UPDATE = false,
+          _CRITERIA = [];
 
       if (typeof _THREAD._id != 'undefined') {
         delete _THREAD._id;
@@ -35,6 +36,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             client.close();
           }else{
+            var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
             switch (_COLLECTION_NAME) {
               case 'users':
                 var _TARGET = {},
@@ -92,11 +96,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                 _TARGET.modified_at = _TODAY;
 
-                const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                      _COLLECTION = _DB.collection(_COLLECTION_NAME),
-                      _CRITERIA = {
-                        _id: new ObjectID(_TOKEN)
-                      };
+                _CRITERIA = {
+                  _id: new ObjectID(_TOKEN)
+                };
 
                 if ((typeof _THREAD.personal.profile != 'undefined') || (typeof _THREAD.profile != 'undefined') || (typeof _THREAD.profile_photo != 'undefined') || (typeof _THREAD.profilePhoto != 'undefined')){
                   const _PROFILE_DIRECTORY = _THREAD.personal.profile || _THREAD.profile || _THREAD.profile_photo || _THREAD.profilePhoto;
@@ -151,17 +153,18 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       _THREAD.user_id = new ObjectID(_USER_ID);
 
-                      const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                            _COLLECTION = _DB.collection('users'),
-                            _CRITERIA = {
-                              _id: _THREAD.user_id
-                            },
-                            _TARGET = {
+                      const _TARGET = {
                               "$set": {
                                 "phone.mobile.validation.value": true,
                                 "phone.mobile.validation.modified_at": _TODAY
                               }
                             };
+
+                      _COLLECTION = _DB.collection('users');
+
+                      _CRITERIA = {
+                        _id: _THREAD.user_id
+                      }
 
                       _COLLECTION.updateOne(_CRITERIA, _TARGET, function(verifyQueryError, doc){
                         if (verifyQueryError != null){
@@ -202,12 +205,13 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     _THREAD.user_id = new ObjectID(_USER_ID);
 
-                    const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                          _COLLECTION = _DB.collection('users'),
-                          _CRITERIA = {
-                            _id: _THREAD.user_id
-                          },
-                          _VALIDATION_TOKEN = Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString();
+                    const _VALIDATION_TOKEN = Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString();
+
+                    _COLLECTION = _DB.collection('users');
+
+                    _CRITERIA = {
+                      _id: _THREAD.user_id
+                    }
 
                     var _TARGET = {
                       "$set": {
@@ -364,27 +368,27 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 }
               });
-            }
           }
 
           if (_THREAD.user_group_id){
             _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
           }
 
-          if (_IS_REMOVED_THE_RECENT_HOSTED_FILE){
-            _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
-              if (updateQueryError != null){
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+          if (((typeof _THREAD.brand.photo != 'undefined') && _IS_REMOVED_THE_RECENT_HOSTED_FILE) || (typeof _THREAD.brand.photo == 'undefined')){
+              _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
+                if (updateQueryError != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
-                res.json(RECURSIVE_CONTENT);
-              }else{
-                const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
 
-                res.json(RECURSIVE_CONTENT);
+                  res.json(RECURSIVE_CONTENT);
 
-                client.close();
-              }
-            });
+                  client.close();
+                }
+              });
+            }
           }
           break;
 
@@ -397,14 +401,13 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           if (_IS_COLLECTION_READY_TO_UPDATE){
             _THREAD.modified_at = _TODAY;
 
-            const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                  _COLLECTION = _DB.collection(_COLLECTION_NAME),
-                  _CRITERIA = {
-                    _id: new ObjectID(_TOKEN)
-                  },
-                  _TARGET = {
+            const _TARGET = {
                     "$set": _THREAD
                   };
+
+            _CRITERIA = {
+              _id: new ObjectID(_TOKEN)
+            }
 
             _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
               if (updateQueryError != null){
