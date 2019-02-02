@@ -90,10 +90,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 }
 
-                if (typeof _THREAD.user_group_id != 'undefined') {
-                  _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
-                }
-
                 _TARGET.modified_at = _TODAY;
 
                 _CRITERIA = {

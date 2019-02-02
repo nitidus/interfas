@@ -16,7 +16,7 @@ const _LOCAL_FUNCTIONS = {
 module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.post('/:collection', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
-      const _COLLECTION_NAME = req.params.collection.toLowerCase(),
+            _COLLECTION_NAME = req.params.collection.toLowerCase(),
             _TODAY = new Date();
 
       var _THREAD = req.body,
@@ -97,13 +97,13 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   if (typeof _THREAD.phone.mobile.content != 'undefined'){
                     _CHECKING_CRITERIA["$or"].push({
-                      "email.content": _THREAD.phone.mobile.content
+                      "email.content": _THREAD.email.content
                     })
                   }
 
                   if (typeof _THREAD.email.content != 'undefined'){
                     _CHECKING_CRITERIA["$or"].push({
-                      "phone.mobile.content": _THREAD.email.content
+                      "phone.mobile.content": _THREAD.phone.mobile.content
                     })
                   }
 
@@ -118,8 +118,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        const _END_USER_SEED = {
-                          user_group_id: _THREAD.user_group_id
+                        var _END_USER_SEED = {
+                          user_group_id: new ObjectID(_THREAD.user_group_id)
                         };
 
                         delete _THREAD.user_group_id;
@@ -135,6 +135,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                               res.json(RECURSIVE_CONTENT);
                             }else{
+                              _END_USER_SEED.user_id = new ObjectID(userDoc.ops[0]._id);
+
                               _DEPENDED_COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
                                 if (insertEndUserQueryError != null){
                                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The End User collection insert request could\'t be processed.`, 700);
@@ -177,55 +179,117 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   //End User detection for user groups
 
                   _IS_COLLECTION_READY_TO_ABSORB = true;
-                }else if ((typeof _THREAD.user_groups_depended_count != 'undefined') || (typeof _THREAD.user_groups_count != 'undefined') || (typeof _THREAD.user_roles_depended_count != 'undefined') || (typeof _THREAD.user_roles_count != 'undefined') || (typeof _THREAD.roles_depended_count != 'undefined') || (typeof _THREAD.roles_count != 'undefined')){
-                  const _ROLES_COUNT_IN_STRING_MODE = _THREAD.user_groups_depended_count || _THREAD.user_groups_count || _THREAD.user_roles_depended_count || _THREAD.user_roles_count || _THREAD.roles_depended_count || _THREAD.roles_count;
+                }else if ((typeof _THREAD.target != 'undefined') && (typeof _THREAD.user_group_id != 'undefined') && (typeof _THREAD.email != 'undefined')){
+                  if (typeof _THREAD.email != 'undefined'){
+                    const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.user_group_id}`,
+                          _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex');
 
-                  if ((typeof _ROLES_COUNT_IN_STRING_MODE != 'undefined') && Number.isInteger(_ROLES_COUNT_IN_STRING_MODE)){
-                    const _ROLES_COUNT = parseInt(_ROLES_COUNT_IN_STRING_MODE);
-
-                    var _ENDUSERS = [];
-
-                    for (var i = 0; i < _ROLES_COUNT; i++) {
-                      const _SINGLE_ENDUSER = {
-                        user_group_id: new ObjectID(_THREAD.user_group_id),
-                        modified_at: _TODAY,
-                        created_at: _TODAY
-                      };
-
-                      if (typeof _THREAD.reference_id != 'undefined'){
-                        _SINGLE_ENDUSER.reference_id = new ObjectID(_THREAD.reference_id);
+                    _THREAD.email = {
+                      content: _THREAD.email,
+                      validation: {
+                        token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
+                        value: false
                       }
+                    };
 
-                      _ENDUSERS.push(_SINGLE_ENDUSER);
+                    if ((typeof _THREAD.target.app_name != 'undefined') && (typeof _THREAD.target.brand != 'undefined')){
+                      _Functions._sendInvitation(_THREAD.target.app_name, {
+                        ..._THREAD.target.brand,
+                        target: {
+                          email: _THREAD.email,
+                          token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY
+                        }
+                      })
+                      .then((response) => {
+                        // handle sent message details
+                      })
+                      .catch((error) => {
+                        // throw error
+                      })
                     }
+                  }
 
-                    const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                          _COLLECTION = _DB.collection(_COLLECTION_NAME);
+                  if (typeof _THREAD.reference_id != 'undefined'){
+                    _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
+                  }
 
-                    _COLLECTION.insertMany(_ENDUSERS, function(insertsQueryError, docs){
-                      if (insertsQueryError != null){
-                        const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection inserts request could\'t be processed.`, 700);
+                  _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                  _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
+                  _THREAD.modified_at = _THREAD.created_at = _TODAY;
+
+                  const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                        _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                        _DEPENDED_COLLECTION = _DB.collection('endusers');
+
+                  var _CHECKING_CRITERIA = {
+                    "$or": []
+                  };
+
+                  if (typeof _THREAD.email.content != 'undefined'){
+                    _CHECKING_CRITERIA["$or"].push({
+                      "email.content": _THREAD.email.content
+                    })
+                  }
+
+                  _COLLECTION.findOne(_CHECKING_CRITERIA, function(existingCheckQueryError, existingDoc){
+                    if (existingCheckQueryError != null){
+                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(existingCheckQueryError, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      if (existingDoc != null){
+                        const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The selected email or phone number is not available.', 700);
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        if (docs.insertedCount === 0){
-                          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The documents in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+                        var _END_USER_SEED = {
+                          user_group_id: new ObjectID(_THREAD.user_group_id)
+                        };
 
-                          res.json(RECURSIVE_CONTENT);
-                        }else{
-                          const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs.ops);
+                        delete _THREAD.user_group_id;
+                        delete _THREAD.target;
 
-                          res.json(RECURSIVE_CONTENT);
+                        _COLLECTION.insertOne(_THREAD, function(insertUserQueryError, userDoc){
+                          if (insertUserQueryError != null){
+                            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
-                          client.close();
-                        }
+                            res.json(RECURSIVE_CONTENT);
+                          }else{
+                            if (userDoc.insertedCount != 1){
+                              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+
+                              res.json(RECURSIVE_CONTENT);
+                            }else{
+                              _END_USER_SEED.user_id = new ObjectID(userDoc.ops[0]._id);
+
+                              _DEPENDED_COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
+                                if (insertEndUserQueryError != null){
+                                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The End User collection insert request could\'t be processed.`, 700);
+
+                                  res.json(RECURSIVE_CONTENT);
+                                }else{
+                                  if (endUserDoc.insertedCount != 1){
+                                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The document in End User collection could\'t be inserted.`, 700);
+
+                                    res.json(RECURSIVE_CONTENT);
+                                  }else{
+                                    const RECURSIVE_CONTENT = {
+                                      user: userDoc.ops[0],
+                                      endUser: endUserDoc.ops[0]
+                                    };
+
+                                    res.redirect(`/endusers/${RECURSIVE_CONTENT.endUser._id}`);
+                                  }
+                                }
+                              })
+                            }
+                          }
+                        });
                       }
-                    });
-                  }else{
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You should define user groups (Roles) count.`, 700);
+                    }
 
-                    res.json(RECURSIVE_CONTENT);
-                  }
+                    client.close();
+                  });
                 }else{
                   res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
                 }

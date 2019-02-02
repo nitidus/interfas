@@ -2,9 +2,12 @@ var os = require('os'),
     fs = require('fs'),
     fx = require('mkdir-recursive'),
     path = require('path'),
-    axios = require('axios');
+    axios = require('axios'),
+    nodemailer = require("nodemailer"),
+    ejs = require('ejs');
 
-const GLOBAL = require('./global');
+const GLOBAL = require('./global'),
+      __CONSTANT = require('../flows/knowledge/index');
 
 module.exports = {
   _convertDigitsToEnglish: (string) => {
@@ -109,7 +112,7 @@ module.exports = {
    }
  },
  _convertTokenToKeyword: (token) => {
-   return token.replace(/ +/ig, ' ').replace(/ /ig, '_').toUpperCase();
+   return token.replace(/(_|-| )+/ig, '_').toUpperCase();
  },
  _writeBase64DataOnFile: (base64DataURI, requestedDirectoryPath) => {
    const _REQUESTED_FILE_NAME = (requestedDirectoryPath.match(/.+\.\w/ig) !== null)? path.basename(requestedDirectoryPath): '',
@@ -213,5 +216,69 @@ module.exports = {
        throw new Error(error.return);
      }
    }
- }
+ },
+ _sendEmail: async (sender, receivers, subject, content) => {
+   if (sender != '' && subject != '' && content != ''){
+     var _RECEIVERS = receivers;
+
+     if (Array.isArray(receivers) && receivers.length > 0){
+       _RECEIVERS = _RECEIVERS.toString();
+     }
+
+     let account = await nodemailer.createTestAccount(),
+         transporter = nodemailer.createTransport({
+            host: GLOBAL.TRANSPORTER.MAIL.HOST,
+            port: GLOBAL.TRANSPORTER.MAIL.PORT.NON_SECURE,
+            secure: false, // true for 465, false for other ports
+            auth: {
+              user: account.user,
+              pass: account.pass
+            }
+          }),
+          mailOptions = {
+            from: sender,
+            to: _RECEIVERS,
+            subject: subject,
+            priority: 'high',
+            headers: [
+              {
+                key: 'Content-Type',
+                value: 'text/html'
+              }
+            ],
+            html: content
+          },
+          sentMail = await transporter.sendMail(mailOptions);
+
+     return sentMail;
+   }else{
+     throw new Error('None of the parameters can not be empty.');
+   }
+},
+_sendInvitation: async (appName, details) => {
+  const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/invitation.ejs'),
+        _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
+        _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
+        _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
+          const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
+                APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
+
+          return TARGET_KEYWORD === APP_NAME_KEYWORD;
+        });
+
+  if (_APP_DETAILS.length === 1){
+    const _PARSED_APP_DETAILS = _APP_DETAILS[0],
+          _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
+            app: {
+              name: _PARSED_APP_DETAILS.name,
+              photo: _PARSED_APP_DETAILS.photo,
+              address: _PARSED_APP_DETAILS.address
+            },
+            ...details
+          }),
+          _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Invitation`, _EMAIL_BODY_CONTENT);
+
+    return _SENT_MAIL;
+  }
+}
 };
