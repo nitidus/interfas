@@ -258,18 +258,32 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   };
 
               if ((typeof _THREAD.reference_id != 'undefined') || (typeof _THREAD.reference != 'undefined')){
-                const _PREFERED_REFERENCE_TOKEN = _THREAD.reference_id || _THREAD.reference;
+                const _PREFERED_REFERENCE_TOKEN = _THREAD.reference_id || _THREAD.reference,
+                      _FINAL_REFERENCE_ANCESTORS = _PREFERED_REFERENCE_TOKEN.split(",").map((ancestorID, i) => {
+                        const _FINAL_ANCESTOR_ID = new ObjectID(ancestorID.trim());
+
+                        return _FINAL_ANCESTOR_ID;
+                      });
 
                 _TOKENIZED_MATCH_CRITERIA["$match"]["$and"].push({
-                  "reference_id": new ObjectID(_PREFERED_REFERENCE_TOKEN)
+                  "cardinal_ancestors": {
+                    "$all": _FINAL_REFERENCE_ANCESTORS
+                  }
                 });
               }
 
               if ((typeof _THREAD.user_group_id != 'undefined') || (typeof _THREAD.usergroup_id != 'undefined') || (typeof _THREAD.usergroupId != 'undefined') || (typeof _THREAD.usergroupID != 'undefined') || (typeof _THREAD.userGroupID != 'undefined') || (typeof _THREAD.userGroupId != 'undefined')){
-                const _PREFERED_USER_GROUP_TOKEN = _THREAD.user_group_id || _THREAD.usergroup_id || _THREAD.usergroupId || _THREAD.usergroupID || _THREAD.userGroupID || _THREAD.userGroupId
+                const _PREFERED_USER_GROUP_TOKEN = _THREAD.user_group_id || _THREAD.usergroup_id || _THREAD.usergroupId || _THREAD.usergroupID || _THREAD.userGroupID || _THREAD.userGroupId,
+                      _FINAL_USER_GROUP_ANCESTORS = _PREFERED_USER_GROUP_TOKEN.split(",").map((ancestorID, i) => {
+                        const _FINAL_ANCESTOR_ID = new ObjectID(ancestorID.trim());
+
+                        return _FINAL_ANCESTOR_ID;
+                      });
 
                 _TOKENIZED_MATCH_CRITERIA["$match"]["$and"].push({
-                  "usergroup._id": new ObjectID(_PREFERED_USER_GROUP_TOKEN)
+                  "usergroup.cardinal_ancestors": {
+                    "$all": _FINAL_USER_GROUP_ANCESTORS
+                  }
                 });
               }
 
