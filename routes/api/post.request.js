@@ -148,22 +148,22 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                                     res.json(RECURSIVE_CONTENT);
                                   }else{
-                                    const RECURSIVE_CONTENT = {
+                                    const _RECURSIVE_RESPONSE = {
                                       user: userDoc.ops[0],
-                                      endUser: endUserDoc.ops[0]
+                                      end_user: endUserDoc.ops[0]
                                     };
 
-                                    res.redirect(`/endusers/${RECURSIVE_CONTENT.endUser._id}`);
+                                    res.redirect(`/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
                                   }
                                 }
+
+                                client.close();
                               })
                             }
                           }
                         });
                       }
                     }
-
-                    client.close();
                   });
                 }else{
                   res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
@@ -175,6 +175,22 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   _THREAD.viewed = 0;
                   _THREAD.user_id = new ObjectID(_THREAD.user_id);
                   _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
+
+                  if (typeof _THREAD.reference_id != 'undefined'){
+                    _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
+                  }
+
+                  if (typeof _THREAD.cardinal_id != 'undefined'){
+                    _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                  }
+
+                  if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+                    _THREAD.cardinal_ancestors = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+                      const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                      return _FINAL_ANCESTOR;
+                    });
+                  }
 
                   //End User detection for user groups
 
@@ -188,7 +204,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       content: _THREAD.email,
                       validation: {
                         token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
-                        value: false
+                        value: true
                       }
                     };
 
@@ -213,13 +229,24 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
                   }
 
-                  _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                  if (typeof _THREAD.cardinal_id != 'undefined'){
+                    _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                  }
+
+                  if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+                    _THREAD.cardinal_ancestors = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+                      const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                      return _FINAL_ANCESTOR;
+                    });
+                  }
+
                   _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
                   _THREAD.modified_at = _THREAD.created_at = _TODAY;
 
                   const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                         _COLLECTION = _DB.collection(_COLLECTION_NAME),
-                        _DEPENDED_COLLECTION = _DB.collection('endusers');
+                        _DEPENDED_COLLECTION = _DB.collection('users');
 
                   var _CHECKING_CRITERIA = {
                     "$or": []
@@ -243,13 +270,34 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         res.json(RECURSIVE_CONTENT);
                       }else{
                         var _END_USER_SEED = {
-                          user_group_id: new ObjectID(_THREAD.user_group_id)
+                          user_group_id: new ObjectID(_THREAD.user_group_id),
+                          cardinal_id: new ObjectID(_THREAD.cardinal_id),
                         };
+
+                        _END_USER_SEED.modified_at = _END_USER_SEED.created_at = _TODAY;
+
+                        if (typeof _THREAD.reference_id != 'undefined'){
+                          _END_USER_SEED.reference_id = _THREAD.reference_id;
+
+                          delete _THREAD.reference_id;
+                        }
+
+                        if (typeof _THREAD.cardinal_id != 'undefined'){
+                          _END_USER_SEED.cardinal_id = _THREAD.cardinal_id;
+
+                          delete _THREAD.cardinal_id;
+                        }
+
+                        if (typeof _THREAD.cardinal_ancestors != 'undefined'){
+                          _END_USER_SEED.cardinal_ancestors = _THREAD.cardinal_ancestors;
+
+                          delete _THREAD.cardinal_ancestors;
+                        }
 
                         delete _THREAD.user_group_id;
                         delete _THREAD.target;
 
-                        _COLLECTION.insertOne(_THREAD, function(insertUserQueryError, userDoc){
+                        _DEPENDED_COLLECTION.insertOne(_THREAD, function(insertUserQueryError, userDoc){
                           if (insertUserQueryError != null){
                             const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
@@ -262,7 +310,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                             }else{
                               _END_USER_SEED.user_id = new ObjectID(userDoc.ops[0]._id);
 
-                              _DEPENDED_COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
+                              _COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
                                 if (insertEndUserQueryError != null){
                                   const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The End User collection insert request could\'t be processed.`, 700);
 
@@ -273,22 +321,22 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                                     res.json(RECURSIVE_CONTENT);
                                   }else{
-                                    const RECURSIVE_CONTENT = {
+                                    const _RECURSIVE_RESPONSE = {
                                       user: userDoc.ops[0],
-                                      endUser: endUserDoc.ops[0]
+                                      end_user: endUserDoc.ops[0]
                                     };
 
-                                    res.redirect(`/endusers/${RECURSIVE_CONTENT.endUser._id}`);
+                                    res.redirect(`/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
                                   }
                                 }
+
+                                client.close();
                               })
                             }
                           }
                         });
                       }
                     }
-
-                    client.close();
                   });
                 }else{
                   res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
@@ -296,11 +344,27 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'usergroups':
-                if ((typeof _THREAD.type != 'undefined') && (typeof _THREAD.role != 'undefined')){
+                if ((typeof _THREAD.type != 'undefined') && (typeof _THREAD.role != 'undefined') && (typeof _THREAD.priority != 'undefined')){
                   _THREAD.type = _Functions._convertTokenToKeyword(_THREAD.type);
 
                   if (typeof _THREAD.role != 'undefined'){
                     _THREAD.role = _Functions._convertTokenToKeyword(_THREAD.role);
+                  }
+
+                  if (typeof _THREAD.reference_id != 'undefined'){
+                    _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
+                  }
+
+                  if (typeof _THREAD.cardinal_id != 'undefined'){
+                    _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                  }
+
+                  if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+                    _THREAD.cardinal_ancestors = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+                      const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                      return _FINAL_ANCESTOR;
+                    });
                   }
 
                   _IS_COLLECTION_READY_TO_ABSORB = true;

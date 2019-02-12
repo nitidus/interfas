@@ -78,6 +78,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 });
                 break;
+
               case 'users':
               case 'usergroups':
               case 'wallets':
@@ -177,6 +178,36 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     "user_id": 0,
                     "user_group_id": 0
                   }
+                },
+                {
+                  "$match": {
+                    "$or": [
+                      {
+                        "$and": [
+                          {
+                            "cardinal_id": {
+                              "$exists": true
+                            }
+                          },
+                          {
+                            "cardinal_id": _TOKEN
+                          }
+                        ]
+                      },
+                      {
+                        "$and": [
+                          {
+                            "_id": {
+                              "$exists": true
+                            }
+                          },
+                          {
+                            "_id": _TOKEN
+                          }
+                        ]
+                      }
+                    ]
+                  }
                 }
               ];
 
@@ -211,22 +242,35 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'roles':
               _COLLECTION = _DB.collection('endusers');
 
-              var _PREFERED_ID;
+              var _TOKENIZED_MATCH_CRITERIA = {
+                    "$match": {
+                      "$and": [
+                        {
+                          "cardinal_id": {
+                            "$exists": true
+                          }
+                        },
+                        {
+                          "cardinal_id": _TOKEN
+                        }
+                      ]
+                    }
+                  };
 
               if ((typeof _THREAD.reference_id != 'undefined') || (typeof _THREAD.reference != 'undefined')){
-                const _PREFERED_TOKEN = _THREAD.reference_id || _THREAD.reference;
+                const _PREFERED_REFERENCE_TOKEN = _THREAD.reference_id || _THREAD.reference;
 
-                _PREFERED_ID = {
-                  "usergroup.reference_id": new ObjectID(_PREFERED_TOKEN)
-                };
+                _TOKENIZED_MATCH_CRITERIA["$match"]["$and"].push({
+                  "reference_id": new ObjectID(_PREFERED_REFERENCE_TOKEN)
+                });
               }
 
-              if ((typeof _THREAD.id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.token != 'undefined')){
-                const _PREFERED_TOKEN = _THREAD.id || _THREAD._id || _THREAD.token;
+              if ((typeof _THREAD.user_group_id != 'undefined') || (typeof _THREAD.usergroup_id != 'undefined') || (typeof _THREAD.usergroupId != 'undefined') || (typeof _THREAD.usergroupID != 'undefined') || (typeof _THREAD.userGroupID != 'undefined') || (typeof _THREAD.userGroupId != 'undefined')){
+                const _PREFERED_USER_GROUP_TOKEN = _THREAD.user_group_id || _THREAD.usergroup_id || _THREAD.usergroupId || _THREAD.usergroupID || _THREAD.userGroupID || _THREAD.userGroupId
 
-                _PREFERED_ID = {
-                  "usergroup._id": new ObjectID(_PREFERED_TOKEN)
-                };
+                _TOKENIZED_MATCH_CRITERIA["$match"]["$and"].push({
+                  "usergroup._id": new ObjectID(_PREFERED_USER_GROUP_TOKEN)
+                });
               }
 
               _CRITERIA = [
@@ -261,21 +305,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         "user_group_id": 0
                       }
                     },
-                    {
-                      "$match": {
-                        "$and": [
-                          {
-                            "reference_id": {
-                              "$exists": true
-                            }
-                          },
-                          {
-                            "reference_id": _TOKEN
-                          },
-                          _PREFERED_ID
-                        ]
-                      }
-                    }
+                    _TOKENIZED_MATCH_CRITERIA
                 ];
 
                 _COLLECTION.aggregate(_CRITERIA)
@@ -344,11 +374,16 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 type: _Functions._convertTokenToKeyword(_TOKEN)
               };
 
-          if ((typeof _THREAD.priority != 'undefined') || (typeof _THREAD._priority != 'undefined')){
-            const _PRIORITY = _THREAD.priority || _THREAD._priority;
+          if ((typeof _THREAD.token != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.id != 'undefined') || (typeof _THREAD.ID != 'undefined')){
+            const _ANCESTORS = _THREAD.token || _THREAD._id || _THREAD.id || _THREAD.ID,
+                  _FINAL_ANCESTORS = _ANCESTORS.split(",").map((ancestorID, i) => {
+                    const _FINAL_ANCESTOR_ID = new ObjectID(ancestorID.trim());
 
-            _CRITERIA.priority = {
-              "$gt": parseInt(_PRIORITY)
+                    return _FINAL_ANCESTOR_ID;
+                  });
+
+            _CRITERIA.cardinal_ancestors = {
+              "$all": _FINAL_ANCESTORS
             };
           }
 
