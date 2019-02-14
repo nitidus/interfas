@@ -257,8 +257,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   };
 
-              if ((typeof _THREAD.reference_id != 'undefined') || (typeof _THREAD.reference != 'undefined')){
-                const _PREFERED_REFERENCE_TOKEN = _THREAD.reference_id || _THREAD.reference,
+              if ((typeof _THREAD.reference_ancestors != 'undefined') || (typeof _THREAD.references != 'undefined')){
+                const _PREFERED_REFERENCE_TOKEN = _THREAD.reference_ancestors || _THREAD.references,
                       _FINAL_REFERENCE_ANCESTORS = _PREFERED_REFERENCE_TOKEN.split(",").map((ancestorID, i) => {
                         const _FINAL_ANCESTOR_ID = new ObjectID(ancestorID.trim());
 
@@ -272,8 +272,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 });
               }
 
-              if ((typeof _THREAD.user_group_id != 'undefined') || (typeof _THREAD.usergroup_id != 'undefined') || (typeof _THREAD.usergroupId != 'undefined') || (typeof _THREAD.usergroupID != 'undefined') || (typeof _THREAD.userGroupID != 'undefined') || (typeof _THREAD.userGroupId != 'undefined')){
-                const _PREFERED_USER_GROUP_TOKEN = _THREAD.user_group_id || _THREAD.usergroup_id || _THREAD.usergroupId || _THREAD.usergroupID || _THREAD.userGroupID || _THREAD.userGroupId,
+              if ((typeof _THREAD.reference_id != 'undefined') || (typeof _THREAD.reference != 'undefined')){
+                const _PREFERED_REFERENCE_TOKEN = _THREAD.reference_id || _THREAD.reference,
+                      _FINAL_PREFERED_REFERENCE_TOKEN = new ObjectID(_PREFERED_REFERENCE_TOKEN);
+
+                _TOKENIZED_MATCH_CRITERIA["$match"]["$and"].push({
+                  "reference_id": _FINAL_PREFERED_REFERENCE_TOKEN
+                });
+              }
+
+              if ((typeof _THREAD.user_group_ancestors != 'undefined') || (typeof _THREAD.usergroup_ancestors != 'undefined') || (typeof _THREAD.usergroupAncestors != 'undefined') || (typeof _THREAD.userGroupAncestors != 'undefined') || (typeof _THREAD.userGroupAncestors != 'undefined')){
+                const _PREFERED_USER_GROUP_TOKEN = _THREAD.user_group_ancestors || _THREAD.usergroup_ancestors || _THREAD.usergroupAncestors || _THREAD.userGroupAncestors || _THREAD.userGroupAncestors,
                       _FINAL_USER_GROUP_ANCESTORS = _PREFERED_USER_GROUP_TOKEN.split(",").map((ancestorID, i) => {
                         const _FINAL_ANCESTOR_ID = new ObjectID(ancestorID.trim());
 
@@ -284,6 +293,15 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   "usergroup.cardinal_ancestors": {
                     "$all": _FINAL_USER_GROUP_ANCESTORS
                   }
+                });
+              }
+
+              if ((typeof _THREAD.user_group_id != 'undefined') || (typeof _THREAD.usergroup_id != 'undefined') || (typeof _THREAD.usergroupId != 'undefined') || (typeof _THREAD.usergroupID != 'undefined') || (typeof _THREAD.userGroupID != 'undefined') || (typeof _THREAD.userGroupId != 'undefined')){
+                const _PREFERED_USER_GROUP_TOKEN = _THREAD.user_group_id || _THREAD.usergroup_id || _THREAD.usergroupId || _THREAD.usergroupID || _THREAD.userGroupID || _THREAD.userGroupId,
+                      _FINAL_PREFERED_USER_GROUP_TOKEN = new ObjectID(_PREFERED_USER_GROUP_TOKEN);
+
+                _TOKENIZED_MATCH_CRITERIA["$match"]["$and"].push({
+                  "usergroup._id": _FINAL_PREFERED_USER_GROUP_TOKEN
                 });
               }
 
