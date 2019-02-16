@@ -5,7 +5,17 @@ var crypto = require('crypto'),
 
 const _Functions = require('../../src/modules/functions');
 const _LOCAL_FUNCTIONS = {
+  _throwNewInstanceError: (collectionName) => {
+    const _COLLECTION_NAME_AS_SINGLE = (collectionName.match(/\w+s$/ig) != null)? collectionName.slice(0, -1): collectionName,
+          RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
 
+    return RECURSIVE_CONTENT;
+  },
+  _throwConnectionError: () => {
+    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
+
+    return RECURSIVE_CONTENT;
+  }
 };
 
 module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
@@ -19,11 +29,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
       MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
         if (connectionError != null){
-            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-
-            res.json(RECURSIVE_CONTENT);
-
-            client.close();
+            res.json(_LOCAL_FUNCTIONS._throwConnectionError());
         }else{
           var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
               _COLLECTION = _DB.collection(_COLLECTION_NAME),

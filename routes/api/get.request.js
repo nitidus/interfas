@@ -5,7 +5,17 @@ var crypto = require('crypto'),
 
 const _Functions = require('../../src/modules/functions');
 const _LOCAL_FUNCTIONS = {
+  _throwNewInstanceError: (collectionName) => {
+    const _COLLECTION_NAME_AS_SINGLE = (collectionName.match(/\w+s$/ig) != null)? collectionName.slice(0, -1): collectionName,
+          RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
 
+    return RECURSIVE_CONTENT;
+  },
+  _throwConnectionError: () => {
+    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
+
+    return RECURSIVE_CONTENT;
+  }
 };
 
 module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
@@ -17,11 +27,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
       MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
         if (connectionError != null){
-            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-
-            res.json(RECURSIVE_CONTENT);
-
-            client.close();
+            res.json(_LOCAL_FUNCTIONS._throwConnectionError());
           }else{
             var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                 _COLLECTION = _DB.collection(_COLLECTION_NAME),
@@ -135,11 +141,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
       MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
         if (connectionError != null){
-            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-
-            res.json(RECURSIVE_CONTENT);
-
-            client.close();
+            res.json(_LOCAL_FUNCTIONS._throwConnectionError());
         }else{
           var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
               _COLLECTION = _DB.collection(_COLLECTION_NAME),
@@ -393,11 +395,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
     MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
       if (connectionError != null){
-          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection could not be reached.`, 700);
-
-          res.json(RECURSIVE_CONTENT);
-
-          client.close();
+          res.json(_LOCAL_FUNCTIONS._throwConnectionError());
         }else{
           const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                 _COLLECTION = _DB.collection('usergroups');
@@ -456,11 +454,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
         case 'HIGHEST_PRIORITY':
           MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
             if (connectionError != null){
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The usergroups collection could not be reached.`, 700);
-
-                res.json(RECURSIVE_CONTENT);
-
-                client.close();
+                res.json(_LOCAL_FUNCTIONS._throwConnectionError());
               }else{
                 const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
                       _COLLECTION = _DB.collection('usergroups');
@@ -474,8 +468,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                 _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
                   if (userFindQueryError != null){
-                    //`The usergroups collection find request could\'t be processed.`
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(_CRITERIA, 700);
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The usergroups collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
@@ -496,5 +489,101 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           break;
       }
     }
+  });
+
+  app.get('/role/brand/:brand_name/:token', (req, res) => {
+    const _BRAND_NAME = req.params.brand_name,
+          _TOKEN = req.params.token;
+
+    MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
+      if (connectionError != null){
+          res.json(_LOCAL_FUNCTIONS._throwConnectionError());
+        }else{
+          const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                _COLLECTION = _DB.collection('endusers');
+
+          var _CRITERIA = {
+                "brand.name": _Functions._convertKeywordToToken(_BRAND_NAME)
+              };
+
+          _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
+            if (userFindQueryError != null){
+              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+
+              res.json(RECURSIVE_CONTENT);
+            }else{
+              if (doc !== null){
+                var _ROLE_CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "users",
+                      "localField": "user_id",
+                      "foreignField": "_id",
+                      "as": "user"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$user",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "usergroups",
+                      "localField": "user_group_id",
+                      "foreignField": "_id",
+                      "as": "usergroup"
+                    }
+                  },
+                  {
+                    "$unwind": "$usergroup"
+                  },
+                  {
+                    "$project": {
+                      "user_id": 0,
+                      "user_group_id": 0
+                    }
+                  },
+                  {
+                    "$match": {
+                      "$and": [
+                        {
+                          "cardinal_id": new ObjectID(doc._id)
+                        },
+                        {
+                          "user.email.validation.token": _TOKEN
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "$limit": 1
+                  }
+                ];
+
+                _COLLECTION.aggregate(_ROLE_CRITERIA)
+                .toArray(function(roleCheckQueryError, roleCheckDoc){
+                  if (roleCheckQueryError != null){
+                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`Matching Role\'s token operation could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(roleCheckDoc[0]);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+              }else{
+                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`We couldn\'t find any brand with name ${_Functions._convertKeywordToToken(_BRAND_NAME)}.`, 700);
+
+                res.json(RECURSIVE_CONTENT);
+              }
+            }
+          });
+        }
+    });
   });
 };

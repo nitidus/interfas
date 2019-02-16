@@ -114,6 +114,9 @@ module.exports = {
  _convertTokenToKeyword: (token) => {
    return token.replace(/(_|-| )+/ig, '_').toUpperCase();
  },
+ _convertKeywordToToken: (keyword) => {
+    return keyword.toLowerCase().replace(/(_|-| )/ig, ' ').replace(/\b\w/ig, char => char.toUpperCase());
+  },
  _writeBase64DataOnFile: (base64DataURI, requestedDirectoryPath) => {
    const _REQUESTED_FILE_NAME = (requestedDirectoryPath.match(/.+\.\w/ig) !== null)? path.basename(requestedDirectoryPath): '',
          _FILE_MIME_TYPE = base64DataURI.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, ''),
