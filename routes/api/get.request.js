@@ -569,7 +569,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(roleCheckDoc[0]);
+                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(((roleCheckDoc.length > 0)? roleCheckDoc[0]: {}));
 
                     res.json(RECURSIVE_CONTENT);
 
