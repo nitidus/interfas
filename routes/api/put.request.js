@@ -42,34 +42,73 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             switch (_COLLECTION_NAME) {
               case 'users':
-                var _TARGET = {},
+                var _TARGET = {
+                      "$set": {
+                        modified_at: _TODAY
+                      }
+                    },
                     _IS__LOCAL_COLLECTION_READY_TO_UPDATE = true;
 
                 if (typeof _THREAD.password != 'undefined'){
                   const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
                         _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
 
-                  _TARGET.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
+                  _TARGET["$set"]["password"] = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
+                }
+
+                if (typeof _THREAD.personal != 'undefined'){
+                  if ((typeof _THREAD.personal.first_name != 'undefined') && (typeof _THREAD.personal.last_name != 'undefined')){
+                    _TARGET["$set"]["personal.first_name"] =_Functions._convertKeywordToToken(_THREAD.personal.first_name);
+                    _TARGET["$set"]["personal.last_name"] = _Functions._convertKeywordToToken(_THREAD.personal.last_name);
+                  }
+                }
+
+                if ((typeof _THREAD.first_name != 'undefined') || (typeof _THREAD.firstName != 'undefined')){
+                  const _FIRST_NAME = _THREAD.first_name || _THREAD.firstName;
+
+                  _TARGET["$set"]["personal.first_name"] =_Functions._convertKeywordToToken(_FIRST_NAME);
+                }
+
+                if ((typeof _THREAD.last_name != 'undefined') || (typeof _THREAD.lastName != 'undefined')){
+                  const _LAST_NAME = _THREAD.last_name || _THREAD.lastName;
+
+                  _TARGET["$set"]["personal.last_name"] = _Functions._convertKeywordToToken(_LAST_NAME);
                 }
 
                 if (typeof _THREAD.email != 'undefined'){
                   const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.password}`,
                         _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex');
 
-                  _TARGET.email = {
+                  _TARGET["$set"]["email"] = {
                     content: _THREAD.email,
                     validation: {
                       token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
                       value: false
                     }
                   };
+
+                  if (typeof _THREAD.target != 'undefined'){
+                    if ((typeof _THREAD.target.app_name != 'undefined') && (typeof _THREAD.target.brand != 'undefined')){
+                      _Functions._sendInvitation(_THREAD.target.app_name, {
+                        ..._THREAD.target.brand,
+                        target: {
+                          email: _THREAD.email,
+                          token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY
+                        }
+                      })
+                      .then((response) => {
+                        // handle sent message details
+                      })
+                      .catch((error) => {
+                        // throw error
+                      })
+                    }
+                  }
                 }
 
                 if (typeof _THREAD.phone != 'undefined') {
-                  _TARGET.phone = {};
-
                   if (typeof _THREAD.phone.mobile != 'undefined'){
-                    _TARGET.phone.mobile = {
+                    _TARGET["$set"]["phone.mobile"] = {
                       content: _THREAD.phone.mobile,
                       validation: {
                         token: Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString(),
@@ -79,7 +118,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       }
                     };
 
-                    _Functions._sendMessage(_TARGET.phone.mobile.content, _TARGET.phone.mobile.validation.token)
+                    _Functions._sendMessage(_TARGET["$set"]["phone.mobile"].content, _TARGET["$set"]["phone.mobile"].validation.token)
                     .then((response) => {
                       //YOU CAN STORE YOUR RESPONSE IN DB
                     })
@@ -90,8 +129,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     })
                   }
                 }
-
-                _TARGET.modified_at = _TODAY;
 
                 _CRITERIA = {
                   _id: new ObjectID(_TOKEN)
@@ -116,7 +153,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       _Functions._removeFileWithEmptyDirectory(existingDoc.personal.profile);
 
-                      _TARGET["personal.profile"] = _Functions._uploadUserProfilePhoto(_PROFILE_DIRECTORY, `${_SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                      _TARGET["$set"]["personal.profile"] = _Functions._uploadUserProfilePhoto(_PROFILE_DIRECTORY, `${_SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
                     }
                   })
                 }
@@ -368,7 +405,23 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           }
 
           if (_THREAD.user_group_id){
-            _TARGET.user_group_id = new ObjectID(_THREAD.user_group_id);
+            _TARGET["$set"]["user_group_id"] = new ObjectID(_THREAD.user_group_id);
+          }
+
+          if (typeof _THREAD.reference_id != 'undefined'){
+            _TARGET["$set"]["reference_id"] = new ObjectID(_THREAD.reference_id);
+          }
+
+          if (typeof _THREAD.cardinal_id != 'undefined'){
+            _TARGET["$set"]["cardinal_id"] = new ObjectID(_THREAD.cardinal_id);
+          }
+
+          if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+            _TARGET["$set"]["cardinal_ancestors"] = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+              const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+              return _FINAL_ANCESTOR;
+            });
           }
 
           if (((typeof _THREAD.brand.photo != 'undefined') && _IS_REMOVED_THE_RECENT_HOSTED_FILE) || (typeof _THREAD.brand.photo == 'undefined')){
@@ -420,9 +473,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               }
             });
           }
-
-          }
-        });
+        }
+      });
     }
   });
 };

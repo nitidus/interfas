@@ -59,6 +59,24 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         value: false
                       }
                     };
+
+                    if (typeof _THREAD.target != 'undefined'){
+                      if ((typeof _THREAD.target.app_name != 'undefined') && (typeof _THREAD.target.brand != 'undefined')){
+                        _Functions._sendInvitation(_THREAD.target.app_name, {
+                          ..._THREAD.target.brand,
+                          target: {
+                            email: _THREAD.email,
+                            token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY
+                          }
+                        })
+                        .then((response) => {
+                          // handle sent message details
+                        })
+                        .catch((error) => {
+                          // throw error
+                        })
+                      }
+                    }
                   }
 
                   if (typeof _THREAD.phone != 'undefined') {
