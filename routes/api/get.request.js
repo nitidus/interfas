@@ -93,6 +93,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               case 'turnovers':
               case 'orders':
               case 'currencies':
+              case 'taxonomies':
+              case 'plans':
                 _IS_COLLECTION_READY_TO_RESPONSE = true;
                 break;
 
@@ -134,7 +136,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.get('/:collection/:token', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase(),
-            _TOKEN = new ObjectID(req.params.token),
+            _TOKEN = (_Functions._checkIsAValidObjectID(req.params.token) === true)? new ObjectID(req.params.token): req.params.token,
             _THREAD = req.query;
 
       var _IS_COLLECTION_READY_TO_RESPONSE = false;
@@ -238,7 +240,70 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'turnovers':
             case 'orders':
             case 'currencies':
+            case 'taxonomies':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
+              break;
+
+            case 'plans':
+              var _TARGET_MATCHING_CRITERIA = [
+                {
+                  "_id": _TOKEN
+                },
+                {
+                  "taxonomy._id": _TOKEN
+                }
+              ];
+
+              if (_Functions._checkIsAValidObjectID(req.params.token) !== true){
+                var _TOKEN_KEYWORD = _Functions._convertTokenToKeyword(_TOKEN);
+
+                if (_TOKEN_KEYWORD == 'TP' || _TOKEN_KEYWORD == 'T.P' || _TOKEN_KEYWORD == 'T.P.'){
+                  _TOKEN_KEYWORD = 'TRANSACTION_POINT';
+                }
+
+                _TARGET_MATCHING_CRITERIA.push({
+                  "taxonomy.value": _TOKEN_KEYWORD
+                });
+              }
+
+              _CRITERIA = [
+                {
+                  "$lookup": {
+                    "from": "taxonomies",
+                    "localField": "taxonomy_id",
+                    "foreignField": "_id",
+                    "as": "taxonomy"
+                  }
+                },
+                {
+                  "$unwind": "$taxonomy"
+                },
+                {
+                  "$project": {
+                    "taxonomy_id": 0
+                  }
+                },
+                {
+                  "$match": {
+                    "$or": _TARGET_MATCHING_CRITERIA
+                  }
+                }
+              ];
+
+              _COLLECTION.aggregate(_CRITERIA)
+              .toArray(function(error, docs){
+                if (error != null){
+                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }
+              });
               break;
 
             case 'roles':

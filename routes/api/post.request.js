@@ -21,10 +21,9 @@ const _LOCAL_FUNCTIONS = {
 module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.post('/:collection', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
-            _COLLECTION_NAME = req.params.collection.toLowerCase(),
-            _TODAY = new Date();
-
-      var _THREAD = req.body,
+      var _COLLECTION_NAME = req.params.collection.toLowerCase(),
+          _TODAY = new Date(),
+          _THREAD = req.body,
           _IS_COLLECTION_READY_TO_ABSORB = false;
 
       MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
@@ -445,6 +444,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
               case 'orders':
                 if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.items != 'undefined') && (typeof _THREAD.taxes != 'undefined') && (typeof _THREAD.discounts != 'undefined') && (typeof _THREAD.status != 'undefined') && (typeof _THREAD.shipping != 'undefined') && (typeof _THREAD.total_amount != 'undefined')) {
+                  var _TARGET
                   _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
 
                   if (Array.isArray(_THREAD.items)){
@@ -467,15 +467,53 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'currencies':
-                if (((typeof _THREAD.type != 'undefined') || (typeof _THREAD.name != 'undefined') || (typeof _THREAD.currency_type != 'undefined') || (typeof _THREAD.currency_name != 'undefined')) && ((typeof _THREAD.sign != 'undefined') || (typeof _THREAD.currency_sign != 'undefined'))){
-                  const _CURRENCY_TYPE = _THREAD.type || _THREAD.name || _THREAD.currency_type || _THREAD.currency_name,
-                        _CURRENCY_SIGN = _THREAD.sign || _THREAD.currency_sign;
+                if ((typeof _THREAD.type != 'undefined') && (typeof _THREAD.sign != 'undefined')){
+                  const _CURRENCY_TYPE = _THREAD.type,
+                        _CURRENCY_SIGN = _THREAD.sign;
 
                   if (_CURRENCY_TYPE != '' && _CURRENCY_SIGN != ''){
                     _THREAD.type = _Functions._convertTokenToKeyword(_CURRENCY_TYPE);
                     _THREAD.sign = _CURRENCY_SIGN;
 
                     _IS_COLLECTION_READY_TO_ABSORB = true;
+                  }
+                }
+                break;
+
+              case 'taxonomies':
+                if ((typeof _THREAD.key != 'undefined') && (typeof _THREAD.value != 'undefined')){
+                  const _TAXONOMY_KEY = _THREAD.key,
+                        _TAXONOMY_VALUE = _THREAD.value;
+
+                  if (_TAXONOMY_KEY != '' && _TAXONOMY_VALUE != ''){
+                    _THREAD.key = _Functions._convertTokenToKeyword(_TAXONOMY_KEY);
+                    _THREAD.value = _Functions._convertTokenToKeyword(_TAXONOMY_VALUE);
+
+                    _IS_COLLECTION_READY_TO_ABSORB = true;
+                  }
+                }
+                break;
+
+              case 'plans':
+                if ((typeof _THREAD.taxonomy_id != 'undefined') && (typeof _THREAD.name != 'undefined') && (typeof _THREAD.amount != 'undefined') && (typeof _THREAD.price != 'undefined')){
+                  const _PLAN_TAXONOMY_ID = new ObjectID(_THREAD.taxonomy_id),
+                        _PLAN_NAME = _Functions._convertKeywordToToken(_THREAD.name),
+                        _IS_PLAN_AMOUNT_VALID = _Functions._checkIsAValidNumericOnlyField(_THREAD.amount.toString()),
+                        _STRIPED_PRICE = _THREAD.price.toString().replace(/,+/g, ''),
+                        _IS_PLAN_PRICE_VALID = _Functions._checkIsAValidNumericOnlyField(_STRIPED_PRICE);
+
+                  if (_IS_PLAN_AMOUNT_VALID && _IS_PLAN_PRICE_VALID){
+                    const _PLAN_AMOUNT = parseInt(_THREAD.amount),
+                          _PLAN_PRICE = parseFloat(parseFloat(_STRIPED_PRICE).toFixed(2));
+
+                    if (_PLAN_TAXONOMY_ID != '' && _PLAN_NAME != '' && _PLAN_AMOUNT > 0 && _PLAN_PRICE > 0){
+                      _THREAD.taxonomy_id = _PLAN_TAXONOMY_ID;
+                      _THREAD.name = _PLAN_NAME;
+                      _THREAD.amount = _PLAN_AMOUNT;
+                      _THREAD.price = _PLAN_PRICE;
+
+                      _IS_COLLECTION_READY_TO_ABSORB = true;
+                    }
                   }
                 }
                 break;
