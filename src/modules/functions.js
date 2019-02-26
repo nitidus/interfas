@@ -4,10 +4,13 @@ var os = require('os'),
     path = require('path'),
     axios = require('axios'),
     nodemailer = require("nodemailer"),
-    ejs = require('ejs');
+    ejs = require('ejs'),
+    stripe = require('stripe');
 
 const GLOBAL = require('./global'),
       __CONSTANT = require('../flows/knowledge/index');
+
+stripe = stripe(GLOBAL.PAYMENT_APPROACH.API_KEY);
 
 module.exports = {
   _convertDigitsToEnglish: (string) => {
@@ -277,29 +280,92 @@ module.exports = {
    }
 },
 _sendInvitation: async (appName, details) => {
-  const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/invitation.ejs'),
-        _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
-        _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
-        _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
-          const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
-                APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
+    const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/invitation.ejs'),
+          _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
+          _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
+          _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
+            const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
+                  APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
 
-          return TARGET_KEYWORD === APP_NAME_KEYWORD;
-        });
+            return TARGET_KEYWORD === APP_NAME_KEYWORD;
+          });
 
-  if (_APP_DETAILS.length === 1){
-    const _PARSED_APP_DETAILS = _APP_DETAILS[0],
-          _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
-            app: {
-              name: _PARSED_APP_DETAILS.name,
-              photo: _PARSED_APP_DETAILS.photo,
-              address: _PARSED_APP_DETAILS.address
-            },
-            ...details
-          }),
-          _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Invitation`, _EMAIL_BODY_CONTENT);
+    if (_APP_DETAILS.length === 1){
+      const _PARSED_APP_DETAILS = _APP_DETAILS[0],
+            _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
+              app: {
+                name: _PARSED_APP_DETAILS.name,
+                photo: _PARSED_APP_DETAILS.photo,
+                address: _PARSED_APP_DETAILS.address
+              },
+              ...details
+            }),
+            _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Invitation`, _EMAIL_BODY_CONTENT);
 
-    return _SENT_MAIL;
+      return _SENT_MAIL;
+    }
+  },
+  _chargeUsingToken: async (token) => {
+    if (typeof token != 'undefined'){
+      if (
+        ((typeof token.card != 'undefined') || (typeof token.creditCard != 'undefined') || (typeof token.credit_card != 'undefined') || (typeof token.debitCard != 'undefined') || (typeof token.debit_card != 'undefined')) &&
+        ((typeof token.amount != 'undefined') || (typeof token.charge_amount != 'undefined') || (typeof token.chargeAmount != 'undefined') || (typeof token.checkout_amount != 'undefined') || (typeof token.checkoutAmount != 'undefined')) &&
+        (typeof token.currency != 'undefined')
+      ) {
+        const _CARD = token.card || token.creditCard || token.credit_card || token.debitCard || token.debit_card,
+              _AMOUNT = token.amount || token.charge_amount || token.chargeAmount || token.checkout_amount || token.checkoutAmount,
+              _FINAL_AMOUNT = parseInt(_AMOUNT),
+              _CURRENCY = token.currency;
+
+        try {
+          const _TOKEN = await stripe.tokens.create({
+            card: _CARD
+          });
+
+          var _CHARGE_SEED = {
+            amount: _FINAL_AMOUNT,
+            currency: _CURRENCY,
+            source: _TOKEN.id
+          };
+
+          if ((typeof token.receipt_email != 'undefined') || (typeof token.receiptEmail != 'undefined') || (typeof token.email != 'undefined')){
+            const _RECEIPT_EMAIL = token.receipt_email || token.receiptEmail || token.email;
+
+            _CHARGE_SEED = {
+              ..._CHARGE_SEED,
+              receipt_email: _RECEIPT_EMAIL
+            };
+          }
+
+          if ((typeof token.description != 'undefined') || (typeof token.caption != 'undefined')){
+            const _DESCRIPTION = token.description || token.caption;
+
+            _CHARGE_SEED = {
+              ..._CHARGE_SEED,
+              description: _DESCRIPTION
+            };
+          }
+
+          if ((typeof token.shipping != 'undefined') || (typeof token.shipping_detail != 'undefined') || (typeof token.shippingDetail != 'undefined')){
+            const _SHIPPINNG = token.shipping || token.shipping_detail || token.shippingDetail;
+
+            _CHARGE_SEED = {
+              ..._CHARGE_SEED,
+              shipping: _SHIPPINNG
+            };
+          }
+
+          const _CHARGE = await stripe.charges.create(_CHARGE_SEED);
+
+          return _CHARGE;
+        } catch (e) {
+          throw new Error(e.message);
+        }
+      }else{
+        throw new Error("You should define card, amount, currency as the token parameter.");
+      }
+    }else{
+      throw new Error("You should define token as an required object.");
+    }
   }
-}
 };

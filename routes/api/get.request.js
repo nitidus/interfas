@@ -3,6 +3,8 @@ var crypto = require('crypto'),
     assert = require('assert'),
     ObjectID = require('mongodb').ObjectID;
 
+const stripe = require('stripe')('sk_test_h88TQbVd5UPP4HGZdM2SQpbv');
+
 const _Functions = require('../../src/modules/functions');
 const _LOCAL_FUNCTIONS = {
   _throwNewInstanceError: (collectionName) => {
@@ -83,6 +85,68 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     client.close();
                   }
                 });
+                break;
+
+              case 'test':
+                // stripe.tokens.create({
+                //   card: {
+                //     number: '4242424242424242',
+                //     exp_month: 12,
+                //     exp_year: 2020,
+                //     cvc: '123'
+                //   }
+                // }, function(err, token) {
+                //    res.json(token);
+                //
+                // });
+
+                // stripe.tokens.retrieve(
+                //   "tok_1E85qcC02AvvjpzI3acnDGO9",
+                //   function(err, token) {
+                //     res.json(token)
+                //   }
+                // );
+
+                // stripe.charges.create({
+                //   amount: 2359900,
+                //   currency: "usd",
+                //   source: "tok_1E85qcC02AvvjpzI3acnDGO9",
+                //   description: 'hello world',
+                //   receipt_email: 'something@example.com',
+                //   shipping: {
+                //     name: 'John Doe',
+                //     address: {
+                //       line1: 'Address line 1',
+                //       city: 'tehran',
+                //       state: 'CA',
+                //       postal_code: '19983',
+                //       country: 'US'
+                //     }
+                //   }
+                // }, function(err, charge) {
+                //   // send response
+                //   if (err){
+                //       console.error(err);
+                //       res.json({ error: err, charge: false });
+                //   } else {
+                //       // send response with charge data
+                //       res.json({ error: false, charge: charge });
+                //   }
+                // })
+
+                _Functions._chargeUsingToken({
+                  card: {
+                    number: '4242424242424242',
+                    exp_month: 12,
+                    exp_year: 2020,
+                    cvc: '123'
+                  },
+                  amount: 2000,
+                  currency: 'usd'
+                })
+                .then((charge) => {
+                  res.json(charge)
+                })
                 break;
 
               case 'users':

@@ -10,6 +10,9 @@ const _SMS_PROVIDER = {
           SECURE: 465,
           NON_SECURE: 587
         }
+      },
+      _PAYMENT_APPROACH = {
+        API_KEY: 'sk_test_h88TQbVd5UPP4HGZdM2SQpbv'
       };
 
 module.exports = {
@@ -21,5 +24,6 @@ module.exports = {
   },
   TRANSPORTER: {
     MAIL: _MAIL_TRANSPORTER
-  }
+  },
+  PAYMENT_APPROACH: _PAYMENT_APPROACH
 };
