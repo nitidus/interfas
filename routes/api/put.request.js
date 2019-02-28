@@ -3,16 +3,17 @@ var crypto = require('crypto'),
     assert = require('assert'),
     ObjectID = require('mongodb').ObjectID;
 
-const _Functions = require('../../src/modules/functions');
+const Modules = require('../../src/modules');
+
 const _LOCAL_FUNCTIONS = {
   _throwNewInstanceError: (collectionName) => {
     const _COLLECTION_NAME_AS_SINGLE = (collectionName.match(/\w+s$/ig) != null)? collectionName.slice(0, -1): collectionName,
-          RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
+          RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
 
     return RECURSIVE_CONTENT;
   },
   _throwConnectionError: () => {
-    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
+    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
 
     return RECURSIVE_CONTENT;
   }
@@ -58,21 +59,21 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                 if (typeof _THREAD.personal != 'undefined'){
                   if ((typeof _THREAD.personal.first_name != 'undefined') && (typeof _THREAD.personal.last_name != 'undefined')){
-                    _TARGET["$set"]["personal.first_name"] =_Functions._convertKeywordToToken(_THREAD.personal.first_name);
-                    _TARGET["$set"]["personal.last_name"] = _Functions._convertKeywordToToken(_THREAD.personal.last_name);
+                    _TARGET["$set"]["personal.first_name"] =Modules.Functions._convertKeywordToToken(_THREAD.personal.first_name);
+                    _TARGET["$set"]["personal.last_name"] = Modules.Functions._convertKeywordToToken(_THREAD.personal.last_name);
                   }
                 }
 
                 if ((typeof _THREAD.first_name != 'undefined') || (typeof _THREAD.firstName != 'undefined')){
                   const _FIRST_NAME = _THREAD.first_name || _THREAD.firstName;
 
-                  _TARGET["$set"]["personal.first_name"] =_Functions._convertKeywordToToken(_FIRST_NAME);
+                  _TARGET["$set"]["personal.first_name"] =Modules.Functions._convertKeywordToToken(_FIRST_NAME);
                 }
 
                 if ((typeof _THREAD.last_name != 'undefined') || (typeof _THREAD.lastName != 'undefined')){
                   const _LAST_NAME = _THREAD.last_name || _THREAD.lastName;
 
-                  _TARGET["$set"]["personal.last_name"] = _Functions._convertKeywordToToken(_LAST_NAME);
+                  _TARGET["$set"]["personal.last_name"] = Modules.Functions._convertKeywordToToken(_LAST_NAME);
                 }
 
                 if (typeof _THREAD.email != 'undefined'){
@@ -89,7 +90,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   if (typeof _THREAD.target != 'undefined'){
                     if ((typeof _THREAD.target.app_name != 'undefined') && (typeof _THREAD.target.brand != 'undefined')){
-                      _Functions._sendInvitation(_THREAD.target.app_name, {
+                      Modules.Functions._sendInvitation(_THREAD.target.app_name, {
                         ..._THREAD.target.brand,
                         target: {
                           email: _THREAD.email,
@@ -118,12 +119,12 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       }
                     };
 
-                    _Functions._sendMessage(_TARGET["$set"]["phone.mobile"].content, _TARGET["$set"]["phone.mobile"].validation.token)
+                    Modules.Functions._sendMessage(_TARGET["$set"]["phone.mobile"].content, _TARGET["$set"]["phone.mobile"].validation.token)
                     .then((response) => {
                       //YOU CAN STORE YOUR RESPONSE IN DB
                     })
                     .catch((error) => {
-                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
 
                       res.json(RECURSIVE_CONTENT);
                     })
@@ -139,7 +140,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   _COLLECTION.findOne(_CRITERIA, function(existingCheckQueryError, existingDoc){
                     if (existingCheckQueryError != null){
-                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(existingCheckQueryError, 700);
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(existingCheckQueryError, 700);
 
                       res.json(RECURSIVE_CONTENT);
 
@@ -151,9 +152,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                             _SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex').slice(0, 7),
                             _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
 
-                      _Functions._removeFileWithEmptyDirectory(existingDoc.personal.profile);
+                      Modules.Functions._removeFileWithEmptyDirectory(existingDoc.personal.profile);
 
-                      _TARGET["$set"]["personal.profile"] = _Functions._uploadUserProfilePhoto(_PROFILE_DIRECTORY, `${_SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                      _TARGET["$set"]["personal.profile"] = Modules.Functions._uploadUserProfilePhoto(_PROFILE_DIRECTORY, `${_SECRET_CONTENT_OF_FILE_EXTENDED_PATH_WITH_APPENDED_KEY}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
                     }
                   })
                 }
@@ -161,11 +162,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 if (_IS__LOCAL_COLLECTION_READY_TO_UPDATE){
                   _COLLECTION.updateOne(_CRITERIA, _THREAD, function(updateQueryError, doc){
                     if (updateQueryError != null){
-                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
                       res.json(RECURSIVE_CONTENT);
                     }else{
-                      const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                      const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                       res.json(RECURSIVE_CONTENT);
 
@@ -202,11 +203,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       _COLLECTION.updateOne(_CRITERIA, _TARGET, function(verifyQueryError, doc){
                         if (verifyQueryError != null){
-                          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
 
                           res.json(RECURSIVE_CONTENT);
                         }else{
-                          const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                          const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                           res.json(RECURSIVE_CONTENT);
 
@@ -214,14 +215,14 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         }
                       });
                     }else{
-                      const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
 
                       res.json(RECURSIVE_CONTENT);
                     }
                 break;
 
               default:
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
                 res.json(RECURSIVE_CONTENT);
             }
@@ -260,11 +261,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     _COLLECTION.updateOne(_CRITERIA, _TARGET, function(regenerateQueryError, doc){
                       if (regenerateQueryError != null){
-                        const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        _Functions._sendMessage(_THREAD.phone_number, _VALIDATION_TOKEN)
+                        Modules.Functions._sendMessage(_THREAD.phone_number, _VALIDATION_TOKEN)
                         .then((response) => {
                           var RECURSIVE_OBJECT = {
                             token: _VALIDATION_TOKEN,
@@ -275,12 +276,12 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                             RECURSIVE_OBJECT.phone_number = _THREAD.phone_number;
                           }
 
-                          const RECURSIVE_CONTENT = _Functions._throwResponseWithData(RECURSIVE_OBJECT);
+                          const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(RECURSIVE_OBJECT);
 
                           res.json(RECURSIVE_CONTENT);
                         })
                         .catch((error) => {
-                          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
 
                           res.json(RECURSIVE_CONTENT);
                         })
@@ -289,14 +290,14 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       }
                     });
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
 
                     res.json(RECURSIVE_CONTENT);
                   }
               break;
 
             default:
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
 
               res.json(RECURSIVE_CONTENT);
           }
@@ -307,11 +308,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           }
 
           if (typeof _THREAD.type != 'undefined'){
-            _THREAD.type = _Functions._convertTokenToKeyword(_THREAD.type);
+            _THREAD.type = Modules.Functions._convertTokenToKeyword(_THREAD.type);
           }
 
           if (typeof _THREAD.role != 'undefined'){
-            _THREAD.role = _Functions._convertTokenToKeyword(_THREAD.role);
+            _THREAD.role = Modules.Functions._convertTokenToKeyword(_THREAD.role);
           }
 
           _IS_COLLECTION_READY_TO_UPDATE = true;
@@ -380,7 +381,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               _COLLECTION.aggregate(_CHECK_REQUEST_CRITERIA)
               .toArray(function(userAuthQueryError, doc){
                 if (userAuthQueryError != null){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
 
                   _IS_REMOVED_THE_RECENT_HOSTED_FILE = false;
 
@@ -389,7 +390,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   const _CHECKED_ENDUSER = doc[0];
 
                   if (typeof _CHECKED_ENDUSER.brand.photo != 'undefined'){
-                    const _IS_REMOVE_REQUEST_DONE = _Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
+                    const _IS_REMOVE_REQUEST_DONE = Modules.Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
 
                     if (_IS_REMOVE_REQUEST_DONE !== false){
                       const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.password}`,
@@ -397,7 +398,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                             _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
                             _FILE_EXTENSION_MIMETYPE = _THREAD.brand.photo.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
 
-                      _TARGET["$set"]["brand.photo"] = _Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                      _TARGET["$set"]["brand.photo"] = Modules.Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
                     }
                   }
                 }
@@ -427,11 +428,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           if (((typeof _THREAD.brand.photo != 'undefined') && _IS_REMOVED_THE_RECENT_HOSTED_FILE) || (typeof _THREAD.brand.photo == 'undefined')){
               _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
                 if (updateQueryError != null){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                   res.json(RECURSIVE_CONTENT);
 
@@ -443,13 +444,13 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           break;
 
           default:
-            const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
 
             res.json(RECURSIVE_CONTENT);
           }
 
           if (_IS_COLLECTION_READY_TO_UPDATE){
-            _THREAD.modified_at = _TODAY;
+            _TARGET.modified_at = _TODAY;
 
             const _TARGET = {
                     "$set": _THREAD
@@ -461,11 +462,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
               if (updateQueryError != null){
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
                 res.json(RECURSIVE_CONTENT);
               }else{
-                const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                 res.json(RECURSIVE_CONTENT);
 

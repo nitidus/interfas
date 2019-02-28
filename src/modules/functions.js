@@ -323,7 +323,7 @@ _sendInvitation: async (appName, details) => {
           });
 
           var _CHARGE_SEED = {
-            amount: _FINAL_AMOUNT,
+            amount: (_FINAL_AMOUNT > 50)? _FINAL_AMOUNT: (_FINAL_AMOUNT * 100),
             currency: _CURRENCY,
             source: _TOKEN.id
           };
@@ -354,6 +354,15 @@ _sendInvitation: async (appName, details) => {
               shipping: _SHIPPINNG
             };
           }
+
+          // if ((typeof token.meta_data != 'undefined') || (typeof token.extra_data != 'undefined')){
+          //   const _META_DATA = token.meta_data || token.extra_data;
+          //
+          //   _CHARGE_SEED = {
+          //     ..._CHARGE_SEED,
+          //     metadata: _META_DATA
+          //   };
+          // }
 
           const _CHARGE = await stripe.charges.create(_CHARGE_SEED);
 

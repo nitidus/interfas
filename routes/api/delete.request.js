@@ -3,16 +3,17 @@ var crypto = require('crypto'),
     assert = require('assert'),
     ObjectID = require('mongodb').ObjectID;
 
-const _Functions = require('../../src/modules/functions');
+const Modules = require('../../src/modules');
+
 const _LOCAL_FUNCTIONS = {
   _throwNewInstanceError: (collectionName) => {
     const _COLLECTION_NAME_AS_SINGLE = (collectionName.match(/\w+s$/ig) != null)? collectionName.slice(0, -1): collectionName,
-          RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
+          RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
 
     return RECURSIVE_CONTENT;
   },
   _throwConnectionError: () => {
-    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
+    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
 
     return RECURSIVE_CONTENT;
   }
@@ -47,10 +48,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'currencies':
             case 'taxonomies':
             case 'plans':
+            case 'histories':
               _IS_COLLECTION_READY_TO_REMOVE = true;
               break;
             default:
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
               res.json(RECURSIVE_CONTENT);
               break;
@@ -64,16 +66,16 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             _COLLECTION.deleteOne(_CRITERIA, function(removeQueryError, doc){
               if (removeQueryError != null){
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection delete request could\'t be processed.`, 700);
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection delete request could\'t be processed.`, 700);
 
                 res.json(RECURSIVE_CONTENT);
               }else{
                 if (doc.deletedCount != 1){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be deleted.`, 700);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be deleted.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc.result);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc.result);
 
                   res.json(RECURSIVE_CONTENT);
 

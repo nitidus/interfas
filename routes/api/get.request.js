@@ -3,18 +3,17 @@ var crypto = require('crypto'),
     assert = require('assert'),
     ObjectID = require('mongodb').ObjectID;
 
-const stripe = require('stripe')('sk_test_h88TQbVd5UPP4HGZdM2SQpbv');
+const Modules = require('../../src/modules');
 
-const _Functions = require('../../src/modules/functions');
 const _LOCAL_FUNCTIONS = {
   _throwNewInstanceError: (collectionName) => {
     const _COLLECTION_NAME_AS_SINGLE = (collectionName.match(/\w+s$/ig) != null)? collectionName.slice(0, -1): collectionName,
-          RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
+          RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`You\'ve not entered the required information to create a new ${_COLLECTION_NAME_AS_SINGLE}.`);
 
     return RECURSIVE_CONTENT;
   },
   _throwConnectionError: () => {
-    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
+    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The Interfas collection could not be reached.`, 700);
 
     return RECURSIVE_CONTENT;
   }
@@ -74,79 +73,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _COLLECTION.aggregate(_CRITERIA)
                 .toArray(function(endUserFindQueryError, doc){
                   if (endUserFindQueryError != null){
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                     res.json(RECURSIVE_CONTENT);
 
                     client.close();
                   }
                 });
-                break;
-
-              case 'test':
-                // stripe.tokens.create({
-                //   card: {
-                //     number: '4242424242424242',
-                //     exp_month: 12,
-                //     exp_year: 2020,
-                //     cvc: '123'
-                //   }
-                // }, function(err, token) {
-                //    res.json(token);
-                //
-                // });
-
-                // stripe.tokens.retrieve(
-                //   "tok_1E85qcC02AvvjpzI3acnDGO9",
-                //   function(err, token) {
-                //     res.json(token)
-                //   }
-                // );
-
-                // stripe.charges.create({
-                //   amount: 2359900,
-                //   currency: "usd",
-                //   source: "tok_1E85qcC02AvvjpzI3acnDGO9",
-                //   description: 'hello world',
-                //   receipt_email: 'something@example.com',
-                //   shipping: {
-                //     name: 'John Doe',
-                //     address: {
-                //       line1: 'Address line 1',
-                //       city: 'tehran',
-                //       state: 'CA',
-                //       postal_code: '19983',
-                //       country: 'US'
-                //     }
-                //   }
-                // }, function(err, charge) {
-                //   // send response
-                //   if (err){
-                //       console.error(err);
-                //       res.json({ error: err, charge: false });
-                //   } else {
-                //       // send response with charge data
-                //       res.json({ error: false, charge: charge });
-                //   }
-                // })
-
-                _Functions._chargeUsingToken({
-                  card: {
-                    number: '4242424242424242',
-                    exp_month: 12,
-                    exp_year: 2020,
-                    cvc: '123'
-                  },
-                  amount: 2000,
-                  currency: 'usd'
-                })
-                .then((charge) => {
-                  res.json(charge)
-                })
                 break;
 
               case 'users':
@@ -159,11 +96,12 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               case 'currencies':
               case 'taxonomies':
               case 'plans':
+              case 'histories':
                 _IS_COLLECTION_READY_TO_RESPONSE = true;
                 break;
 
               default:
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
                 res.json(RECURSIVE_CONTENT);
             }
@@ -179,12 +117,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               })
               .toArray(function(userFindQueryError, doc){
                 if (userFindQueryError != null){
-                  console.log(userFindQueryError)
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                   res.json(RECURSIVE_CONTENT);
 
@@ -200,7 +137,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.get('/:collection/:token', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase(),
-            _TOKEN = (_Functions._checkIsAValidObjectID(req.params.token) === true)? new ObjectID(req.params.token): req.params.token,
+            _TOKEN = (Modules.Functions._checkIsAValidObjectID(req.params.token) === true)? new ObjectID(req.params.token): req.params.token,
             _THREAD = req.query;
 
       var _IS_COLLECTION_READY_TO_RESPONSE = false;
@@ -283,11 +220,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               .limit(1)
               .toArray(function(userFindQueryError, docs){
                 if (userFindQueryError != null){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs[0]);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(docs[0]);
 
                   res.json(RECURSIVE_CONTENT);
 
@@ -305,6 +242,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'orders':
             case 'currencies':
             case 'taxonomies':
+            case 'histories':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
               break;
 
@@ -318,8 +256,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
               ];
 
-              if (_Functions._checkIsAValidObjectID(req.params.token) !== true){
-                var _TOKEN_KEYWORD = _Functions._convertTokenToKeyword(_TOKEN);
+              if (Modules.Functions._checkIsAValidObjectID(req.params.token) !== true){
+                var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_TOKEN);
 
                 if (_TOKEN_KEYWORD == 'TP' || _TOKEN_KEYWORD == 'T.P' || _TOKEN_KEYWORD == 'T.P.'){
                   _TOKEN_KEYWORD = 'TRANSACTION_POINT';
@@ -357,11 +295,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               _COLLECTION.aggregate(_CRITERIA)
               .toArray(function(error, docs){
                 if (error != null){
-                  const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
 
                   res.json(RECURSIVE_CONTENT);
 
@@ -474,11 +412,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _COLLECTION.aggregate(_CRITERIA)
                 .toArray(function(userFindQueryError, docs){
                   if (userFindQueryError != null){
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(docs);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(docs);
 
                     res.json(RECURSIVE_CONTENT);
 
@@ -488,7 +426,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               break;
 
             default:
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
               res.json(RECURSIVE_CONTENT);
               break;
@@ -501,11 +439,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
               if (userFindQueryError != null){
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                 res.json(RECURSIVE_CONTENT);
               }else{
-                const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                 res.json(RECURSIVE_CONTENT);
 
@@ -530,7 +468,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _COLLECTION = _DB.collection('usergroups');
 
           var _CRITERIA = {
-                type: _Functions._convertTokenToKeyword(_TOKEN)
+                type: Modules.Functions._convertTokenToKeyword(_TOKEN)
               };
 
           if ((typeof _THREAD.token != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.id != 'undefined') || (typeof _THREAD.ID != 'undefined')){
@@ -552,11 +490,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           })
           .toArray(function(userFindQueryError, doc){
             if (userFindQueryError != null){
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The usergroups collection find request could\'t be processed.`, 700);
+              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The usergroups collection find request could\'t be processed.`, 700);
 
               res.json(RECURSIVE_CONTENT);
             }else{
-              const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+              const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
               res.json(RECURSIVE_CONTENT);
 
@@ -572,7 +510,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           _HEAD = req.params.head;
 
     if (_HEAD != ''){
-      const _HEAD_KEYWORD = _Functions._convertTokenToKeyword(_HEAD);
+      const _HEAD_KEYWORD = Modules.Functions._convertTokenToKeyword(_HEAD);
 
       switch (_HEAD_KEYWORD) {
         case 'HEAD':
@@ -589,7 +527,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       _COLLECTION = _DB.collection('usergroups');
 
                 var _CRITERIA = {
-                      type: _Functions._convertTokenToKeyword(_TOKEN),
+                      type: Modules.Functions._convertTokenToKeyword(_TOKEN),
                       reference_id: {
                         "$exists": false
                       }
@@ -597,11 +535,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                 _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
                   if (userFindQueryError != null){
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The usergroups collection find request could\'t be processed.`, 700);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The usergroups collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(doc);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
 
                     res.json(RECURSIVE_CONTENT);
 
@@ -612,7 +550,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           });
           break;
         default:
-          const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`You should choose the user level type.`, 700);
+          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`You should choose the user level type.`, 700);
 
           res.json(RECURSIVE_CONTENT);
           break;
@@ -632,12 +570,12 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _COLLECTION = _DB.collection('endusers');
 
           var _CRITERIA = {
-                "brand.name": _Functions._convertKeywordToToken(_BRAND_NAME)
+                "brand.name": Modules.Functions._convertKeywordToToken(_BRAND_NAME)
               };
 
           _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
             if (userFindQueryError != null){
-              const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
+              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The endusers collection find request could\'t be processed.`, 700);
 
               res.json(RECURSIVE_CONTENT);
             }else{
@@ -694,11 +632,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _COLLECTION.aggregate(_ROLE_CRITERIA)
                 .toArray(function(roleCheckQueryError, roleCheckDoc){
                   if (roleCheckQueryError != null){
-                    const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`Matching Role\'s token operation could\'t be processed.`, 700);
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`Matching Role\'s token operation could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
                   }else{
-                    const RECURSIVE_CONTENT = _Functions._throwResponseWithData(((roleCheckDoc.length > 0)? roleCheckDoc[0]: {}));
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(((roleCheckDoc.length > 0)? roleCheckDoc[0]: {}));
 
                     res.json(RECURSIVE_CONTENT);
 
@@ -706,7 +644,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 });
               }else{
-                const RECURSIVE_CONTENT = _Functions._throwErrorWithCodeAndMessage(`We couldn\'t find any brand with name ${_Functions._convertKeywordToToken(_BRAND_NAME)}.`, 700);
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`We couldn\'t find any brand with name ${Modules.Functions._convertKeywordToToken(_BRAND_NAME)}.`, 700);
 
                 res.json(RECURSIVE_CONTENT);
               }
