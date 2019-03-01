@@ -693,10 +693,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                           wallet_id: new ObjectID(_WALLET._id),
                                           previous_balance: 0,
                                           new_balance: _BALANCE,
-                                          content: charge
+                                          content: charge,
+                                          modified_at: _TODAY,
+                                          created_at: _TODAY
                                         };
-
-                                        _TARGET.modified_at = _TARGET.created_at = _TODAY;
 
                                         _LOG_COLLECTION.insertOne(_LOG_TARGET, function(logQueryError, historyDoc){
                                           if (logQueryError != null){
@@ -882,10 +882,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                       wallet_id: new ObjectID(_WALLET._id),
                                       previous_balance: 0,
                                       new_balance: _BALANCE,
-                                      content: charge
+                                      content: charge,
+                                      modified_at: _TODAY,
+                                      created_at: _TODAY
                                     };
-
-                                    _TARGET.modified_at = _TARGET.created_at = _TODAY;
 
                                     _LOG_COLLECTION.insertOne(_LOG_TARGET, function(logQueryError, historyDoc){
                                       if (logQueryError != null){
@@ -1068,8 +1068,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                   end_user_id: _END_USER_ID,
                                   content: charge
                                 };
-
-                                _TARGET.modified_at = _TARGET.created_at = _TODAY;
 
                                 if (typeof _THREAD.wallet_id != 'undefined'){
                                   _TARGET.wallet_id = new ObjectID(_THREAD.wallet_id);

@@ -219,234 +219,255 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       res.json(RECURSIVE_CONTENT);
                     }
+                    break;
+
+                  default:
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+
+                    res.json(RECURSIVE_CONTENT);
+                    break;
+                }
                 break;
 
-              default:
-                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
+              case 'regenerate':
+                switch (_TOKEN.toLowerCase()) {
+                  case 'phone-number':
+                  case 'phone':
+                  case 'mobile-phone':
+                  case 'mobile-phone-number':
+                  case 'mobile-number':
+                    if ((typeof _THREAD.user_id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.user != 'undefined')){
+                      const _USER_ID = _THREAD.user_id || _THREAD._id || _THREAD.user;
 
-                res.json(RECURSIVE_CONTENT);
-            }
-            break;
+                      _THREAD.user_id = new ObjectID(_USER_ID);
 
-            case 'regenerate':
-              switch (_TOKEN.toLowerCase()) {
-                case 'phone-number':
-                case 'phone':
-                case 'mobile-phone':
-                case 'mobile-phone-number':
-                case 'mobile-number':
-                  if ((typeof _THREAD.user_id != 'undefined') || (typeof _THREAD._id != 'undefined') || (typeof _THREAD.user != 'undefined')){
-                    const _USER_ID = _THREAD.user_id || _THREAD._id || _THREAD.user;
+                      const _VALIDATION_TOKEN = Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString();
 
-                    _THREAD.user_id = new ObjectID(_USER_ID);
+                      _COLLECTION = _DB.collection('users');
 
-                    const _VALIDATION_TOKEN = Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString();
-
-                    _COLLECTION = _DB.collection('users');
-
-                    _CRITERIA = {
-                      _id: _THREAD.user_id
-                    }
-
-                    var _TARGET = {
-                      "$set": {
-                        "phone.mobile.validation.token": _VALIDATION_TOKEN,
-                        "phone.mobile.validation.modified_at": _TODAY
+                      _CRITERIA = {
+                        _id: _THREAD.user_id
                       }
-                    };
 
-                    if (typeof _THREAD.phone_number != 'undefined'){
-                      _TARGET["phone.mobile.content"] = _THREAD.phone_number;
+                      var _TARGET = {
+                        "$set": {
+                          "phone.mobile.validation.token": _VALIDATION_TOKEN,
+                          "phone.mobile.validation.modified_at": _TODAY
+                        }
+                      };
+
+                      if (typeof _THREAD.phone_number != 'undefined'){
+                        _TARGET["phone.mobile.content"] = _THREAD.phone_number;
+                      }
+
+                      _COLLECTION.updateOne(_CRITERIA, _TARGET, function(regenerateQueryError, doc){
+                        if (regenerateQueryError != null){
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+
+                          res.json(RECURSIVE_CONTENT);
+                        }else{
+                          Modules.Functions._sendMessage(_THREAD.phone_number, _VALIDATION_TOKEN)
+                          .then((response) => {
+                            var RECURSIVE_OBJECT = {
+                              token: _VALIDATION_TOKEN,
+                              modified_at: _TODAY
+                            };
+
+                            if (typeof _THREAD.phone_number != 'undefined'){
+                              RECURSIVE_OBJECT.phone_number = _THREAD.phone_number;
+                            }
+
+                            const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(RECURSIVE_OBJECT);
+
+                            res.json(RECURSIVE_CONTENT);
+                          })
+                          .catch((error) => {
+                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+
+                            res.json(RECURSIVE_CONTENT);
+                          })
+
+                          client.close();
+                        }
+                      });
+                    }else{
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+
+                      res.json(RECURSIVE_CONTENT);
                     }
+                    break;
 
-                    _COLLECTION.updateOne(_CRITERIA, _TARGET, function(regenerateQueryError, doc){
-                      if (regenerateQueryError != null){
-                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+                  default:
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+
+                    res.json(RECURSIVE_CONTENT);
+                    break;
+                }
+                break;
+
+              case 'usergroups':
+                if (typeof _THREAD.reference_id != 'undefined'){
+                  _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
+                }
+
+                if (typeof _THREAD.type != 'undefined'){
+                  _THREAD.type = Modules.Functions._convertTokenToKeyword(_THREAD.type);
+                }
+
+                if (typeof _THREAD.role != 'undefined'){
+                  _THREAD.role = Modules.Functions._convertTokenToKeyword(_THREAD.role);
+                }
+
+                _IS_COLLECTION_READY_TO_UPDATE = true;
+                break;
+
+              case 'endusers':
+                _CRITERIA = {
+                  _id: new ObjectID(_TOKEN)
+                };
+
+                var _TARGET = {
+                  "$set": {
+                    modified_at: _TODAY
+                  }
+                };
+
+                if (typeof _THREAD.brand != 'undefined'){
+                  if (typeof _THREAD.brand.name != 'undefined'){
+                    _TARGET["$set"]["brand.name"] = _THREAD.brand.name;
+                  }
+
+                  if (typeof _THREAD.brand.photo != 'undefined'){
+                    var _IS_REMOVED_THE_RECENT_HOSTED_FILE = true;
+
+                    const _CHECK_REQUEST_CRITERIA = [
+                      {
+                        "$lookup": {
+                          "from": "users",
+                          "localField": "user_id",
+                          "foreignField": "_id",
+                          "as": "user"
+                        }
+                      },
+                      {
+                        "$unwind": {
+                          "path": "$user",
+                          "preserveNullAndEmptyArrays": true
+                        }
+                      },
+                      {
+                        "$lookup": {
+                          "from": "usergroups",
+                          "localField": "user_group_id",
+                          "foreignField": "_id",
+                          "as": "usergroup"
+                        }
+                      },
+                      {
+                        "$unwind": "$usergroup"
+                      },
+                      {
+                        "$project": {
+                          "user_id": 0,
+                          "user_group_id": 0
+                        }
+                      },
+                      {
+                        "$match": {
+                          "_id": _TOKEN
+                        }
+                      },
+                      {
+                        "$limit": 1
+                      }
+                    ];
+
+                    _COLLECTION.aggregate(_CHECK_REQUEST_CRITERIA)
+                    .toArray(function(userAuthQueryError, doc){
+                      if (userAuthQueryError != null){
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
+
+                        _IS_REMOVED_THE_RECENT_HOSTED_FILE = false;
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        Modules.Functions._sendMessage(_THREAD.phone_number, _VALIDATION_TOKEN)
-                        .then((response) => {
-                          var RECURSIVE_OBJECT = {
-                            token: _VALIDATION_TOKEN,
-                            modified_at: _TODAY
-                          };
+                        const _CHECKED_ENDUSER = doc[0];
 
-                          if (typeof _THREAD.phone_number != 'undefined'){
-                            RECURSIVE_OBJECT.phone_number = _THREAD.phone_number;
+                        if (typeof _CHECKED_ENDUSER.brand.photo != 'undefined'){
+                          const _IS_REMOVE_REQUEST_DONE = Modules.Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
+
+                          if (_IS_REMOVE_REQUEST_DONE !== false){
+                            const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.password}`,
+                                  _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_CHECKED_ENDUSER.password}`,
+                                  _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                                  _FILE_EXTENSION_MIMETYPE = _THREAD.brand.photo.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+
+                            _TARGET["$set"]["brand.photo"] = Modules.Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
                           }
+                        }
+                      }
+                    });
+                }
 
-                          const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(RECURSIVE_OBJECT);
+                if (_THREAD.user_group_id){
+                  _TARGET["$set"]["user_group_id"] = new ObjectID(_THREAD.user_group_id);
+                }
 
-                          res.json(RECURSIVE_CONTENT);
-                        })
-                        .catch((error) => {
-                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+                if (typeof _THREAD.reference_id != 'undefined'){
+                  _TARGET["$set"]["reference_id"] = new ObjectID(_THREAD.reference_id);
+                }
 
-                          res.json(RECURSIVE_CONTENT);
-                        })
+                if (typeof _THREAD.cardinal_id != 'undefined'){
+                  _TARGET["$set"]["cardinal_id"] = new ObjectID(_THREAD.cardinal_id);
+                }
+
+                if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+                  _TARGET["$set"]["cardinal_ancestors"] = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+                    const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                    return _FINAL_ANCESTOR;
+                  });
+                }
+
+                if (((typeof _THREAD.brand.photo != 'undefined') && _IS_REMOVED_THE_RECENT_HOSTED_FILE) || (typeof _THREAD.brand.photo == 'undefined')){
+                    _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
+                      if (updateQueryError != null){
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+
+                        res.json(RECURSIVE_CONTENT);
+                      }else{
+                        const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                        res.json(RECURSIVE_CONTENT);
 
                         client.close();
                       }
                     });
-                  }else{
-                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
-
-                    res.json(RECURSIVE_CONTENT);
-                  }
-              break;
-
-            default:
-              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
-
-              res.json(RECURSIVE_CONTENT);
-          }
-          break;
-        case 'usergroups':
-          if (typeof _THREAD.reference_id != 'undefined'){
-            _THREAD.reference_id = new ObjectID(_THREAD.reference_id);
-          }
-
-          if (typeof _THREAD.type != 'undefined'){
-            _THREAD.type = Modules.Functions._convertTokenToKeyword(_THREAD.type);
-          }
-
-          if (typeof _THREAD.role != 'undefined'){
-            _THREAD.role = Modules.Functions._convertTokenToKeyword(_THREAD.role);
-          }
-
-          _IS_COLLECTION_READY_TO_UPDATE = true;
-          break;
-        case 'endusers':
-          _CRITERIA = {
-            _id: new ObjectID(_TOKEN)
-          };
-
-          var _TARGET = {
-            "$set": {
-              modified_at: _TODAY
-            }
-          };
-
-          if (typeof _THREAD.brand != 'undefined'){
-            if (typeof _THREAD.brand.name != 'undefined'){
-              _TARGET["$set"]["brand.name"] = _THREAD.brand.name;
-            }
-
-            if (typeof _THREAD.brand.photo != 'undefined'){
-              var _IS_REMOVED_THE_RECENT_HOSTED_FILE = true;
-
-              const _CHECK_REQUEST_CRITERIA = [
-                {
-                  "$lookup": {
-                    "from": "users",
-                    "localField": "user_id",
-                    "foreignField": "_id",
-                    "as": "user"
-                  }
-                },
-                {
-                  "$unwind": {
-                    "path": "$user",
-                    "preserveNullAndEmptyArrays": true
-                  }
-                },
-                {
-                  "$lookup": {
-                    "from": "usergroups",
-                    "localField": "user_group_id",
-                    "foreignField": "_id",
-                    "as": "usergroup"
-                  }
-                },
-                {
-                  "$unwind": "$usergroup"
-                },
-                {
-                  "$project": {
-                    "user_id": 0,
-                    "user_group_id": 0
-                  }
-                },
-                {
-                  "$match": {
-                    "_id": _TOKEN
-                  }
-                },
-                {
-                  "$limit": 1
-                }
-              ];
-
-              _COLLECTION.aggregate(_CHECK_REQUEST_CRITERIA)
-              .toArray(function(userAuthQueryError, doc){
-                if (userAuthQueryError != null){
-                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
-
-                  _IS_REMOVED_THE_RECENT_HOSTED_FILE = false;
-
-                  res.json(RECURSIVE_CONTENT);
-                }else{
-                  const _CHECKED_ENDUSER = doc[0];
-
-                  if (typeof _CHECKED_ENDUSER.brand.photo != 'undefined'){
-                    const _IS_REMOVE_REQUEST_DONE = Modules.Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
-
-                    if (_IS_REMOVE_REQUEST_DONE !== false){
-                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.password}`,
-                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_CHECKED_ENDUSER.password}`,
-                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
-                            _FILE_EXTENSION_MIMETYPE = _THREAD.brand.photo.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
-
-                      _TARGET["$set"]["brand.photo"] = Modules.Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
-                    }
                   }
                 }
-              });
-          }
+                break;
 
-          if (_THREAD.user_group_id){
-            _TARGET["$set"]["user_group_id"] = new ObjectID(_THREAD.user_group_id);
-          }
-
-          if (typeof _THREAD.reference_id != 'undefined'){
-            _TARGET["$set"]["reference_id"] = new ObjectID(_THREAD.reference_id);
-          }
-
-          if (typeof _THREAD.cardinal_id != 'undefined'){
-            _TARGET["$set"]["cardinal_id"] = new ObjectID(_THREAD.cardinal_id);
-          }
-
-          if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
-            _TARGET["$set"]["cardinal_ancestors"] = _THREAD.cardinal_ancestors.map((ancestor, i) => {
-              const _FINAL_ANCESTOR = new ObjectID(ancestor);
-
-              return _FINAL_ANCESTOR;
-            });
-          }
-
-          if (((typeof _THREAD.brand.photo != 'undefined') && _IS_REMOVED_THE_RECENT_HOSTED_FILE) || (typeof _THREAD.brand.photo == 'undefined')){
-              _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
-                if (updateQueryError != null){
-                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
-
-                  res.json(RECURSIVE_CONTENT);
-                }else{
-                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
-
-                  res.json(RECURSIVE_CONTENT);
-
-                  client.close();
+              case 'wallets':
+                if (typeof _THREAD.currency_id != 'undefined'){
+                  _THREAD.currency_id = new ObjectID(_THREAD.currency_id);
                 }
-              });
-            }
-          }
-          break;
 
-          default:
-            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+                if (typeof _THREAD.end_user_id != 'undefined'){
+                  _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
+                }
 
-            res.json(RECURSIVE_CONTENT);
+                if ((typeof _THREAD.balance != 'undefined') && (!isNaN(_THREAD.balance))){
+                  _THREAD.balance = parseInt(_THREAD.balance);
+                }
+
+                _IS_COLLECTION_READY_TO_UPDATE = true;
+                break;
+
+              default:
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
+
+                res.json(RECURSIVE_CONTENT);
+                break;
           }
 
           if (_IS_COLLECTION_READY_TO_UPDATE){
