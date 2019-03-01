@@ -537,7 +537,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   ){
                     if (
                       ((typeof _THREAD.balance != 'undefined') || (typeof _THREAD.wallet_balance != 'undefined') || (typeof _THREAD.initial_wallet_balance != 'undefined') || (typeof _THREAD.initial_balance != 'undefined')) &&
-                      ((typeof _THREAD.amount != 'undefined') && (!isNaN(_THREAD.amount)))
+                      ((typeof _THREAD.amount != 'undefined') || (typeof _THREAD.price != 'undefined'))
                     ){
                       const _BALANCE = _THREAD.balance || _THREAD.wallet_balance || _THREAD.initial_wallet_balance || _THREAD.initial_balance;
 
@@ -556,7 +556,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                           res.json(RECURSIVE_CONTENT);
                         }else{
-                          const _BALANCE = doc.price;
+                          const _BALANCE = doc.price,
+                                _CHARGE_AMOUNT = doc.amount;
 
                           _TARGET.balance = _BALANCE;
 
@@ -597,20 +598,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                             exp_year: _FINAL_EXPIRATION_YEAR,
                                             cvc: _FINAL_CVC
                                           },
+                                          amount: _CHARGE_AMOUNT,
                                           currency: _CHARGE_CURRENCY
                                         },
                                         _IS_TRANSACTION_READY_TO_LAUNCH = true;
 
-                                    if ((typeof _THREAD.amount != 'undefined') || (typeof _THREAD.price != 'undefined')){
-                                      const _AMOUNT = _THREAD.amount || _THREAD.price;
-
-                                      if (!isNaN(_AMOUNT)){
-                                        _CHARGE_SEED = {
-                                          ..._CHARGE_SEED,
-                                          amount: parseInt(_AMOUNT)
-                                        };
-                                      }
-                                    }
 
                                     if ((typeof _THREAD.receipt_email != 'undefined') || (typeof _THREAD.email != 'undefined')){
                                       const _RECEIPT_EMAIL = _THREAD.receipt_email || _THREAD.email;
