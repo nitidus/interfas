@@ -519,229 +519,253 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
                 var _TARGET = {
-                  end_user_id: _END_USER_ID,
-                  currency_id: _CURRENCY_ID,
-                  name: _WALLET_NAME
-                };
+                      end_user_id: _END_USER_ID,
+                      currency_id: _CURRENCY_ID,
+                      name: _WALLET_NAME
+                    },
+                    _DIDNT_NEED_TO_FETCH_PLAN = true;
 
                 if (
-                  ((typeof _THREAD.card != 'undefined') || (typeof _THREAD.credit_card != 'undefined') || (typeof _THREAD.debit_card != 'undefined')) &&
-                  ((typeof _THREAD.amount != 'undefined') && (!isNaN(_THREAD.amount)))
+                  ((typeof _THREAD.card != 'undefined') || (typeof _THREAD.credit_card != 'undefined') || (typeof _THREAD.debit_card != 'undefined'))
                 ){
                   const _CHARGE_CARD = _THREAD.card || _THREAD.credit_card || _THREAD.debit_card,
-                        _CHARGE_AMOUNT = parseInt(_THREAD.amount),
                         _CHARGE_CURRENCY = _THREAD.currency || _THREAD.currency_type || 'usd';
 
                   if (
                     (typeof _THREAD.plan != 'undefined') || (typeof _THREAD.wallet_plan != 'undefined') || (typeof _THREAD.initial_wallet_plan != 'undefined') || (typeof _THREAD.initial_plan != 'undefined') ||
                     (typeof _THREAD.plan_id != 'undefined') || (typeof _THREAD.wallet_plan_id != 'undefined') || (typeof _THREAD.initial_wallet_plan_id != 'undefined') || (typeof _THREAD.initial_plan_id != 'undefined')
                   ){
-                    const _PLAN_ID = _THREAD.plan || _THREAD.wallet_plan || _THREAD.initial_wallet_plan || _THREAD.initial_plan || _THREAD.plan_id || _THREAD.wallet_plan_id || _THREAD.initial_wallet_plan_id || _THREAD.initial_plan_id,
-                          _DEPENDED_COLLECTION = _DB.collection('plans');
+                    if (
+                      ((typeof _THREAD.balance != 'undefined') || (typeof _THREAD.wallet_balance != 'undefined') || (typeof _THREAD.initial_wallet_balance != 'undefined') || (typeof _THREAD.initial_balance != 'undefined')) &&
+                      ((typeof _THREAD.amount != 'undefined') && (!isNaN(_THREAD.amount)))
+                    ){
+                      const _BALANCE = _THREAD.balance || _THREAD.wallet_balance || _THREAD.initial_wallet_balance || _THREAD.initial_balance;
 
-                    var _CHECKING_CRITERIA = {
-                      _id: new ObjectID(_PLAN_ID)
-                    };
+                      _TARGET.balance = _BALANCE;
+                    }else{
+                      const _PLAN_ID = _THREAD.plan || _THREAD.wallet_plan || _THREAD.initial_wallet_plan || _THREAD.initial_plan || _THREAD.plan_id || _THREAD.wallet_plan_id || _THREAD.initial_wallet_plan_id || _THREAD.initial_plan_id,
+                            _DEPENDED_COLLECTION = _DB.collection('plans');
 
-                    _DEPENDED_COLLECTION.findOne(_CHECKING_CRITERIA, function(planFindQueryError, doc){
-                      if (planFindQueryError != null){
-                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The plans collection find request could\'t be processed.`, 700);
+                      var _CHECKING_CRITERIA = {
+                        _id: new ObjectID(_PLAN_ID)
+                      };
 
-                        res.json(RECURSIVE_CONTENT);
-                      }else{
-                        const _BALANCE = doc.amount;
+                      _DEPENDED_COLLECTION.findOne(_CHECKING_CRITERIA, function(planFindQueryError, doc){
+                        if (planFindQueryError != null){
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The plans collection find request could\'t be processed.`, 700);
 
-                        _TARGET.balance = _BALANCE;
+                          res.json(RECURSIVE_CONTENT);
+                        }else{
+                          const _BALANCE = doc.price;
 
-                        _COLLECTION.insertOne(_TARGET, function(insertQueryError, walletDoc){
-                          if (insertQueryError != null){
-                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
+                          _TARGET.balance = _BALANCE;
 
-                            res.json(RECURSIVE_CONTENT);
-                          }else{
-                            if (walletDoc.insertedCount != 1){
-                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+                          _COLLECTION.insertOne(_TARGET, function(insertQueryError, walletDoc){
+                            if (insertQueryError != null){
+                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
 
                               res.json(RECURSIVE_CONTENT);
                             }else{
-                              const _WALLET = walletDoc.ops[0];
+                              if (walletDoc.insertedCount != 1){
+                                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
 
-                              if (
-                                ((typeof _CHARGE_CARD.number != 'undefined') || (typeof _CHARGE_CARD.credit_card_number != 'undefined') || (typeof _CHARGE_CARD.debit_card_number != 'undefined')) &&
-                                ((typeof _CHARGE_CARD.expiration_date != 'undefined')? ((typeof _CHARGE_CARD.expiration_date.month != 'undefined') && (typeof _CHARGE_CARD.expiration_date.year != 'undefined')): (((typeof _CHARGE_CARD.exp_month != 'undefined') || (typeof _CHARGE_CARD.expiration_month != 'undefined')) && ((typeof _CHARGE_CARD.exp_year != 'undefined') || (typeof _CHARGE_CARD.expiration_year != 'undefined')))) &&
-                                ((typeof _CHARGE_CARD.cvc != 'undefined') || (typeof _CHARGE_CARD.cvv != 'undefined') || (typeof _CHARGE_CARD.cid != 'undefined') || (typeof _CHARGE_CARD.cvp != 'undefined') || (typeof _CHARGE_CARD.cve != 'undefined'))
-                              ){
-                                const _CREDIT_CARD_NUMBER = _CHARGE_CARD.number || _CHARGE_CARD.credit_card_number || _CHARGE_CARD.debit_card_number,
-                                      _STRIPED_CREDIT_CARD_NUMBER = _CREDIT_CARD_NUMBER.replace(/(_|-| )+/ig, ''),
-                                      _EXPIRATION_MONTH = (typeof _CHARGE_CARD.expiration_date != 'undefined')? _CHARGE_CARD.expiration_date.month: (_CHARGE_CARD.exp_month || _CHARGE_CARD.expiration_month),
-                                      _EXPIRATION_YEAR = (typeof _CHARGE_CARD.expiration_date != 'undefined')? _CHARGE_CARD.expiration_date.year: (_CHARGE_CARD.exp_year || _CHARGE_CARD.expiration_year),
-                                      _CVC = _CHARGE_CARD.cvc || _CHARGE_CARD.cvv || _CHARGE_CARD.cid || _CHARGE_CARD.cvp || _CHARGE_CARD.cve;
+                                res.json(RECURSIVE_CONTENT);
+                              }else{
+                                const _WALLET = walletDoc.ops[0];
 
-                                if (!isNaN(_STRIPED_CREDIT_CARD_NUMBER) && !isNaN(_EXPIRATION_MONTH) && !isNaN(_EXPIRATION_YEAR) && !isNaN(_CVC)){
-                                  const _FINAL_CREDIT_CARD_NUMBER = _STRIPED_CREDIT_CARD_NUMBER,
-                                        _FINAL_EXPIRATION_MONTH = parseInt(_EXPIRATION_MONTH),
-                                        _FINAL_EXPIRATION_YEAR = parseInt(_EXPIRATION_YEAR),
-                                        _FINAL_CVC = _CVC;
+                                if (
+                                  ((typeof _CHARGE_CARD.number != 'undefined') || (typeof _CHARGE_CARD.credit_card_number != 'undefined') || (typeof _CHARGE_CARD.debit_card_number != 'undefined')) &&
+                                  ((typeof _CHARGE_CARD.expiration_date != 'undefined')? ((typeof _CHARGE_CARD.expiration_date.month != 'undefined') && (typeof _CHARGE_CARD.expiration_date.year != 'undefined')): (((typeof _CHARGE_CARD.exp_month != 'undefined') || (typeof _CHARGE_CARD.expiration_month != 'undefined')) && ((typeof _CHARGE_CARD.exp_year != 'undefined') || (typeof _CHARGE_CARD.expiration_year != 'undefined')))) &&
+                                  ((typeof _CHARGE_CARD.cvc != 'undefined') || (typeof _CHARGE_CARD.cvv != 'undefined') || (typeof _CHARGE_CARD.cid != 'undefined') || (typeof _CHARGE_CARD.cvp != 'undefined') || (typeof _CHARGE_CARD.cve != 'undefined'))
+                                ){
+                                  const _CREDIT_CARD_NUMBER = _CHARGE_CARD.number || _CHARGE_CARD.credit_card_number || _CHARGE_CARD.debit_card_number,
+                                        _STRIPED_CREDIT_CARD_NUMBER = _CREDIT_CARD_NUMBER.replace(/(_|-| )+/ig, ''),
+                                        _EXPIRATION_MONTH = (typeof _CHARGE_CARD.expiration_date != 'undefined')? _CHARGE_CARD.expiration_date.month: (_CHARGE_CARD.exp_month || _CHARGE_CARD.expiration_month),
+                                        _EXPIRATION_YEAR = (typeof _CHARGE_CARD.expiration_date != 'undefined')? _CHARGE_CARD.expiration_date.year: (_CHARGE_CARD.exp_year || _CHARGE_CARD.expiration_year),
+                                        _CVC = _CHARGE_CARD.cvc || _CHARGE_CARD.cvv || _CHARGE_CARD.cid || _CHARGE_CARD.cvp || _CHARGE_CARD.cve;
 
-                                  var _CHARGE_SEED = {
-                                        card: {
-                                          number: _FINAL_CREDIT_CARD_NUMBER,
-                                          exp_month: _FINAL_EXPIRATION_MONTH,
-                                          exp_year: _FINAL_EXPIRATION_YEAR,
-                                          cvc: _FINAL_CVC
+                                  if (!isNaN(_STRIPED_CREDIT_CARD_NUMBER) && !isNaN(_EXPIRATION_MONTH) && !isNaN(_EXPIRATION_YEAR) && !isNaN(_CVC)){
+                                    const _FINAL_CREDIT_CARD_NUMBER = _STRIPED_CREDIT_CARD_NUMBER,
+                                          _FINAL_EXPIRATION_MONTH = parseInt(_EXPIRATION_MONTH),
+                                          _FINAL_EXPIRATION_YEAR = parseInt(_EXPIRATION_YEAR),
+                                          _FINAL_CVC = _CVC;
+
+                                    var _CHARGE_SEED = {
+                                          card: {
+                                            number: _FINAL_CREDIT_CARD_NUMBER,
+                                            exp_month: _FINAL_EXPIRATION_MONTH,
+                                            exp_year: _FINAL_EXPIRATION_YEAR,
+                                            cvc: _FINAL_CVC
+                                          },
+                                          currency: _CHARGE_CURRENCY
                                         },
-                                        amount: _CHARGE_AMOUNT,
-                                        currency: _CHARGE_CURRENCY
-                                      },
-                                      _IS_TRANSACTION_READY_TO_LAUNCH = true;
+                                        _IS_TRANSACTION_READY_TO_LAUNCH = true;
 
-                                  if ((typeof _THREAD.receipt_email != 'undefined') || (typeof _THREAD.email != 'undefined')){
-                                    const _RECEIPT_EMAIL = _THREAD.receipt_email || _THREAD.email;
+                                    if ((typeof _THREAD.amount != 'undefined') || (typeof _THREAD.price != 'undefined')){
+                                      const _AMOUNT = _THREAD.amount || _THREAD.price;
 
-                                    _CHARGE_SEED = {
-                                      ..._CHARGE_SEED,
-                                      receipt_email: _RECEIPT_EMAIL
-                                    };
-                                  }
-
-                                  if ((typeof _THREAD.description != 'undefined') || (typeof _THREAD.caption != 'undefined')){
-                                    const _DESCRIPTION = _THREAD.description || _THREAD.caption;
-
-                                    _CHARGE_SEED = {
-                                      ..._CHARGE_SEED,
-                                      description: _DESCRIPTION
-                                    };
-                                  }
-
-                                  if ((typeof _THREAD.meta_data != 'undefined') || (typeof _THREAD.extra_data != 'undefined')){
-                                    const _META_DATA = _THREAD.meta_data || _THREAD.extra_data;
-
-                                    _CHARGE_SEED = {
-                                      ..._CHARGE_SEED,
-                                      meta_data: {
-                                        ..._META_DATA,
-                                        end_user_id: _THREAD.end_user_id
-                                      }
-                                    };
-                                  }else{
-                                    _CHARGE_SEED = {
-                                      ..._CHARGE_SEED,
-                                      meta_data: {
-                                        end_user_id: _THREAD.end_user_id
-                                      }
-                                    };
-                                  }
-
-                                  if (typeof _WALLET._id != 'undefined'){
-                                    _CHARGE_SEED = {
-                                      ..._CHARGE_SEED,
-                                      meta_data: {
-                                        ..._CHARGE_SEED.meta_data,
-                                        wallet_id: _WALLET._id
-                                      }
-                                    };
-                                  }
-
-                                  if ((typeof _THREAD.shipping != 'undefined') || (typeof _THREAD.shipping_detail != 'undefined')){
-                                    const _SHIPPINNG = _THREAD.shipping || _THREAD.shipping_detail;
-
-                                    if (
-                                      ((typeof _SHIPPINNG.address != 'undefined') || (typeof _SHIPPINNG.shipping_address != 'undefined') || (typeof _SHIPPINNG.billing_address != 'undefined')) &&
-                                      ((typeof _SHIPPINNG.name != 'undefined') || (typeof _SHIPPINNG.shipping_name != 'undefined') || (typeof _SHIPPINNG.billing_name != 'undefined') || (typeof _SHIPPINNG.owner != 'undefined') || (typeof _SHIPPINNG.shipping_owner != 'undefined') || (typeof _SHIPPINNG.billing_owner != 'undefined'))
-                                    ){
-                                      const _SHIPPING_ADDRESS = _SHIPPINNG.address || _SHIPPINNG.shipping_address || _SHIPPINNG.billing_address,
-                                            _SHIPPING_ADDRESS_OWNER = _SHIPPINNG.name || _SHIPPINNG.shipping_name || _SHIPPINNG.billing_name || _SHIPPINNG.owner || _SHIPPINNG.shipping_owner || _SHIPPINNG.billing_owner;
-
-                                      if (typeof _SHIPPING_ADDRESS.line1 != 'undefined'){
-                                        var _SHIPPINNG_SEED = {
-                                          address: _SHIPPING_ADDRESS,
-                                          name: _SHIPPING_ADDRESS_OWNER
-                                        };
-
-                                        if (typeof _SHIPPINNG_SEED.carrier != 'undefined'){
-                                          _SHIPPINNG_SEED.carrier = _SHIPPINNG_SEED.carrier;
-                                        }
-
-                                        if (typeof _SHIPPINNG_SEED.tracking_number != 'undefined'){
-                                          _SHIPPINNG_SEED.tracking_number = _SHIPPINNG_SEED.tracking_number;
-                                        }
-
-                                        if (typeof _SHIPPINNG_SEED.carrier != 'undefined'){
-                                          _SHIPPINNG_SEED.carrier = _SHIPPINNG_SEED.carrier;
-                                        }
-
+                                      if (!isNaN(_AMOUNT)){
                                         _CHARGE_SEED = {
                                           ..._CHARGE_SEED,
-                                          shipping: _SHIPPINNG_SEED
+                                          amount: parseInt(_AMOUNT)
                                         };
+                                      }
+                                    }
+
+                                    if ((typeof _THREAD.receipt_email != 'undefined') || (typeof _THREAD.email != 'undefined')){
+                                      const _RECEIPT_EMAIL = _THREAD.receipt_email || _THREAD.email;
+
+                                      _CHARGE_SEED = {
+                                        ..._CHARGE_SEED,
+                                        receipt_email: _RECEIPT_EMAIL
+                                      };
+                                    }
+
+                                    if ((typeof _THREAD.description != 'undefined') || (typeof _THREAD.caption != 'undefined')){
+                                      const _DESCRIPTION = _THREAD.description || _THREAD.caption;
+
+                                      _CHARGE_SEED = {
+                                        ..._CHARGE_SEED,
+                                        description: _DESCRIPTION
+                                      };
+                                    }
+
+                                    if ((typeof _THREAD.meta_data != 'undefined') || (typeof _THREAD.extra_data != 'undefined')){
+                                      const _META_DATA = _THREAD.meta_data || _THREAD.extra_data;
+
+                                      _CHARGE_SEED = {
+                                        ..._CHARGE_SEED,
+                                        meta_data: {
+                                          ..._META_DATA,
+                                          end_user_id: _THREAD.end_user_id
+                                        }
+                                      };
+                                    }else{
+                                      _CHARGE_SEED = {
+                                        ..._CHARGE_SEED,
+                                        meta_data: {
+                                          end_user_id: _THREAD.end_user_id
+                                        }
+                                      };
+                                    }
+
+                                    if (typeof _WALLET._id != 'undefined'){
+                                      _CHARGE_SEED = {
+                                        ..._CHARGE_SEED,
+                                        meta_data: {
+                                          ..._CHARGE_SEED.meta_data,
+                                          wallet_id: _WALLET._id
+                                        }
+                                      };
+                                    }
+
+                                    if ((typeof _THREAD.shipping != 'undefined') || (typeof _THREAD.shipping_detail != 'undefined')){
+                                      const _SHIPPINNG = _THREAD.shipping || _THREAD.shipping_detail;
+
+                                      if (
+                                        ((typeof _SHIPPINNG.address != 'undefined') || (typeof _SHIPPINNG.shipping_address != 'undefined') || (typeof _SHIPPINNG.billing_address != 'undefined')) &&
+                                        ((typeof _SHIPPINNG.name != 'undefined') || (typeof _SHIPPINNG.shipping_name != 'undefined') || (typeof _SHIPPINNG.billing_name != 'undefined') || (typeof _SHIPPINNG.owner != 'undefined') || (typeof _SHIPPINNG.shipping_owner != 'undefined') || (typeof _SHIPPINNG.billing_owner != 'undefined'))
+                                      ){
+                                        const _SHIPPING_ADDRESS = _SHIPPINNG.address || _SHIPPINNG.shipping_address || _SHIPPINNG.billing_address,
+                                              _SHIPPING_ADDRESS_OWNER = _SHIPPINNG.name || _SHIPPINNG.shipping_name || _SHIPPINNG.billing_name || _SHIPPINNG.owner || _SHIPPINNG.shipping_owner || _SHIPPINNG.billing_owner;
+
+                                        if (typeof _SHIPPING_ADDRESS.line1 != 'undefined'){
+                                          var _SHIPPINNG_SEED = {
+                                            address: _SHIPPING_ADDRESS,
+                                            name: _SHIPPING_ADDRESS_OWNER
+                                          };
+
+                                          if (typeof _SHIPPINNG_SEED.carrier != 'undefined'){
+                                            _SHIPPINNG_SEED.carrier = _SHIPPINNG_SEED.carrier;
+                                          }
+
+                                          if (typeof _SHIPPINNG_SEED.tracking_number != 'undefined'){
+                                            _SHIPPINNG_SEED.tracking_number = _SHIPPINNG_SEED.tracking_number;
+                                          }
+
+                                          if (typeof _SHIPPINNG_SEED.carrier != 'undefined'){
+                                            _SHIPPINNG_SEED.carrier = _SHIPPINNG_SEED.carrier;
+                                          }
+
+                                          _CHARGE_SEED = {
+                                            ..._CHARGE_SEED,
+                                            shipping: _SHIPPINNG_SEED
+                                          };
+                                        }else{
+                                          _IS_TRANSACTION_READY_TO_LAUNCH = false;
+                                        }
                                       }else{
                                         _IS_TRANSACTION_READY_TO_LAUNCH = false;
                                       }
-                                    }else{
-                                      _IS_TRANSACTION_READY_TO_LAUNCH = false;
                                     }
-                                  }
 
-                                  if (_IS_TRANSACTION_READY_TO_LAUNCH){
-                                    Modules.Functions._chargeUsingToken(_CHARGE_SEED)
-                                    .then((charge) => {
-                                      if ((typeof charge.status != 'undefined') && (charge.status === "succeeded")){
-                                        const _LOG_COLLECTION = _DB.collection('histories');
+                                    if (_IS_TRANSACTION_READY_TO_LAUNCH){
+                                      Modules.Functions._chargeUsingToken(_CHARGE_SEED)
+                                      .then((charge) => {
+                                        if ((typeof charge.status != 'undefined') && (charge.status === "succeeded")){
+                                          const _LOG_COLLECTION = _DB.collection('histories');
 
-                                        var _LOG_TARGET = {
-                                          end_user_id: _END_USER_ID,
-                                          wallet_id: new ObjectID(_WALLET._id),
-                                          previous_balance: 0,
-                                          new_balance: _BALANCE,
-                                          content: charge,
-                                          modified_at: _TODAY,
-                                          created_at: _TODAY
-                                        };
+                                          var _LOG_TARGET = {
+                                            end_user_id: _END_USER_ID,
+                                            wallet_id: new ObjectID(_WALLET._id),
+                                            plan_id: new ObjectID(_PLAN_ID._id),
+                                            previous_balance: 0,
+                                            new_balance: _BALANCE,
+                                            content: charge,
+                                            modified_at: _TODAY,
+                                            created_at: _TODAY
+                                          };
 
-                                        _LOG_COLLECTION.insertOne(_LOG_TARGET, function(logQueryError, historyDoc){
-                                          if (logQueryError != null){
-                                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The histories collection insert request could\'t be processed.`, 700);
-
-                                            res.json(RECURSIVE_CONTENT);
-                                          }else{
-                                            if (historyDoc.insertedCount != 1){
-                                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in histories collection could\'t be inserted.`, 700);
+                                          _LOG_COLLECTION.insertOne(_LOG_TARGET, function(logQueryError, historyDoc){
+                                            if (logQueryError != null){
+                                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The histories collection insert request could\'t be processed.`, 700);
 
                                               res.json(RECURSIVE_CONTENT);
                                             }else{
-                                              const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData({
-                                                wallet: _WALLET,
-                                                history: historyDoc.ops[0]
-                                              });
+                                              if (historyDoc.insertedCount != 1){
+                                                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in histories collection could\'t be inserted.`, 700);
 
-                                              res.json(RECURSIVE_CONTENT);
+                                                res.json(RECURSIVE_CONTENT);
+                                              }else{
+                                                const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData({
+                                                  wallet: _WALLET,
+                                                  history: historyDoc.ops[0]
+                                                });
 
-                                              client.close();
+                                                res.json(RECURSIVE_CONTENT);
+
+                                                client.close();
+                                              }
                                             }
-                                          }
-                                        });
-                                      }
-                                    })
-                                    .catch((error) => {
-                                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
+                                          });
+                                        }
+                                      })
+                                      .catch((error) => {
+                                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
 
-                                      res.json(RECURSIVE_CONTENT);
-                                    });
+                                        res.json(RECURSIVE_CONTENT);
+                                      });
+                                    }
                                   }
                                 }
                               }
                             }
-                          }
-                        });
-                      }
-                    });
+                          });
+                        }
+                      });
+
+                      _DIDNT_NEED_TO_FETCH_PLAN = false;
+                    }
                   }else if (
-                    ((typeof _THREAD.balance != 'undefined') || (typeof _THREAD.wallet_balance != 'undefined') || (typeof _THREAD.initial_wallet_balance != 'undefined') || (typeof _THREAD.initial_balance != 'undefined'))
+                    ((typeof _THREAD.balance != 'undefined') || (typeof _THREAD.wallet_balance != 'undefined') || (typeof _THREAD.initial_wallet_balance != 'undefined') || (typeof _THREAD.initial_balance != 'undefined')) &&
+                    ((typeof _THREAD.amount != 'undefined') && (!isNaN(_THREAD.amount)))
                   ) {
                     const _BALANCE = _THREAD.balance || _THREAD.wallet_balance || _THREAD.initial_wallet_balance || _THREAD.initial_balance;
 
                     _TARGET.balance = _BALANCE;
+                  }
 
+                  if (_DIDNT_NEED_TO_FETCH_PLAN){
                     _COLLECTION.insertOne(_TARGET, function(insertQueryError, walletDoc){
                       if (insertQueryError != null){
                         const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
@@ -779,10 +803,20 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                       exp_year: _FINAL_EXPIRATION_YEAR,
                                       cvc: _FINAL_CVC
                                     },
-                                    amount: _CHARGE_AMOUNT,
                                     currency: _CHARGE_CURRENCY
                                   },
                                   _IS_TRANSACTION_READY_TO_LAUNCH = true;
+
+                              if ((typeof _THREAD.amount != 'undefined') || (typeof _THREAD.price != 'undefined')){
+                                const _AMOUNT = _THREAD.amount || _THREAD.price;
+
+                                if (!isNaN(_AMOUNT)){
+                                  _CHARGE_SEED = {
+                                    ..._CHARGE_SEED,
+                                    amount: parseInt(_AMOUNT)
+                                  };
+                                }
+                              }
 
                               if ((typeof _THREAD.receipt_email != 'undefined') || (typeof _THREAD.email != 'undefined')){
                                 const _RECEIPT_EMAIL = _THREAD.receipt_email || _THREAD.email;
