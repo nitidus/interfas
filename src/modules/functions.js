@@ -355,14 +355,14 @@ _sendInvitation: async (appName, details) => {
             };
           }
 
-          // if ((typeof token.meta_data != 'undefined') || (typeof token.extra_data != 'undefined')){
-          //   const _META_DATA = token.meta_data || token.extra_data;
-          //
-          //   _CHARGE_SEED = {
-          //     ..._CHARGE_SEED,
-          //     metadata: _META_DATA
-          //   };
-          // }
+          if ((typeof token.meta_data != 'undefined') || (typeof token.metadata != 'undefined') || (typeof token.extra_data != 'undefined') || (typeof token.extradata != 'undefined')){
+            const _META_DATA = token.meta_data || token.extra_data || token.metadata || token.extradata;
+
+            _CHARGE_SEED = {
+              ..._CHARGE_SEED,
+              metadata: _META_DATA
+            };
+          }
 
           const _CHARGE = await stripe.charges.create(_CHARGE_SEED);
 
