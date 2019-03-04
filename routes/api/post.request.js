@@ -521,7 +521,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 var _TARGET = {
                       end_user_id: _END_USER_ID,
                       currency_id: _CURRENCY_ID,
-                      name: _WALLET_NAME
+                      name: _WALLET_NAME,
+                      modified_at: _TODAY,
+                      created_at: _TODAY
                     },
                     _DO_YOU_NEED_TO_FETCH_PLAN = false;
 
