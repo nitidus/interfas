@@ -90,6 +90,65 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _CRITERIA = [
                   {
                     "$lookup": {
+                      "from": "histories",
+                      "localField": "_id",
+                      "foreignField": "wallet_id",
+                      "as": "histories"
+                    }
+                  },
+                  {
+                    "$unwind": "$histories"
+                  },
+                  {
+                    "$project": {
+                      "_id": 1,
+                      "end_user_id": 1,
+                      "currency_id": 1,
+                      "name": 1,
+                      "balance": 1,
+                      "transactions_deposit": { "$cond": [{ "$gt": [ "$histories.new_balance", "$histories.previous_balance"] }, { "$subtract": ["$histories.new_balance", "$histories.previous_balance"] }, 0] },
+                      "transactions_withdraw": { "$cond": [{ "$lt": [ "$histories.new_balance", "$histories.previous_balance"] }, { "$subtract": ["$histories.previous_balance", "$histories.new_balance"] }, 0] },
+                      "modified_at": 1,
+                      "created_at": 1
+                    }
+                  },
+                  {
+                    "$group": {
+                      "_id": {
+                        "_id": "$_id",
+                        "end_user_id": "$end_user_id",
+                        "currency_id": "$currency_id",
+                        "name": "$name",
+                        "balance": "$balance",
+                        "modified_at": "$modified_at",
+                        "created_at": "$created_at",
+                      },
+                      "transactions_amount": { "$sum": 1 },
+                      "transactions_deposit": { "$sum": "$transactions_deposit" },
+                      "transactions_withdraw": { "$sum": "$transactions_withdraw" }
+                    }
+                  },
+                  {
+                    "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
+                  },
+                  {
+                    "$project": {
+                      "_id": "$_id._id",
+                      "end_user_id": 1,
+                      "currency_id": 1,
+                      "name": 1,
+                      "balance": 1,
+                      "transactions": {
+                        "amount": "$transactions_amount",
+                        "deposit": "$transactions_deposit",
+                        "withdraw": "$transactions_withdraw"
+                      },
+                      "modified_at": 1,
+                      "created_at": 1
+                    }
+                  },
+                  {
+                    "$lookup": {
                       "from": "endusers",
                       "localField": "end_user_id",
                       "foreignField": "_id",
@@ -322,6 +381,65 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             case 'wallets':
               _CRITERIA = [
+                {
+                  "$lookup": {
+                    "from": "histories",
+                    "localField": "_id",
+                    "foreignField": "wallet_id",
+                    "as": "histories"
+                  }
+                },
+                {
+                  "$unwind": "$histories"
+                },
+                {
+                  "$project": {
+                    "_id": 1,
+                    "end_user_id": 1,
+                    "currency_id": 1,
+                    "name": 1,
+                    "balance": 1,
+                    "transactions_deposit": { "$cond": [{ "$gt": [ "$histories.new_balance", "$histories.previous_balance"] }, { "$subtract": ["$histories.new_balance", "$histories.previous_balance"] }, 0] },
+                    "transactions_withdraw": { "$cond": [{ "$lt": [ "$histories.new_balance", "$histories.previous_balance"] }, { "$subtract": ["$histories.previous_balance", "$histories.new_balance"] }, 0] },
+                    "modified_at": 1,
+                    "created_at": 1
+                  }
+                },
+                {
+                  "$group": {
+                    "_id": {
+                      "_id": "$_id",
+                      "end_user_id": "$end_user_id",
+                      "currency_id": "$currency_id",
+                      "name": "$name",
+                      "balance": "$balance",
+                      "modified_at": "$modified_at",
+                      "created_at": "$created_at",
+                    },
+                    "transactions_amount": { "$sum": 1 },
+                    "transactions_deposit": { "$sum": "$transactions_deposit" },
+                    "transactions_withdraw": { "$sum": "$transactions_withdraw" }
+                  }
+                },
+                {
+                  "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
+                },
+                {
+                  "$project": {
+                    "_id": "$_id._id",
+                    "end_user_id": 1,
+                    "currency_id": 1,
+                    "name": 1,
+                    "balance": 1,
+                    "transactions": {
+                      "amount": "$transactions_amount",
+                      "deposit": "$transactions_deposit",
+                      "withdraw": "$transactions_withdraw"
+                    },
+                    "modified_at": 1,
+                    "created_at": 1
+                  }
+                },
                 {
                   "$lookup": {
                     "from": "endusers",
