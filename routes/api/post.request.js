@@ -523,7 +523,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       currency_id: _CURRENCY_ID,
                       name: _WALLET_NAME
                     },
-                    _DIDNT_NEED_TO_FETCH_PLAN = true;
+                    _DO_YOU_NEED_TO_FETCH_PLAN = false;
 
                 if (
                   ((typeof _THREAD.card != 'undefined') || (typeof _THREAD.credit_card != 'undefined') || (typeof _THREAD.debit_card != 'undefined'))
@@ -629,14 +629,14 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                         ..._CHARGE_SEED,
                                         meta_data: {
                                           ..._META_DATA,
-                                          end_user_id: _THREAD.end_user_id
+                                          end_user_id: _THREAD.end_user_id.toString()
                                         }
                                       };
                                     }else{
                                       _CHARGE_SEED = {
                                         ..._CHARGE_SEED,
                                         meta_data: {
-                                          end_user_id: _THREAD.end_user_id
+                                          end_user_id: _THREAD.end_user_id.toString()
                                         }
                                       };
                                     }
@@ -646,7 +646,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                         ..._CHARGE_SEED,
                                         meta_data: {
                                           ..._CHARGE_SEED.meta_data,
-                                          wallet_id: _WALLET._id
+                                          wallet_id: _WALLET._id.toString()
                                         }
                                       };
                                     }
@@ -700,7 +700,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                           var _LOG_TARGET = {
                                             end_user_id: _END_USER_ID,
                                             wallet_id: new ObjectID(_WALLET._id),
-                                            plan_id: new ObjectID(_PLAN_ID._id),
+                                            plan_id: new ObjectID(_PLAN_ID),
                                             previous_balance: 0,
                                             new_balance: _BALANCE,
                                             content: charge,
@@ -746,7 +746,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         }
                       });
 
-                      _DIDNT_NEED_TO_FETCH_PLAN = false;
+                      _DO_YOU_NEED_TO_FETCH_PLAN = true;
                     }
                   }else if (
                     ((typeof _THREAD.balance != 'undefined') || (typeof _THREAD.wallet_balance != 'undefined') || (typeof _THREAD.initial_wallet_balance != 'undefined') || (typeof _THREAD.initial_balance != 'undefined')) &&
@@ -757,7 +757,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     _TARGET.balance = _BALANCE;
                   }
 
-                  if (_DIDNT_NEED_TO_FETCH_PLAN){
+                  if (_DO_YOU_NEED_TO_FETCH_PLAN === false){
                     _COLLECTION.insertOne(_TARGET, function(insertQueryError, walletDoc){
                       if (insertQueryError != null){
                         const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
@@ -835,14 +835,14 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                   ..._CHARGE_SEED,
                                   meta_data: {
                                     ..._META_DATA,
-                                    end_user_id: _THREAD.end_user_id
+                                    end_user_id: _THREAD.end_user_id.toString()
                                   }
                                 };
                               }else{
                                 _CHARGE_SEED = {
                                   ..._CHARGE_SEED,
                                   meta_data: {
-                                    end_user_id: _THREAD.end_user_id
+                                    end_user_id: _THREAD.end_user_id.toString()
                                   }
                                 };
                               }
@@ -852,7 +852,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                   ..._CHARGE_SEED,
                                   meta_data: {
                                     ..._CHARGE_SEED.meta_data,
-                                    wallet_id: _WALLET._id
+                                    wallet_id: _WALLET._id.toString()
                                   }
                                 };
                               }
@@ -912,6 +912,15 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                       modified_at: _TODAY,
                                       created_at: _TODAY
                                     };
+
+                                    if ((typeof _THREAD.plan) || (typeof _THREAD.wallet_plan != 'undefined') || (typeof _THREAD.initial_wallet_plan != 'undefined') || (typeof _THREAD.initial_plan != 'undefined') || (typeof _THREAD.plan_id != 'undefined') || (typeof _THREAD.wallet_plan_id != 'undefined') || (typeof _THREAD.initial_wallet_plan_id != 'undefined') || (typeof _THREAD.initial_plan_id != 'undefined')){
+                                      const _PLAN_ID = _THREAD.plan || _THREAD.wallet_plan || _THREAD.initial_wallet_plan || _THREAD.initial_plan || _THREAD.plan_id || _THREAD.wallet_plan_id || _THREAD.initial_wallet_plan_id || _THREAD.initial_plan_id;
+
+                                      _LOG_TARGET = {
+                                        ..._LOG_TARGET,
+                                        plan_id: new ObjectID(_PLAN_ID._id)
+                                      }
+                                    }
 
                                     _LOG_COLLECTION.insertOne(_LOG_TARGET, function(logQueryError, historyDoc){
                                       if (logQueryError != null){

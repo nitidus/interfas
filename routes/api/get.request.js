@@ -101,6 +101,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   },
                   {
                     "$lookup": {
+                      "from": "currencies",
+                      "localField": "currency_id",
+                      "foreignField": "_id",
+                      "as": "currency"
+                    }
+                  },
+                  {
+                    "$unwind": "$currency"
+                  },
+                  {
+                    "$lookup": {
                       "from": "users",
                       "localField": "enduser.user_id",
                       "foreignField": "_id",
@@ -127,6 +138,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   {
                     "$project": {
                       "end_user_id": 0,
+                      "currency_id": 0,
                       "enduser.user_id": 0,
                       "enduser.user_group_id": 0
                     }
@@ -323,6 +335,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 },
                 {
                   "$lookup": {
+                    "from": "currencies",
+                    "localField": "currency_id",
+                    "foreignField": "_id",
+                    "as": "currency"
+                  }
+                },
+                {
+                  "$unwind": "$currency"
+                },
+                {
+                  "$lookup": {
                     "from": "users",
                     "localField": "enduser.user_id",
                     "foreignField": "_id",
@@ -349,28 +372,69 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 {
                   "$project": {
                     "end_user_id": 0,
+                    "currency_id": 0,
                     "enduser.user_id": 0,
                     "enduser.user_group_id": 0
-                  }
-                },
-                {
-                  "$match": {
-                    "_id": _TOKEN
                   }
                 }
               ];
 
+              if ((typeof _THREAD.currency_id != 'undefined') || (typeof _THREAD.currency != 'undefined') || (typeof _THREAD.currency_type != 'undefined')){
+                const _CURRENCY = _THREAD.currency_id || _THREAD.currency || _THREAD.currency_type;
+
+                var _TOKENIZED_MATCH_CRITERIA = {};
+
+                if (Modules.Functions._checkIsAValidObjectID(_CURRENCY) === true){
+                  _TOKENIZED_MATCH_CRITERIA["currency._id"] = new ObjectID(_CURRENCY);
+                }else{
+                  var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_CURRENCY);
+
+                  if (_TOKEN_KEYWORD == 'TRANSACTION_POINT' || _TOKEN_KEYWORD == 'T.P' || _TOKEN_KEYWORD == 'T.P.'){
+                    _TOKEN_KEYWORD = 'TP';
+                  }
+
+                  _TOKENIZED_MATCH_CRITERIA["currency.type"] = _TOKEN_KEYWORD;
+                }
+
+                _CRITERIA = [
+                  ..._CRITERIA,
+                  {
+                    "$match": {
+                      "$and": [
+                        {
+                          "enduser._id": _TOKEN
+                        },
+                        _TOKENIZED_MATCH_CRITERIA
+                      ]
+                    }
+                  }
+                ];
+              }else{
+                _CRITERIA = [
+                  ..._CRITERIA,
+                  {
+                    "$match": {
+                      "_id": _TOKEN
+                    }
+                  },
+                  {
+                    "$limit": 1
+                  }
+                ];
+              }
+
               _COLLECTION.aggregate(_CRITERIA)
-              .limit(1)
               .toArray(function(walletFindQueryError, docs){
                 if (walletFindQueryError != null){
                   const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(docs[0]);
-
-                  res.json(RECURSIVE_CONTENT);
+                  if ((typeof _THREAD.currency_id != 'undefined') || (typeof _THREAD.currency != 'undefined') || (typeof _THREAD.currency_type != 'undefined')){
+                    res.json(Modules.Functions._throwResponseWithData(docs));
+                  }else{
+                    res.json(Modules.Functions._throwResponseWithData(docs[0]));
+                  }
 
                   client.close();
                 }

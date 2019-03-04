@@ -471,7 +471,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           }
 
           if (_IS_COLLECTION_READY_TO_UPDATE){
-            _TARGET.modified_at = _TODAY;
+            _THREAD.modified_at = _TODAY;
 
             const _TARGET = {
                     "$set": _THREAD
