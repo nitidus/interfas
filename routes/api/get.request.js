@@ -205,6 +205,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 ];
 
                 _COLLECTION.aggregate(_CRITERIA)
+                .sort({
+                  created_at: -1
+                })
                 .toArray(function(walletFindQueryError, doc){
                   if (walletFindQueryError != null){
                     console.log(walletFindQueryError)
@@ -213,6 +216,102 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     res.json(RECURSIVE_CONTENT);
                   }else{
                     const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+                break;
+
+              case 'histories':
+                _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "endusers",
+                      "localField": "end_user_id",
+                      "foreignField": "_id",
+                      "as": "enduser"
+                    }
+                  },
+                  {
+                    "$unwind": "$enduser"
+                  },
+                  {
+                    "$lookup": {
+                      "from": "wallets",
+                      "localField": "wallet_id",
+                      "foreignField": "_id",
+                      "as": "wallet"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$wallet",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "plans",
+                      "localField": "plan_id",
+                      "foreignField": "_id",
+                      "as": "plan"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$plan",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "users",
+                      "localField": "enduser.user_id",
+                      "foreignField": "_id",
+                      "as": "enduser.user"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$enduser.user",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "usergroups",
+                      "localField": "enduser.user_group_id",
+                      "foreignField": "_id",
+                      "as": "enduser.usergroup"
+                    }
+                  },
+                  {
+                    "$unwind": "$enduser.usergroup"
+                  },
+                  {
+                    "$project": {
+                      "end_user_id": 0,
+                      "wallet_id": 0,
+                      "plan_id": 0,
+                      "enduser.user_id": 0,
+                      "enduser.user_group_id": 0
+                    }
+                  }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .sort({
+                  created_at: -1
+                })
+                .toArray(function(error, docs){
+                  if (error != null){
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(docs);
 
                     res.json(RECURSIVE_CONTENT);
 
@@ -230,7 +329,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               case 'currencies':
               case 'taxonomies':
               case 'plans':
-              case 'histories':
                 _IS_COLLECTION_READY_TO_RESPONSE = true;
                 break;
 
@@ -375,8 +473,114 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'orders':
             case 'currencies':
             case 'taxonomies':
-            case 'histories':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
+              break;
+
+            case 'histories':
+              var _TARGET_MATCHING_CRITERIA = [
+                {
+                  "_id": _TOKEN
+                },
+                {
+                  "wallet._id": _TOKEN
+                }
+              ];
+
+              _CRITERIA = [
+                {
+                  "$lookup": {
+                    "from": "endusers",
+                    "localField": "end_user_id",
+                    "foreignField": "_id",
+                    "as": "enduser"
+                  }
+                },
+                {
+                  "$unwind": "$enduser"
+                },
+                {
+                  "$lookup": {
+                    "from": "wallets",
+                    "localField": "wallet_id",
+                    "foreignField": "_id",
+                    "as": "wallet"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$wallet",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "plans",
+                    "localField": "plan_id",
+                    "foreignField": "_id",
+                    "as": "plan"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$plan",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "users",
+                    "localField": "enduser.user_id",
+                    "foreignField": "_id",
+                    "as": "enduser.user"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$enduser.user",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "usergroups",
+                    "localField": "enduser.user_group_id",
+                    "foreignField": "_id",
+                    "as": "enduser.usergroup"
+                  }
+                },
+                {
+                  "$unwind": "$enduser.usergroup"
+                },
+                {
+                  "$project": {
+                    "end_user_id": 0,
+                    "wallet_id": 0,
+                    "plan_id": 0,
+                    "enduser.user_id": 0,
+                    "enduser.user_group_id": 0
+                  }
+                },
+                {
+                  "$match": {
+                    "$or": _TARGET_MATCHING_CRITERIA
+                  }
+                }
+              ];
+
+              _COLLECTION.aggregate(_CRITERIA)
+              .toArray(function(error, docs){
+                if (error != null){
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }
+              });
               break;
 
             case 'wallets':

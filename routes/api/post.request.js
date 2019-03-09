@@ -1130,6 +1130,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                       _TARGET.previous_balance = parseInt(_WALLET.balance);
                                       _TARGET.new_balance = _TARGET.previous_balance + _BALANCE;
 
+                                      _TARGET.created_at = _TODAY;
+                                      _TARGET.modified_at = _TODAY;
+
                                       _COLLECTION.insertOne(_TARGET, function(logQueryError, historyDoc){
                                         if (logQueryError != null){
                                           const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
