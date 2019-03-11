@@ -483,6 +483,15 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 },
                 {
                   "wallet._id": _TOKEN
+                },
+                {
+                  "enduser._id": _TOKEN
+                },
+                {
+                  "enduser.cardinal_id": _TOKEN
+                },
+                {
+                  "enduser.reference_id": _TOKEN
                 }
               ];
 
@@ -736,7 +745,20 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   ..._CRITERIA,
                   {
                     "$match": {
-                      "_id": _TOKEN
+                      "$or": [
+                        {
+                          "_id": _TOKEN
+                        },
+                        {
+                          "enduser._id": _TOKEN
+                        },
+                        {
+                          "enduser.cardinal_id": _TOKEN
+                        },
+                        {
+                          "enduser.reference_id": _TOKEN
+                        }
+                      ]
                     }
                   },
                   {
