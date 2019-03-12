@@ -97,7 +97,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   },
                   {
-                    "$unwind": "$histories"
+                    "$unwind": {
+                      "path": "$histories",
+                      "preserveNullAndEmptyArrays": true
+                    }
                   },
                   {
                     "$project": {
@@ -320,15 +323,124 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 });
                 break;
 
+              case 'warehouses':
+                _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "products",
+                      "localField": "_id",
+                      "foreignField": "warehouse_id",
+                      "as": "product"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$product",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$group": {
+                      "_id": {
+                        "_id": "$_id",
+                        "end_user_id": "$end_user_id",
+                        "name": "$name",
+                        "products": "$product.warehouse_id",
+                        "modified_at": "$modified_at",
+                        "created_at": "$created_at",
+                      },
+                      "products_count": { "$sum": 1 }
+                    }
+                  },
+                  {
+                    "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
+                  },
+                  {
+                    "$project": {
+                      "_id": "$_id._id",
+                      "end_user_id": 1,
+                      "name": 1,
+                      "products": {
+                        "count": "$products_count"
+                      },
+                      "modified_at": 1,
+                      "created_at": 1
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "endusers",
+                      "localField": "end_user_id",
+                      "foreignField": "_id",
+                      "as": "enduser"
+                    }
+                  },
+                  {
+                    "$unwind": "$enduser"
+                  },
+                  {
+                    "$lookup": {
+                      "from": "users",
+                      "localField": "enduser.user_id",
+                      "foreignField": "_id",
+                      "as": "enduser.user"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$enduser.user",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "usergroups",
+                      "localField": "enduser.user_group_id",
+                      "foreignField": "_id",
+                      "as": "enduser.usergroup"
+                    }
+                  },
+                  {
+                    "$unwind": "$enduser.usergroup"
+                  },
+                  {
+                    "$project": {
+                      "end_user_id": 0,
+                      "enduser.user_id": 0,
+                      "enduser.user_group_id": 0
+                    }
+                  }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .sort({
+                  created_at: -1
+                })
+                .toArray(function(walletFindQueryError, doc){
+                  if (walletFindQueryError != null){
+                    console.log(walletFindQueryError)
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+                break;
+
               case 'users':
               case 'usergroups':
               case 'messages':
-              case 'warehouses':
               case 'turnovers':
               case 'orders':
               case 'currencies':
               case 'taxonomies':
               case 'plans':
+              case 'products':
                 _IS_COLLECTION_READY_TO_RESPONSE = true;
                 break;
 
@@ -468,11 +580,11 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'users':
             case 'usergroups':
             case 'messages':
-            case 'warehouses':
             case 'turnovers':
             case 'orders':
             case 'currencies':
             case 'taxonomies':
+            case 'products':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
               break;
 
@@ -779,6 +891,125 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }else{
                     res.json(Modules.Functions._throwResponseWithData(docs[0]));
                   }
+
+                  client.close();
+                }
+              });
+              break;
+
+            case 'warehouses':
+              var _TARGET_MATCHING_CRITERIA = [
+                {
+                  "_id": _TOKEN
+                },
+                {
+                  "enduser._id": _TOKEN
+                }
+              ];
+
+              _CRITERIA = [
+                {
+                  "$lookup": {
+                    "from": "products",
+                    "localField": "_id",
+                    "foreignField": "warehouse_id",
+                    "as": "product"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$product",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$group": {
+                    "_id": {
+                      "_id": "$_id",
+                      "end_user_id": "$end_user_id",
+                      "name": "$name",
+                      "products": "$product.warehouse_id",
+                      "modified_at": "$modified_at",
+                      "created_at": "$created_at",
+                    },
+                    "products_count": { "$sum": 1 }
+                  }
+                },
+                {
+                  "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
+                },
+                {
+                  "$project": {
+                    "_id": "$_id._id",
+                    "end_user_id": 1,
+                    "name": 1,
+                    "products": {
+                      "count": "$products_count"
+                    },
+                    "modified_at": 1,
+                    "created_at": 1
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "endusers",
+                    "localField": "end_user_id",
+                    "foreignField": "_id",
+                    "as": "enduser"
+                  }
+                },
+                {
+                  "$unwind": "$enduser"
+                },
+                {
+                  "$lookup": {
+                    "from": "users",
+                    "localField": "enduser.user_id",
+                    "foreignField": "_id",
+                    "as": "enduser.user"
+                  }
+                },
+                {
+                  "$unwind": {
+                    "path": "$enduser.user",
+                    "preserveNullAndEmptyArrays": true
+                  }
+                },
+                {
+                  "$lookup": {
+                    "from": "usergroups",
+                    "localField": "enduser.user_group_id",
+                    "foreignField": "_id",
+                    "as": "enduser.usergroup"
+                  }
+                },
+                {
+                  "$unwind": "$enduser.usergroup"
+                },
+                {
+                  "$project": {
+                    "end_user_id": 0,
+                    "enduser.user_id": 0,
+                    "enduser.user_group_id": 0
+                  }
+                },
+                {
+                  "$match": {
+                    "$or": _TARGET_MATCHING_CRITERIA
+                  }
+                }
+              ];
+
+              _COLLECTION.aggregate(_CRITERIA)
+              .toArray(function(error, docs){
+                if (error != null){
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+
+                  res.json(RECURSIVE_CONTENT);
 
                   client.close();
                 }

@@ -411,8 +411,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'warehouses':
-                if ((typeof _THREAD.user_id != 'undefined') && (typeof _THREAD.name != 'undefined')){
-                  _THREAD.user_id = new ObjectID(_THREAD.user_id);
+                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.name != 'undefined')){
+                  _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
 
                   _IS_COLLECTION_READY_TO_ABSORB = true;
                 }else{
@@ -503,6 +503,18 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       _IS_COLLECTION_READY_TO_ABSORB = true;
                     }
                   }
+                }
+                break;
+
+              case 'products':
+                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined')){
+                  const _END_USER_ID = new ObjectID(_THREAD.end_user_id),
+                        _WAREHOUSE_ID = new ObjectID(_THREAD.warehouse_id);
+
+                  _THREAD.end_user_id = _END_USER_ID;
+                  _THREAD.warehouse_id = _WAREHOUSE_ID;
+
+                  _IS_COLLECTION_READY_TO_ABSORB = true;
                 }
                 break;
 
