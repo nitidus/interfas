@@ -583,9 +583,61 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'turnovers':
             case 'orders':
             case 'currencies':
-            case 'taxonomies':
             case 'products':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
+              break;
+
+            case 'taxonomies':
+              _CRITERIA = [
+                {
+                  "$match": {
+                    "_id": _TOKEN
+                  }
+                }
+              ];
+
+              if (Modules.Functions._checkIsAValidObjectID(req.params.token) !== true){
+                var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_TOKEN);
+
+                if (_TOKEN_KEYWORD == 'PC' || _TOKEN_KEYWORD == 'P.C' || _TOKEN_KEYWORD == 'P.C.'){
+                  _TOKEN_KEYWORD = 'PRODUCT_CATEGORY';
+                }
+
+                _TARGET_MATCHING_CRITERIA = {
+                  "key": _TOKEN_KEYWORD
+                };
+
+                _CRITERIA = [
+                  {
+                    "$match": {
+                      "key": _TOKEN_KEYWORD
+                    }
+                  },
+                  {
+                    "$project": {
+                      "key": "$value",
+                      "ancestors": 1,
+                      "created_at": 1,
+                      "modified_at": 1
+                    }
+                  }
+                ];
+              }
+
+              _COLLECTION.aggregate(_CRITERIA)
+              .toArray(function(error, docs){
+                if (error != null){
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }
+              });
               break;
 
             case 'histories':

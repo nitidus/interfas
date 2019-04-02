@@ -472,10 +472,25 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 if ((typeof _THREAD.key != 'undefined') && (typeof _THREAD.value != 'undefined')){
                   const _TAXONOMY_KEY = _THREAD.key,
                         _TAXONOMY_VALUE = _THREAD.value;
+                        _OPTIONS = req.query;
 
                   if (_TAXONOMY_KEY != '' && _TAXONOMY_VALUE != ''){
+                    const _CONTENT_PROCESS_OPTION = _OPTIONS.process_content || _OPTIONS.processContent || _OPTIONS.pc || _OPTIONS.PC,
+                          _HAS_CONTENT_PROCESS_OPTION = (typeof _CONTENT_PROCESS_OPTION == 'undefined')? true: (((_CONTENT_PROCESS_OPTION.toLowerCase() == 'false') || (_CONTENT_PROCESS_OPTION == '0'))? false: true);
+
                     _THREAD.key = Modules.Functions._convertTokenToKeyword(_TAXONOMY_KEY);
-                    _THREAD.value = Modules.Functions._convertTokenToKeyword(_TAXONOMY_VALUE);
+
+                    if (_HAS_CONTENT_PROCESS_OPTION){
+                      _THREAD.value = Modules.Functions._convertTokenToKeyword(_TAXONOMY_VALUE);
+                    }
+
+                    if (typeof _THREAD.ancestors != 'undefined'){
+                      _THREAD.ancestors = _THREAD.ancestors.map((ancestor, i) => {
+                        const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                        return _FINAL_ANCESTOR;
+                      });
+                    }
 
                     _IS_COLLECTION_READY_TO_ABSORB = true;
                   }
