@@ -599,8 +599,18 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               if (Modules.Functions._checkIsAValidObjectID(req.params.token) !== true){
                 var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_TOKEN);
 
-                if (_TOKEN_KEYWORD == 'PC' || _TOKEN_KEYWORD == 'P.C' || _TOKEN_KEYWORD == 'P.C.'){
-                  _TOKEN_KEYWORD = 'PRODUCT_CATEGORY';
+                switch (_TOKEN_KEYWORD) {
+                  case 'PC':
+                  case 'P.C':
+                  case 'P.C.':
+                    _TOKEN_KEYWORD = 'PRODUCT_CATEGORY';
+                    break;
+
+                  case 'PF':
+                  case 'P.F':
+                  case 'P.F.':
+                    _TOKEN_KEYWORD = 'PRODUCT_FEATURE';
+                    break;
                 }
 
                 _TARGET_MATCHING_CRITERIA = {
