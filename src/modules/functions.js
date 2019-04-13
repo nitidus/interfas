@@ -305,6 +305,32 @@ _sendInvitation: async (appName, details) => {
       return _SENT_MAIL;
     }
   },
+  _sendVerification: async (appName, details) => {
+      const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/verification.ejs'),
+            _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
+            _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
+            _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
+              const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
+                    APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
+
+              return TARGET_KEYWORD === APP_NAME_KEYWORD;
+            });
+
+      if (_APP_DETAILS.length === 1){
+        const _PARSED_APP_DETAILS = _APP_DETAILS[0],
+              _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
+                app: {
+                  name: _PARSED_APP_DETAILS.name,
+                  photo: _PARSED_APP_DETAILS.photo,
+                  address: _PARSED_APP_DETAILS.address
+                },
+                ...details
+              }),
+              _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Verification`, _EMAIL_BODY_CONTENT);
+
+        return _SENT_MAIL;
+      }
+    },
   _chargeUsingToken: async (token) => {
     if (typeof token != 'undefined'){
       if (

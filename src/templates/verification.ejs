@@ -1,27 +1,20 @@
 <%
-  function removeProtocolFromURI(uri){
-    return uri.replace(/(^\w+:|^)\/\//, '');
-  }
-
   function _convertTokenToKey: (token) => {
     return token.replace(/(_|-| )+/ig, '-').toLowerCase();
   }
 %>
 
 <%
-  const _BRAND_NAME = brand.name || 'BRAND_NAME',
-        _BRAND_PHOTO = brand.photo || 'BRAND_PHOTO',
-        _BRAND_URL = brand.url || 'BRAND_URL',
-        _APP_NAME = app.name || 'APP_NAME',
+  const _APP_NAME = app.name || 'APP_NAME',
         _APP_PHOTO = app.photo || 'APP_PHOTO',
         _APP_ADDRESS = app.address || 'APP_ADDRESS',
         _TARGET_EMAIL = target.email || 'TARGET_EMAIL',
         _TARGET_TOKEN = target.token || 'TARGET_TOKEN';
 
-  var _TARGET_INVITATION_URL = '#';
+  var _TARGET_VERIFICATION_URL = '#';
 
-  if (_APP_NAME !== '' && _APP_NAME !== 'APP_NAME' && _BRAND_NAME !== '' && _BRAND_NAME !== 'BRAND_NAME' && _TARGET_TOKEN !== '' && _TARGET_TOKEN !== 'TARGET_TOKEN'){
-    _TARGET_INVITATION_URL = `${_APP_NAME.toLowerCase()}://join/${_convertTokenToKey(_BRAND_NAME)}/invite/${_TARGET_TOKEN}`;
+  if (_APP_NAME !== '' && _APP_NAME !== 'APP_NAME' && _TARGET_TOKEN !== '' && _TARGET_TOKEN !== 'TARGET_TOKEN'){
+    _TARGET_VERIFICATION_URL = `${_APP_NAME.toLowerCase()}://verify/${_TARGET_TOKEN}`;
   }
 
   const _GLOBAL_FONT_FAMILY = 'font-family:Lato, \'Helvetica Neue\', Helvetica, Arial, sans-serif;',
@@ -36,7 +29,7 @@
     <!--<![endif]-->
     <meta charset="utf-8">
 
-    <title><%= _APP_NAME %> Invitation</title>
+    <title><%= _APP_NAME %> Verification</title>
     <style type="text/css">
       @media only screen and (max-width:600px) {
         .msg805761269038968617 .m_805761269038968617social_img_bottom_margin {
@@ -120,9 +113,9 @@
                         <% if (_APP_PHOTO !== '' && _APP_PHOTO !== 'APP_PHOTO') { %>
                           <img style="border:none;max-width:100%;width:38px;height:38px;margin:0 0 15px 0;padding-right:30px;padding-left:30px;" src="<%= _APP_PHOTO %>" alt="" width="38" height="38" class="CToWUd">
                         <% } %>
-                        <h1 style="color:#434245;font-weight:900;line-height:36px;margin:0;margin-bottom:12px;font-size:30px;letter-spacing:-0.75px;text-align:left;padding-right:30px;padding-left:30px;">Join <%= _BRAND_NAME %> on <%= _APP_NAME %></h1>
-                        <p style="<%= _GLOBAL_FONT_FAMILY %>padding-bottom:2px;font-size:17px;line-height:24px;font-weight:normal;margin:0;margin-bottom:15px;padding-right:30px;padding-left:30px;"><%= _TARGET_EMAIL %> has
-                          invited you to join the <%= _APP_NAME %> workspace <strong><%= _BRAND_NAME %></strong>. Join now to start collaborating!
+                        <h1 style="color:#434245;font-weight:900;line-height:36px;margin:0;margin-bottom:12px;font-size:30px;letter-spacing:-0.75px;text-align:left;padding-right:30px;padding-left:30px;">Confirm you email to join <%= _APP_NAME %></h1>
+                        <p style="<%= _GLOBAL_FONT_FAMILY %>padding-bottom:2px;font-size:17px;line-height:24px;font-weight:normal;margin:0;margin-bottom:15px;padding-right:30px;padding-left:30px;">
+                          Hello! Once you've confirmed your email address, you'll be the newest member of your <%= _APP_NAME %> workspace. ✨
                         </p>
 
                         <% if (_TARGET_TOKEN !== '' && _TARGET_TOKEN !== 'TARGET_TOKEN') { %>
@@ -131,7 +124,7 @@
                               <tr style="width:100%;">
                                 <td style="<%= _GLOBAL_FONT_FAMILY %>font-size:17px;line-height:24px;vertical-align:top;width:100%;">
                                   <span style="display:inline-block;border-radius:4px;<%= _GLOBAL_GRADIENT_COLOR %>" class="m_805761269038968617sm_full_width">
-                                    <a class="m_805761269038968617button_link m_805761269038968617sm_full_width m_805761269038968617sm_border_box" href="<%= _TARGET_INVITATION_URL %>" style="color:#000;text-decoration:none !important;min-width:196px;border-top:13px solid;border-bottom:13px solid;border-right:24px solid;border-left:24px solid;border-color:transparent;border-radius:4px;background-color:transparent;font-size:18px;line-height:18px;word-break:break-word;display:inline-block;text-align:center;font-weight:900;" target="_blank">Join Now</a>
+                                    <a class="m_805761269038968617button_link m_805761269038968617sm_full_width m_805761269038968617sm_border_box" href="<%= _TARGET_VERIFICATION_URL %>" style="color:#000;text-decoration:none !important;min-width:196px;border-top:13px solid;border-bottom:13px solid;border-right:24px solid;border-left:24px solid;border-color:transparent;border-radius:4px;background-color:transparent;font-size:18px;line-height:18px;word-break:break-word;display:inline-block;text-align:center;font-weight:900;" target="_blank">Confirm Email</a>
                                   </span>
                                 </td>
                               </tr>
@@ -139,48 +132,9 @@
                           </div>
                         <% } %>
 
-                        <div style="<%= _GLOBAL_FONT_FAMILY %>padding-right:30px;padding-left:30px;">
-                          <div style="<%= _GLOBAL_FONT_FAMILY %>border-bottom:1px solid #E1E1E4;padding:30px 0 22px;margin:0;"></div>
-                        </div>
-                        <table style="<%= _GLOBAL_FONT_FAMILY %>border-collapse:collapse;width:100%;">
-                          <tr>
-                            <td style="<%= _GLOBAL_FONT_FAMILY %>font-size:17px;line-height:24px;vertical-align:top;box-sizing:border-box;padding:0;padding-right:30px;padding-left:30px;">
-                              <div style="<%= _GLOBAL_FONT_FAMILY %>color:#434245;text-align:left;width:100%;font-size:15px;">
-                                <table style="<%= _GLOBAL_FONT_FAMILY %>border-collapse:collapse;width:100%;display:inline-table;vertical-align:top;border:0px;">
-                                  <tbody class="m_805761269038968617sm_full_width">
-                                    <tr class="m_805761269038968617sm_full_width">
-                                      <td class="m_805761269038968617sm_full_width" style="<%= _GLOBAL_FONT_FAMILY %>font-size:17px;line-height:24px;vertical-align:top;padding-top:10px;">
-                                        <table class="m_805761269038968617sm_full_width" style="<%= _GLOBAL_FONT_FAMILY %>border-collapse:collapse;width:434px;display:inline-table;max-width:100%;border:0px;">
-                                          <tr>
-                                            <% if (_BRAND_PHOTO !== '' && _BRAND_PHOTO !== 'BRAND_PHOTO') { %>
-                                              <td style="<%= _GLOBAL_FONT_FAMILY %>font-size:17px;line-height:24px;vertical-align:top;width:38px;padding-right:15px;">
-                                                <a class="m_805761269038968617plaintext_ignore" href="https://eucle.slack.com/x-539275260083-539384408258/signin" style="color:#3498DB;text-decoration:none;margin:6px 0 15px;display:block;" target="_blank">
-                                                  <img alt="" src="<%= _BRAND_PHOTO %>" style="border:none;max-width:100%;height:38px;width:38px;min-width:38px;border-radius:4px;color:#FFFFFF;font-size:18px;line-height:38px;" class="CToWUd">
-                                                </a>
-                                              </td>
-                                            <% } %>
-
-                                            <td style="<%= _GLOBAL_FONT_FAMILY %>font-size:17px;line-height:24px;vertical-align:top;">
-                                              <div class="m_805761269038968617plaintext_only" style="<%= _GLOBAL_FONT_FAMILY %>display:none;">
-                                                Workspace name: <%= _BRAND_NAME %>
-                                              </div>
-                                            </td>
-                                            <td class="m_805761269038968617sm_auto_width" style="<%= _GLOBAL_FONT_FAMILY %>font-size:17px;line-height:24px;vertical-align:top;">
-                                              <strong class="m_805761269038968617plaintext_ignore"><%= _BRAND_NAME %></strong><br>Brand URL:
-                                              <a href="<%= _BRAND_URL %>" target="_blank" style="color:#3498DB;text-decoration:none;">
-                                                <%= removeProtocolFromURI(_BRAND_URL) %>
-                                              </a>
-                                            </td>
-                                          </tr>
-                                        </table>
-                                        <div style="<%= _GLOBAL_FONT_FAMILY %>clear:both;"></div>
-                                      </td>
-                                    </tr>
-                                </table>
-                              </div>
-                            </td>
-                          </tr>
-                        </table>
+                        <p style="<%= _GLOBAL_FONT_FAMILY %>padding-bottom:2px;font-size:17px;line-height:24px;font-weight:normal;margin:0;margin-bottom:15px;padding-right:30px;padding-left:30px;">
+                          If you have any questions, simply reply to this email. We'd love to help.
+                        </p>
                       </div>
                     </td>
                   </tr>

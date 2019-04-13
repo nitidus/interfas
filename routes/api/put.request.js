@@ -221,6 +221,46 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                     break;
 
+                  case 'email-address':
+                  case 'email':
+                  case 'mail-address':
+                  case 'mail':
+                    if ((typeof _THREAD.token != 'undefined') || (typeof _THREAD.email_token != 'undefined')){
+                      const _EMAIL_TOKEN = _THREAD.token || _THREAD.email_token;
+
+                      const _TARGET = {
+                              "$set": {
+                                "email.validation.value": true,
+                                "phone.mobile.validation.modified_at": _TODAY
+                              }
+                            };
+
+                      _COLLECTION = _DB.collection('users');
+
+                      _CRITERIA = {
+                        "email.validation.token": _EMAIL_TOKEN
+                      }
+
+                      _COLLECTION.updateOne(_CRITERIA, _TARGET, function(verifyQueryError, doc){
+                        if (verifyQueryError != null){
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+
+                          res.json(RECURSIVE_CONTENT);
+                        }else{
+                          const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                          res.json(RECURSIVE_CONTENT);
+
+                          client.close();
+                        }
+                      });
+                    }else{
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }
+                    break;
+
                   default:
                     const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired collection has not been defined.');
 
