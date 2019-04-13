@@ -39,13 +39,15 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   _THREAD.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
 
-                  if (typeof _THREAD.personal.profile != 'undefined'){
-                    const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
-                          _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
-                          _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
-                          _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+                  if (typeof _THREAD.personal != 'undefined'){
+                    if (typeof _THREAD.personal.profile != 'undefined'){
+                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
+                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
+                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                            _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
 
-                    _THREAD.personal.profile = Modules.Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                      _THREAD.personal.profile = Modules.Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                    }
                   }
 
                   if (typeof _THREAD.email != 'undefined'){
@@ -56,27 +58,27 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       content: _THREAD.email,
                       validation: {
                         token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
-                        value: false
+                        value: true
                       }
                     };
 
-                    if (typeof _THREAD.target != 'undefined'){
-                      if ((typeof _THREAD.target.app_name != 'undefined') && (typeof _THREAD.target.brand != 'undefined')){
-                        Modules.Functions._sendInvitation(_THREAD.target.app_name, {
-                          ..._THREAD.target.brand,
-                          target: {
-                            email: _THREAD.email,
-                            token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY
-                          }
-                        })
-                        .then((response) => {
-                          // handle sent message details
-                        })
-                        .catch((error) => {
-                          // throw error
-                        })
-                      }
-                    }
+                    // if (typeof _THREAD.target != 'undefined'){
+                    //   if ((typeof _THREAD.target.app_name != 'undefined') && (typeof _THREAD.target.brand != 'undefined')){
+                    //     Modules.Functions._sendInvitation(_THREAD.target.app_name, {
+                    //       ..._THREAD.target.brand,
+                    //       target: {
+                    //         email: _THREAD.email,
+                    //         token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY
+                    //       }
+                    //     })
+                    //     .then((response) => {
+                    //       // handle sent message details
+                    //     })
+                    //     .catch((error) => {
+                    //       // throw error
+                    //     })
+                    //   }
+                    // }
                   }
 
                   if (typeof _THREAD.phone != 'undefined') {
