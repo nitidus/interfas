@@ -16,6 +16,7 @@
     "mkdir-recursive": "^0.4.0",
     "mongodb": "^3.1.4",
     "nodemailer": "^4.6.8",
+    "socket.io": "^2.2.0",
     "stripe": "^6.25.1"
   },
   "devDependencies": {
