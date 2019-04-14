@@ -241,21 +241,57 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         "email.validation.token": _EMAIL_TOKEN
                       }
 
-                      _COLLECTION.updateOne(_CRITERIA, _TARGET, function(verifyQueryError, doc){
-                        if (verifyQueryError != null){
-                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+                      _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
+                        if (userFindQueryError != null){
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection find request could\'t be processed.`, 700);
 
                           res.json(RECURSIVE_CONTENT);
                         }else{
-                          const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+                          const _USER = doc;
 
-                          res.json(RECURSIVE_CONTENT);
+                          var _DID_A_CONFLICT_OCCURED_ON_EMAIL_SUBSET = false;
 
-                          client.close();
+                          if (typeof _USER.email.validation.value != 'undefined'){
+                            if (typeof _USER.email.validation != 'undefined'){
+                              if (typeof _USER.email.validation.value != 'undefined'){
+                                if (_USER.email.validation.value === false){
+                                  _COLLECTION.updateOne(_CRITERIA, _TARGET, function(verifyQueryError, doc){
+                                    if (verifyQueryError != null){
+                                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The 'users' collection update request could\'t be processed.`, 700);
+
+                                      res.json(RECURSIVE_CONTENT);
+                                    }else{
+                                      const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                                      res.json(RECURSIVE_CONTENT);
+
+                                      client.close();
+                                    }
+                                  });
+                                }else{
+                                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You have been verified account before.', 700);
+
+                                  res.json(RECURSIVE_CONTENT);
+                                }
+                              }else{
+                                _DID_A_CONFLICT_OCCURED_ON_EMAIL_SUBSET = true;
+                              }
+                            }else{
+                              _DID_A_CONFLICT_OCCURED_ON_EMAIL_SUBSET = true;
+                            }
+                          }else{
+                            _DID_A_CONFLICT_OCCURED_ON_EMAIL_SUBSET = true;
+                          }
+
+                          if (_DID_A_CONFLICT_OCCURED_ON_EMAIL_SUBSET){
+                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('A conflict occurred on fetching email subset.', 700);
+
+                            res.json(RECURSIVE_CONTENT);
+                          }
                         }
                       });
                     }else{
-                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify number', 700);
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You\'ve not entered the required information to verify email', 700);
 
                       res.json(RECURSIVE_CONTENT);
                     }
