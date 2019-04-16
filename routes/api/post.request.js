@@ -134,7 +134,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       res.json(RECURSIVE_CONTENT);
                     }else{
                       if (existingDoc != null){
-                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The selected email or phone number is not available.', 700);
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('Email or phone is not available.', 700);
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
