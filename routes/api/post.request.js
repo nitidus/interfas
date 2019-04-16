@@ -1318,11 +1318,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       res.json(RECURSIVE_CONTENT);
                     }else{
-                      const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc[0]);
+                      if (doc.length > 0){
+                        const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc[0]);
 
-                      res.json(RECURSIVE_CONTENT);
+                        res.json(RECURSIVE_CONTENT);
 
-                      client.close();
+                        client.close();
+                      }else{
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`No matching were found.`, 700);
+
+                        res.json(RECURSIVE_CONTENT);
+                      }
                     }
                   });
                 }else{
