@@ -32,24 +32,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             res.json(_LOCAL_FUNCTIONS._throwConnectionError());
           }else{
             switch (_COLLECTION_NAME) {
-              case 'users':
-                if ((typeof _THREAD.user_group_id != 'undefined') && (typeof _THREAD.password != 'undefined') && (typeof _THREAD.phone != 'undefined')){
-                  const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
-                        _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
-
-                  _THREAD.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
-
-                  if (typeof _THREAD.personal != 'undefined'){
-                    if (typeof _THREAD.personal.profile != 'undefined'){
-                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
-                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
-                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
-                            _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
-
-                      _THREAD.personal.profile = Modules.Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
-                    }
-                  }
-
+              case 'verify':
+                if (typeof _THREAD.phone != 'undefined'){
                   if (typeof _THREAD.email != 'undefined'){
                     const _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_THREAD.email}${_THREAD.password}`,
                           _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex');
@@ -67,7 +51,9 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         Modules.Functions._sendVerification(_THREAD.target.app_name, {
                           target: {
                             email: _THREAD.email,
-                            token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY
+                            token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
+                            created_at: _TODAY,
+                            modified_at: _TODAY
                           }
                         })
                         .then((response) => {
@@ -104,12 +90,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   }
 
-                  _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
-                  _THREAD.modified_at = _THREAD.created_at = _TODAY;
-
                   const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                        _COLLECTION = _DB.collection(_COLLECTION_NAME),
-                        _DEPENDED_COLLECTION = _DB.collection('endusers');
+                        _COLLECTION = _DB.collection('users');
 
                   var _CHECKING_CRITERIA = {
                     "$or": []
@@ -138,50 +120,119 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        var _END_USER_SEED = {
-                          user_group_id: new ObjectID(_THREAD.user_group_id)
-                        };
 
-                        delete _THREAD.user_group_id;
+                        const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_THREAD);
 
-                        _COLLECTION.insertOne(_THREAD, function(insertUserQueryError, userDoc){
-                          if (insertUserQueryError != null){
-                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
+                        res.json(RECURSIVE_CONTENT);
+
+                        client.close();
+                      }
+                    }
+                  });
+                }else{
+                  res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+                }
+                break;
+
+              case 'regenerate':
+                if (typeof _THREAD.phone != 'undefined'){
+                  if (typeof _THREAD.phone.mobile == 'string'){
+                    _THREAD.phone.mobile = {
+                      content: _THREAD.phone.mobile,
+                      validation: {
+                        token: Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString(),
+                        value: false,
+                        created_at: _TODAY,
+                        modified_at: _TODAY
+                      }
+                    };
+                  }else{
+                    _THREAD.phone.mobile.validation.token = Math.floor(Math.random() * ((999999 - 100000) + 1) + 100000).toString();;
+                    _THREAD.phone.mobile.validation.modified_at = _TODAY;
+                  }
+
+                  Modules.Functions._sendMessage(_THREAD.phone.mobile.content, _THREAD.phone.mobile.validation.token)
+                  .then((response) => {
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_THREAD);
+
+                    res.json(RECURSIVE_CONTENT);
+                  })
+                  .catch((error) => {
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+
+                    res.json(RECURSIVE_CONTENT);
+                  })
+                }else{
+                  res.json(_LOCAL_FUNCTIONS._throwNewInstanceError(_COLLECTION_NAME));
+                }
+                break;
+
+              case 'users':
+                if ((typeof _THREAD.user_group_id != 'undefined') && (typeof _THREAD.password != 'undefined')){
+                  const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
+                        _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_PASSWORD.final('hex')}`;
+
+                  _THREAD.password = _SECRET_CONTENT_OF_PASSWORD_WITH_APPENDED_KEY;
+
+                  if (typeof _THREAD.personal != 'undefined'){
+                    if (typeof _THREAD.personal.profile != 'undefined'){
+                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
+                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
+                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                            _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+
+                      _THREAD.personal.profile = Modules.Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                    }
+                  }
+
+                  _THREAD.user_group_id = new ObjectID(_THREAD.user_group_id);
+                  _THREAD.modified_at = _THREAD.created_at = _TODAY;
+
+                  const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                        _COLLECTION = _DB.collection(_COLLECTION_NAME),
+                        _DEPENDED_COLLECTION = _DB.collection('endusers');
+
+                  var _END_USER_SEED = {
+                    user_group_id: new ObjectID(_THREAD.user_group_id)
+                  };
+
+                  delete _THREAD.user_group_id;
+
+                  _COLLECTION.insertOne(_THREAD, function(insertUserQueryError, userDoc){
+                    if (insertUserQueryError != null){
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      if (userDoc.insertedCount != 1){
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+
+                        res.json(RECURSIVE_CONTENT);
+                      }else{
+                        _END_USER_SEED.user_id = new ObjectID(userDoc.ops[0]._id);
+
+                        _DEPENDED_COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
+                          if (insertEndUserQueryError != null){
+                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The End User collection insert request could\'t be processed.`, 700);
 
                             res.json(RECURSIVE_CONTENT);
                           }else{
-                            if (userDoc.insertedCount != 1){
-                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+                            if (endUserDoc.insertedCount != 1){
+                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in End User collection could\'t be inserted.`, 700);
 
                               res.json(RECURSIVE_CONTENT);
                             }else{
-                              _END_USER_SEED.user_id = new ObjectID(userDoc.ops[0]._id);
+                              const _RECURSIVE_RESPONSE = {
+                                user: userDoc.ops[0],
+                                end_user: endUserDoc.ops[0]
+                              };
 
-                              _DEPENDED_COLLECTION.insertOne(_END_USER_SEED, function(insertEndUserQueryError, endUserDoc){
-                                if (insertEndUserQueryError != null){
-                                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The End User collection insert request could\'t be processed.`, 700);
-
-                                  res.json(RECURSIVE_CONTENT);
-                                }else{
-                                  if (endUserDoc.insertedCount != 1){
-                                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in End User collection could\'t be inserted.`, 700);
-
-                                    res.json(RECURSIVE_CONTENT);
-                                  }else{
-                                    const _RECURSIVE_RESPONSE = {
-                                      user: userDoc.ops[0],
-                                      end_user: endUserDoc.ops[0]
-                                    };
-
-                                    res.redirect(`/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
-                                  }
-                                }
-
-                                client.close();
-                              })
+                              res.redirect(`/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
                             }
                           }
-                        });
+
+                          client.close();
+                        })
                       }
                     }
                   });
@@ -1296,7 +1347,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                 "user.email.content": _TOKEN
                               },
                               {
-                                "user.phone.mobile.content": _TOKEN
+                                "user.phone.mobile.content": new RegExp(`\.*${_TOKEN}\.*`, 'gi')
                               }
                             ]
                           },
