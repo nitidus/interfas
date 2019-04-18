@@ -1069,7 +1069,16 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+                  var _RESPONSE = [];
+
+                  if (docs.length > 0){
+                    if (docs[0]._id == req.params.token){
+                      _RESPONSE = docs[0];
+                    }else{
+                      _RESPONSE = docs;
+                    }
+                  }
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
 
                   res.json(RECURSIVE_CONTENT);
 
