@@ -232,7 +232,7 @@ module.exports = {
          };
 
    try {
-     const _RESPONSE = await axios.post(_TARGET_URL, _SEED);
+     const _RESPONSE = await axios.post(`${_TARGET_URL}?receptor=${_SEED.receptor}&token=${_SEED.token}&template=${_SEED.template}`);
 
      return _RESPONSE;
    } catch (error) {
