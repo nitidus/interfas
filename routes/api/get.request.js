@@ -611,6 +611,12 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'P.F.':
                     _TOKEN_KEYWORD = 'PRODUCT_FEATURE';
                     break;
+
+                  case 'PSH':
+                  case 'P.S.H':
+                  case 'P.F.H.':
+                    _TOKEN_KEYWORD = 'PRODUCT_SHIPPING_METHOD';
+                    break;
                 }
 
                 _TARGET_MATCHING_CRITERIA = {
