@@ -210,16 +210,26 @@ module.exports = {
     });
  },
  _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
-   const _FILE_DIRECTORY = `img/profile/users/${photoDirectoryWithOptionalExtendedPath}`;
+   const _BASE_DIR = '../public/',
+         _FILE_DIRECTORY = `assets/img/profile/users/${photoDirectoryWithOptionalExtendedPath}`;
 
-   module.exports._uploadBase64DataURI(base64DataURI, _FILE_DIRECTORY);
+   module.exports._uploadBase64DataURI(base64DataURI, `${_BASE_DIR}${_FILE_DIRECTORY}`);
 
    return _FILE_DIRECTORY;
  },
  _uploadBrandProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
-   const _FILE_DIRECTORY = `img/profile/brands/${photoDirectoryWithOptionalExtendedPath}`;
+   const _BASE_DIR = '../public/',
+         _FILE_DIRECTORY = `assets/img/profile/brands/${photoDirectoryWithOptionalExtendedPath}`;
 
-   module.exports._uploadBase64DataURI(base64DataURI, _FILE_DIRECTORY);
+   module.exports._uploadBase64DataURI(base64DataURI, `${_BASE_DIR}${_FILE_DIRECTORY}`);
+
+   return _FILE_DIRECTORY;
+ },
+ _uploadProductPhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
+   const _BASE_DIR = '../public/',
+         _FILE_DIRECTORY = `assets/img/products/${photoDirectoryWithOptionalExtendedPath}`;
+
+   module.exports._uploadBase64DataURI(base64DataURI, `${_BASE_DIR}${_FILE_DIRECTORY}`);
 
    return _FILE_DIRECTORY;
  },

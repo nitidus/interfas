@@ -86,6 +86,109 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 });
                 break;
 
+              case 'products':
+                _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "taxonomies",
+                      "localField": "category_id",
+                      "foreignField": "_id",
+                      "as": "category"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$category",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$project": {
+                      "category_id": 0
+                    }
+                  },
+                  {
+                    "$match": {
+                      "category.key": "PRODUCT_CATEGORY"
+                    }
+                  }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(endUserFindQueryError, doc){
+                  if (endUserFindQueryError != null){
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+                break;
+
+              case 'fragments':
+                _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "products",
+                      "localField": "product_id",
+                      "foreignField": "_id",
+                      "as": "product"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$product",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "taxonomies",
+                      "localField": "product.category_id",
+                      "foreignField": "_id",
+                      "as": "product.category"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$product.category",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$project": {
+                      "product_id": 0,
+                      "product.category_id": 0
+                    }
+                  },
+                  {
+                    "$match": {
+                      "product.category.key": "PRODUCT_CATEGORY"
+                    }
+                  }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(endUserFindQueryError, doc){
+                  if (endUserFindQueryError != null){
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+                break;
+
               case 'wallets':
                 _CRITERIA = [
                   {
@@ -327,44 +430,22 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _CRITERIA = [
                   {
                     "$lookup": {
-                      "from": "products",
+                      "from": "fragments",
                       "localField": "_id",
                       "foreignField": "warehouse_id",
                       "as": "product"
                     }
                   },
                   {
-                    "$unwind": {
-                      "path": "$product",
-                      "preserveNullAndEmptyArrays": true
-                    }
-                  },
-                  {
-                    "$group": {
-                      "_id": {
-                        "_id": "$_id",
-                        "end_user_id": "$end_user_id",
-                        "name": "$name",
-                        "products": "$product.warehouse_id",
-                        "modified_at": "$modified_at",
-                        "created_at": "$created_at",
-                      },
-                      "products_count": { "$sum": 1 }
-                    }
-                  },
-                  {
-                    "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
-                  },
-                  {
                     "$project": {
-                      "_id": "$_id._id",
+                      "_id": 1,
                       "end_user_id": 1,
                       "name": 1,
-                      "products": {
-                        "count": "$products_count"
-                      },
                       "modified_at": 1,
-                      "created_at": 1
+                      "created_at": 1,
+                      "products.count": {
+                        "$size": "$product"
+                      }
                     }
                   },
                   {
@@ -440,7 +521,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               case 'currencies':
               case 'taxonomies':
               case 'plans':
-              case 'products':
                 _IS_COLLECTION_READY_TO_RESPONSE = true;
                 break;
 
@@ -583,7 +663,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'turnovers':
             case 'orders':
             case 'currencies':
-            case 'products':
               _IS_COLLECTION_READY_TO_RESPONSE = true;
               break;
 
@@ -647,7 +726,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+                  var _RESPONSE = [];
+
+                  if (docs.length > 0){
+                    if (docs[0]._id == req.params.token){
+                      _RESPONSE = docs[0];
+                    }else{
+                      _RESPONSE = docs;
+                    }
+                  }
+
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
 
                   res.json(RECURSIVE_CONTENT);
 
@@ -763,7 +852,17 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+                  var _RESPONSE = [];
+
+                  if (docs.length > 0){
+                    if (docs[0]._id == req.params.token){
+                      _RESPONSE = docs[0];
+                    }else{
+                      _RESPONSE = docs;
+                    }
+                  }
+
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
 
                   res.json(RECURSIVE_CONTENT);
 
@@ -978,44 +1077,22 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               _CRITERIA = [
                 {
                   "$lookup": {
-                    "from": "products",
+                    "from": "fragments",
                     "localField": "_id",
                     "foreignField": "warehouse_id",
                     "as": "product"
                   }
                 },
                 {
-                  "$unwind": {
-                    "path": "$product",
-                    "preserveNullAndEmptyArrays": true
-                  }
-                },
-                {
-                  "$group": {
-                    "_id": {
-                      "_id": "$_id",
-                      "end_user_id": "$end_user_id",
-                      "name": "$name",
-                      "products": "$product.warehouse_id",
-                      "modified_at": "$modified_at",
-                      "created_at": "$created_at",
-                    },
-                    "products_count": { "$sum": 1 }
-                  }
-                },
-                {
-                  "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
-                },
-                {
                   "$project": {
-                    "_id": "$_id._id",
+                    "_id": 1,
                     "end_user_id": 1,
                     "name": 1,
-                    "products": {
-                      "count": "$products_count"
-                    },
                     "modified_at": 1,
-                    "created_at": 1
+                    "created_at": 1,
+                    "products.count": {
+                      "$size": "$product"
+                    }
                   }
                 },
                 {
@@ -1084,6 +1161,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       _RESPONSE = docs;
                     }
                   }
+
                   const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
 
                   res.json(RECURSIVE_CONTENT);
@@ -1146,13 +1224,196 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                   res.json(RECURSIVE_CONTENT);
                 }else{
-                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData((docs[0]._id == req.params.token)? docs[0]: docs);
+                  var _RESPONSE = [];
+
+                  if (docs.length > 0){
+                    if (docs[0]._id == req.params.token){
+                      _RESPONSE = docs[0];
+                    }else{
+                      _RESPONSE = docs;
+                    }
+                  }
+
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
 
                   res.json(RECURSIVE_CONTENT);
 
                   client.close();
                 }
               });
+              break;
+
+            case 'products':
+              if (Modules.Functions._checkIsAValidObjectID(_TOKEN) === true){
+                var _TARGET_MATCHING_CRITERIA = [
+                  {
+                    "_id": _TOKEN
+                  },
+                  {
+                    "category._id": _TOKEN
+                  }
+                ];
+
+                _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "taxonomies",
+                      "localField": "category_id",
+                      "foreignField": "_id",
+                      "as": "category"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$category",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$project": {
+                      "category_id": 0
+                    }
+                  },
+                  {
+                    "$match": {
+                      "$and": [
+                        {
+                          "category.key": "PRODUCT_CATEGORY"
+                        },
+                        {
+                          "$or": _TARGET_MATCHING_CRITERIA
+                        }
+                      ]
+                    }
+                  }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(error, docs){
+                  if (error != null){
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    var _RESPONSE = [];
+
+                    if (docs.length > 0){
+                      if (docs[0]._id == req.params.token){
+                        _RESPONSE = docs[0];
+                      }else{
+                        _RESPONSE = docs;
+                      }
+                    }
+
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+              }else{
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You should define the parameter as an ObjectID.');
+
+                res.json(RECURSIVE_CONTENT);
+              }
+              break;
+
+            case 'fragments':
+              if (Modules.Functions._checkIsAValidObjectID(_TOKEN) === true){
+                var _TARGET_MATCHING_CRITERIA = [
+                  {
+                    "_id": _TOKEN
+                  },
+                  {
+                    "warehouse_id": _TOKEN
+                  },
+                  {
+                    "product.category._id": _TOKEN
+                  },
+                  {
+                    "features.feature_id": _TOKEN
+                  }
+                ];
+
+                _CRITERIA = [
+                  {
+                    "$lookup": {
+                      "from": "products",
+                      "localField": "product_id",
+                      "foreignField": "_id",
+                      "as": "product"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$product",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$lookup": {
+                      "from": "taxonomies",
+                      "localField": "product.category_id",
+                      "foreignField": "_id",
+                      "as": "product.category"
+                    }
+                  },
+                  {
+                    "$unwind": {
+                      "path": "$product.category",
+                      "preserveNullAndEmptyArrays": true
+                    }
+                  },
+                  {
+                    "$project": {
+                      "product_id": 0,
+                      "product.category_id": 0
+                    }
+                  },
+                  {
+                    "$match": {
+                      "$and": [
+                        {
+                          "product.category.key": "PRODUCT_CATEGORY"
+                        },
+                        {
+                          "$or": _TARGET_MATCHING_CRITERIA
+                        }
+                      ]
+                    }
+                  }
+                ];
+
+                _COLLECTION.aggregate(_CRITERIA)
+                .toArray(function(error, docs){
+                  if (error != null){
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                    res.json(RECURSIVE_CONTENT);
+                  }else{
+                    var _RESPONSE = [];
+
+                    if (docs.length > 0){
+                      if (docs[0]._id == req.params.token){
+                        _RESPONSE = docs[0];
+                      }else{
+                        _RESPONSE = docs;
+                      }
+                    }
+
+                    const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
+
+                    res.json(RECURSIVE_CONTENT);
+
+                    client.close();
+                  }
+                });
+              }else{
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You should define the parameter as an ObjectID.');
+
+                res.json(RECURSIVE_CONTENT);
+              }
               break;
 
             case 'roles':
@@ -1270,6 +1531,104 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     client.close();
                   }
                 });
+              break;
+
+            case 'search':
+              if (Modules.Functions._checkIsAValidObjectID(req.params.token) !== true){
+                const _SUB_ROUTE = req.params.token.toLowerCase();
+
+                switch (_SUB_ROUTE) {
+                  case 'products':
+                    const _TARGET_QUERY = _THREAD.query || _THREAD.q;
+
+                    if (typeof _TARGET_QUERY != 'undefined'){
+                      var _TARGET_MATCHING_CRITERIA = [
+                            {
+                              "name": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
+                            },
+                            {
+                              "category.value": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
+                            }
+                          ];
+
+                      _CRITERIA = [
+                        {
+                          "$lookup": {
+                            "from": "taxonomies",
+                            "localField": "category_id",
+                            "foreignField": "_id",
+                            "as": "category"
+                          }
+                        },
+                        {
+                          "$unwind": {
+                            "path": "$category",
+                            "preserveNullAndEmptyArrays": true
+                          }
+                        },
+                        {
+                          "$project": {
+                            "category_id": 0
+                          }
+                        },
+                        {
+                          "$match": {
+                            "$and": [
+                              {
+                                "category.key": "PRODUCT_CATEGORY"
+                              },
+                              {
+                                "$or": _TARGET_MATCHING_CRITERIA
+                              }
+                            ]
+                          }
+                        }
+                      ];
+
+                      _COLLECTION = _DB.collection(_SUB_ROUTE),
+
+                      _COLLECTION.aggregate(_CRITERIA)
+                      .toArray(function(error, docs){
+                        if (error != null){
+                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
+
+                          res.json(RECURSIVE_CONTENT);
+                        }else{
+                          var _RESPONSE = [];
+
+                          if (docs.length > 0){
+                            if (docs[0]._id == req.params.token){
+                              _RESPONSE = docs[0];
+                            }else{
+                              _RESPONSE = docs;
+                            }
+                          }
+
+                          const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_RESPONSE);
+
+                          res.json(RECURSIVE_CONTENT);
+
+                          client.close();
+                        }
+                      });
+                    }else{
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('You shoud define the query parameter.');
+
+                      res.json(RECURSIVE_CONTENT);
+                    }
+                    break;
+
+                  default:
+                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired search sub route has not been defined.');
+
+                    res.json(RECURSIVE_CONTENT);
+                    break;
+                }
+              }else{
+                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`You can\'t use ObjectID to search.`, 700);
+
+                res.json(RECURSIVE_CONTENT);
+              }
               break;
 
             default:

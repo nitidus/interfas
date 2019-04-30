@@ -1,4 +1,5 @@
-var app = require('express')(),
+var express = require('express'),
+    app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http),
     session = require('express-session'),
@@ -38,6 +39,8 @@ app.use(bodyParser.json({
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
+app.use(express.static('public'));
 
 const ROUTES = require('./routes/interfas')(app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
 

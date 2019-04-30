@@ -178,10 +178,10 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     if (typeof _THREAD.personal.profile != 'undefined'){
                       const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
                             _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
-                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_PASSWORD).digest('hex'),
                             _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
 
-                      _THREAD.personal.profile = Modules.Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                      _THREAD.personal.profile = `http://${req.headers.host}/${Modules.Functions._uploadUserProfilePhoto(_THREAD.personal.profile, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`)}`;
                     }
                   }
 
@@ -574,14 +574,92 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'products':
-                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined')){
+                if ((typeof _THREAD.name != 'undefined') && (typeof _THREAD.category_id != 'undefined')){
+                  const _CATEGORY_ID = new ObjectID(_THREAD.category_id);
+
+                  _THREAD.category_id = _CATEGORY_ID;
+
+                  _IS_COLLECTION_READY_TO_ABSORB = true;
+                }
+                break;
+
+              case 'fragments':
+                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.features != 'undefined') && (typeof _THREAD.photos != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
                   const _END_USER_ID = new ObjectID(_THREAD.end_user_id),
-                        _WAREHOUSE_ID = new ObjectID(_THREAD.warehouse_id);
+                        _WAREHOUSE_ID = new ObjectID(_THREAD.warehouse_id),
+                        _PRODUCT_ID = new ObjectID(_THREAD.product_id),
+                        _TARGET_URI = `${_THREAD.product_id}/${_THREAD.warehouse_id}`;
 
                   _THREAD.end_user_id = _END_USER_ID;
                   _THREAD.warehouse_id = _WAREHOUSE_ID;
+                  _THREAD.product_id = _PRODUCT_ID;
 
-                  _IS_COLLECTION_READY_TO_ABSORB = true;
+                  _THREAD.features = _THREAD.features.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+
+                    if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                      _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    }
+
+                    return _FINAL_ITEM;
+                  });
+
+                  _THREAD.photos = _THREAD.photos.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}`,
+                          _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
+                          _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_TARGET_URI).digest('hex'),
+                          _FILE_EXTENSION_MIMETYPE = _FINAL_ITEM.content.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+
+                    _FINAL_ITEM.content = `http://${req.headers.host}/${Modules.Functions._uploadProductPhoto(_FINAL_ITEM.content, `${_TARGET_URI}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`)}`;
+
+                    return _FINAL_ITEM;
+                  });
+
+                  _THREAD.prices = _THREAD.prices.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+
+                    return _FINAL_ITEM;
+                  });
+
+                  _THREAD.shipping_plans = _THREAD.shipping_plans.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    _FINAL_ITEM.shipping_method_id = new ObjectID(_FINAL_ITEM.shipping_method_id);
+
+                    return _FINAL_ITEM;
+                  });
+
+                  _THREAD.modified_at = _THREAD.created_at = _TODAY;
+
+                  const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                        _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
+                  _COLLECTION.insertOne(_THREAD, function(insertQueryError, doc){
+                    if (insertQueryError != null){
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      if (doc.insertedCount != 1){
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
+
+                        res.json(RECURSIVE_CONTENT);
+                      }else{
+                        const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc.ops[0]);
+
+                        res.json(RECURSIVE_CONTENT);
+
+                        client.close();
+                      }
+                    }
+                  });
                 }
                 break;
 
