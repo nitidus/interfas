@@ -463,6 +463,89 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _IS_COLLECTION_READY_TO_UPDATE = true;
                 break;
 
+              case 'products':
+                if (typeof _THREAD.category_id != 'undefined'){
+                  _THREAD.category_id = new ObjectID(_THREAD.category_id);
+                }
+
+                _IS_COLLECTION_READY_TO_UPDATE = true;
+                break;
+
+              case 'fragments':
+                if (typeof _THREAD.end_user_id != 'undefined'){
+                  _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
+                }
+
+                if (typeof _THREAD.warehouse_id != 'undefined'){
+                  _THREAD.warehouse_id = new ObjectID(_THREAD.warehouse_id);
+                }
+
+                if (typeof _THREAD.product_id != 'undefined'){
+                  _THREAD.product_id = new ObjectID(_THREAD.product_id);
+                }
+
+                if (typeof _THREAD.features != 'undefined'){
+                  _THREAD.features = _THREAD.features.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+
+                    if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                      _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    }
+
+                    return _FINAL_ITEM;
+                  });
+                }
+
+                if (typeof _THREAD.photos != 'undefined'){
+                  const _CHECKING_FRAGMENT_CRITERIA = {
+                    _id: new ObjectID(_TOKEN)
+                  };
+
+                  _COLLECTION.findOne(_CHECKING_FRAGMENT_CRITERIA, function(productFindQueryError, doc){
+                    if (productFindQueryError == null){
+                      const _TARGET_URI = `${doc.product_id}/${doc.warehouse_id}`;
+
+                      _THREAD.photos = _THREAD.photos.map((item, i) => {
+                        let _FINAL_ITEM = item;
+
+                        if (_FINAL_ITEM.content.match(/\.*base64\.*/gi)){
+                          const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}`,
+                                _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_TARGET_URI).digest('hex'),
+                                _FILE_EXTENSION_MIMETYPE = _FINAL_ITEM.content.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+
+                          _FINAL_ITEM.content = `http://${req.headers.host}/${Modules.Functions._uploadProductPhoto(_FINAL_ITEM.content, `${_TARGET_URI}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`)}`;
+                        }
+
+                        return _FINAL_ITEM;
+                      });
+                    }
+                  });
+                }
+
+                if (typeof _THREAD.prices != 'undefined'){
+                  _THREAD.prices = _THREAD.prices.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+
+                    return _FINAL_ITEM;
+                  });
+                }
+
+                if (typeof _THREAD.shipping_plans != 'undefined'){
+                  _THREAD.shipping_plans = _THREAD.shipping_plans.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    _FINAL_ITEM.shipping_method_id = new ObjectID(_FINAL_ITEM.shipping_method_id);
+
+                    return _FINAL_ITEM;
+                  });
+                }
+                break;
+
               default:
                 const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
 

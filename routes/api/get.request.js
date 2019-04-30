@@ -316,7 +316,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 })
                 .toArray(function(walletFindQueryError, doc){
                   if (walletFindQueryError != null){
-                    console.log(walletFindQueryError)
                     const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
@@ -499,7 +498,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 })
                 .toArray(function(walletFindQueryError, doc){
                   if (walletFindQueryError != null){
-                    console.log(walletFindQueryError)
                     const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
@@ -1244,7 +1242,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               break;
 
             case 'products':
-              if (Modules.Functions._checkIsAValidObjectID(_TOKEN) === true){
+              if (Modules.Functions._checkIsAValidObjectID(req.params.token) === true){
                 var _TARGET_MATCHING_CRITERIA = [
                   {
                     "_id": _TOKEN
@@ -1320,7 +1318,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               break;
 
             case 'fragments':
-              if (Modules.Functions._checkIsAValidObjectID(_TOKEN) === true){
+              if (Modules.Functions._checkIsAValidObjectID(req.params.token) === true){
                 var _TARGET_MATCHING_CRITERIA = [
                   {
                     "_id": _TOKEN
@@ -1575,7 +1573,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           "$match": {
                             "$and": [
                               {
-                                "category.key": "PRODUCT_CATEGORY"
+                                "category.key": "PRODUCT_CATEGORY",
+                                "verified": true
                               },
                               {
                                 "$or": _TARGET_MATCHING_CRITERIA
@@ -1643,8 +1642,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
               _id: _TOKEN
             };
 
-            _COLLECTION.findOne(_CRITERIA, function(userFindQueryError, doc){
-              if (userFindQueryError != null){
+            _COLLECTION.findOne(_CRITERIA, function(findQueryError, doc){
+              if (findQueryError != null){
                 const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                 res.json(RECURSIVE_CONTENT);

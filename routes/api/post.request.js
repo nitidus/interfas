@@ -177,7 +177,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   if (typeof _THREAD.personal != 'undefined'){
                     if (typeof _THREAD.personal.profile != 'undefined'){
                       const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_THREAD.password}`,
-                            _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
                             _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_PASSWORD).digest('hex'),
                             _FILE_EXTENSION_MIMETYPE = _THREAD.personal.profile.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
 
@@ -575,9 +574,7 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
               case 'products':
                 if ((typeof _THREAD.name != 'undefined') && (typeof _THREAD.category_id != 'undefined')){
-                  const _CATEGORY_ID = new ObjectID(_THREAD.category_id);
-
-                  _THREAD.category_id = _CATEGORY_ID;
+                  _THREAD.category_id = new ObjectID(_THREAD.category_id);
 
                   _IS_COLLECTION_READY_TO_ABSORB = true;
                 }
@@ -610,7 +607,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     let _FINAL_ITEM = item;
 
                     const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}`,
-                          _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_THREAD.password}`,
                           _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_TARGET_URI).digest('hex'),
                           _FILE_EXTENSION_MIMETYPE = _FINAL_ITEM.content.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
 
