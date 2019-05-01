@@ -47,6 +47,8 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             case 'orders':
             case 'currencies':
             case 'taxonomies':
+            case 'products':
+            case 'fragments':
             case 'plans':
             case 'histories':
               _IS_COLLECTION_READY_TO_REMOVE = true;
