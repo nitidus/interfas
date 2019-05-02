@@ -42,7 +42,7 @@ app.use(bodyParser.urlencoded({
 
 app.use(express.static('public'));
 
-const ROUTES = require('./routes/interfas')(app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
+const ROUTES = require('./routes/interfas')(app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
 
 http.listen(TARGET_PORT, () => {
   console.log(`Interfas is running on port ${TARGET_PORT}!`);

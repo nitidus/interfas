@@ -19,7 +19,7 @@ const _LOCAL_FUNCTIONS = {
   }
 };
 
-module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
+module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   app.post('/:collection', (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       var _COLLECTION_NAME = req.params.collection.toLowerCase(),
@@ -633,9 +633,6 @@ module.exports = (app, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   });
 
                   _THREAD.modified_at = _THREAD.created_at = _TODAY;
-
-                  const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                        _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
                   _COLLECTION.insertOne(_THREAD, function(insertQueryError, doc){
                     if (insertQueryError != null){
