@@ -247,7 +247,7 @@ module.exports = {
      return _RESPONSE;
    } catch (error) {
      if (typeof error.return != 'undefined'){
-       throw new Error(error.return);
+       throw error.return;
      }
    }
  },
@@ -286,7 +286,7 @@ module.exports = {
 
      return sentMail;
    }else{
-     throw new Error('None of the parameters can not be empty.');
+     throw 'None of the parameters can not be empty.';
    }
 },
 _sendInvitation: async (appName, details) => {
@@ -404,13 +404,13 @@ _sendInvitation: async (appName, details) => {
 
           return _CHARGE;
         } catch (e) {
-          throw new Error(e.message);
+          throw e.message
         }
       }else{
-        throw new Error("You should define card, amount, currency as the token parameter.");
+        throw "You should define card, amount, currency as the token parameter.";
       }
     }else{
-      throw new Error("You should define token as an required object.");
+      throw "You should define token as an required object.";
     }
   }
 };
