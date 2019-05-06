@@ -404,11 +404,17 @@ _sendInvitation: async (appName, details) => {
 
           return _CHARGE;
         } catch (e) {
-          throw {
+          let _FINAL_RESPONSE = {
             raw_type: e.rawType,
             code: e.code,
             message: e.message
           };
+
+          if (_FINAL_RESPONSE.code === 'card_declined'){
+            _FINAL_RESPONSE.decline_code = e.raw.decline_code;
+          }
+
+          throw _FINAL_RESPONSE;
         }
       }else{
         throw {

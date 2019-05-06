@@ -885,12 +885,14 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                           }
                                         })
                                         .catch((error) => {
-                                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message.message);
+                                          let _ERROR = error,
+                                              RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message.message);
+
+                                          delete _ERROR.message;
 
                                           res.json({
                                             ...RECURSIVE_CONTENT,
-                                            raw_type: error.raw_type,
-                                            code_type: error.code
+                                            ..._ERROR
                                           });
                                         });
                                       }
@@ -1103,12 +1105,14 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                     }
                                   })
                                   .catch((error) => {
-                                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message.message);
+                                    let _ERROR = error,
+                                        RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message.message);
+
+                                    delete _ERROR.message;
 
                                     res.json({
                                       ...RECURSIVE_CONTENT,
-                                      raw_type: error.raw_type,
-                                      code_type: error.code
+                                      ..._ERROR
                                     });
                                   });
                                 }
@@ -1365,12 +1369,14 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                               }
                             })
                             .catch((error) => {
-                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
+                              let _ERROR = error,
+                                  RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
+
+                              delete _ERROR.message;
 
                               res.json({
                                 ...RECURSIVE_CONTENT,
-                                raw_type: error.raw_type,
-                                code_type: error.code
+                                ..._ERROR
                               });
                             });
                           }
