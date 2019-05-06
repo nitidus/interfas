@@ -404,13 +404,21 @@ _sendInvitation: async (appName, details) => {
 
           return _CHARGE;
         } catch (e) {
-          throw e.message
+          throw {
+            raw_type: e.rawType,
+            code: e.code,
+            message: e.message
+          };
         }
       }else{
-        throw "You should define card, amount, currency as the token parameter.";
+        throw {
+          message: "You should define card, amount, currency as the token parameter."
+        };
       }
     }else{
-      throw "You should define token as an required object.";
+      throw {
+        message: "You should define token as an required object."
+      };
     }
   }
 };

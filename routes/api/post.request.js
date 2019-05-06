@@ -885,9 +885,13 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                           }
                                         })
                                         .catch((error) => {
-                                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
+                                          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message.message);
 
-                                          res.json(RECURSIVE_CONTENT);
+                                          res.json({
+                                            ...RECURSIVE_CONTENT,
+                                            raw_type: error.raw_type,
+                                            code_type: error.code
+                                          });
                                         });
                                       }
                                     }
@@ -1099,9 +1103,13 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                     }
                                   })
                                   .catch((error) => {
-                                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
+                                    const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message.message);
 
-                                    res.json(RECURSIVE_CONTENT);
+                                    res.json({
+                                      ...RECURSIVE_CONTENT,
+                                      raw_type: error.raw_type,
+                                      code_type: error.code
+                                    });
                                   });
                                 }
                               }
@@ -1357,9 +1365,13 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                               }
                             })
                             .catch((error) => {
-                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error);
+                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message);
 
-                              res.json(RECURSIVE_CONTENT);
+                              res.json({
+                                ...RECURSIVE_CONTENT,
+                                raw_type: error.raw_type,
+                                code_type: error.code
+                              });
                             });
                           }
                         }
