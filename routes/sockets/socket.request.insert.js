@@ -24,7 +24,7 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
     if (typeof req.collection != 'undefined'){
       var _COLLECTION_NAME = req.collection.toLowerCase(),
           _TODAY = new Date(),
-          _THREAD = req.body || req.data,
+          _THREAD = req.body || req.data || {},
           _IS_COLLECTION_READY_TO_ABSORB = false;
 
       MongoClient.connect(CONNECTION_URL, CONNECTION_CONFIG.URL_PARSER_CONFIG, function(connectionError, client){
@@ -110,12 +110,6 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                       }
                     });
                   }
-                  break;
-
-                case 'truck':
-                  socket.emit('collection/inserted', {
-                    hello: 'world'
-                  });
                   break;
 
                 default:

@@ -7,6 +7,7 @@ const Modules = require('../../src/modules');
 
 module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
   io.on('connect', (socket) => {
-    const SOCKET_INSERT_REQUESTS = require('./socket.request.insert')(app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
+    const SOCKET_INSERT_REQUESTS = require('./socket.request.insert')(app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY),
+          SOCKET_FIND_REQUESTS = require('./socket.request.find')(app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
   });
 };
