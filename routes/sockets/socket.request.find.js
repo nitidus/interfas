@@ -136,7 +136,6 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                             "$project": {
                               "category_id": 0,
                               "category.value": 0,
-                              "category.ancestors": 0,
                               "category.created_at": 0,
                               "category.modified_at": 0,
                               "category.features": 0,

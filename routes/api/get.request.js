@@ -160,7 +160,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     "$project": {
                       "category_id": 0,
                       "category.value": 0,
-                      "category.ancestors": 0,
                       "category.created_at": 0,
                       "category.modified_at": 0,
                       "category.features": 0,
@@ -300,7 +299,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       "product_id": 0,
                       "product.category_id": 0,
                       "product.category.value": 0,
-                      "product.category.ancestors": 0,
                       "product.category.created_at": 0,
                       "product.category.modified_at": 0,
                       "product.category.features": 0,
@@ -1476,7 +1474,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     "$project": {
                       "category_id": 0,
                       "category.value": 0,
-                      "category.ancestors": 0,
                       "category.created_at": 0,
                       "category.modified_at": 0,
                       "category.features": 0,
@@ -1648,7 +1645,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       "product_id": 0,
                       "product.category_id": 0,
                       "product.category.value": 0,
-                      "product.category.ancestors": 0,
                       "product.category.created_at": 0,
                       "product.category.modified_at": 0,
                       "product.category.features": 0,
@@ -1908,7 +1904,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           "$project": {
                             "category_id": 0,
                             "category.value": 0,
-                            "category.ancestors": 0,
                             "category.created_at": 0,
                             "category.modified_at": 0,
                             "category.features": 0,
