@@ -37,39 +37,24 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
 
             switch (_COLLECTION_NAME) {
                 case 'fragments':
-                  if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.features != 'undefined') && (typeof _THREAD.photos != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
-                    const _END_USER_ID = new ObjectID(_THREAD.end_user_id),
-                          _WAREHOUSE_ID = new ObjectID(_THREAD.warehouse_id),
-                          _PRODUCT_ID = new ObjectID(_THREAD.product_id),
-                          _TARGET_URI = `${_THREAD.product_id}/${_THREAD.warehouse_id}`;
+                  if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
+                    _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
+                    _THREAD.warehouse_id = new ObjectID(_THREAD.warehouse_id);
+                    _THREAD.product_id = new ObjectID(_THREAD.product_id);
 
-                    _THREAD.end_user_id = _END_USER_ID;
-                    _THREAD.warehouse_id = _WAREHOUSE_ID;
-                    _THREAD.product_id = _PRODUCT_ID;
+                    if (typeof _THREAD.features != 'undefined'){
+                      _THREAD.features = _THREAD.features.map((item, i) => {
+                        let _FINAL_ITEM = item;
 
-                    _THREAD.features = _THREAD.features.map((item, i) => {
-                      let _FINAL_ITEM = item;
+                        _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
 
-                      _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+                        if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                          _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                        }
 
-                      if (typeof _FINAL_ITEM.unit_id != 'undefined'){
-                        _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
-                      }
-
-                      return _FINAL_ITEM;
-                    });
-
-                    _THREAD.photos = _THREAD.photos.map((item, i) => {
-                      let _FINAL_ITEM = item;
-
-                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}`,
-                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_TARGET_URI).digest('hex'),
-                            _FILE_EXTENSION_MIMETYPE = _FINAL_ITEM.content.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
-
-                      _FINAL_ITEM.content = `http://${req.headers.host}/${Modules.Functions._uploadProductPhoto(_FINAL_ITEM.content, `${_TARGET_URI}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`)}`;
-
-                      return _FINAL_ITEM;
-                    });
+                        return _FINAL_ITEM;
+                      });
+                    }
 
                     _THREAD.prices = _THREAD.prices.map((item, i) => {
                       let _FINAL_ITEM = item;

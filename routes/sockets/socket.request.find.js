@@ -51,7 +51,7 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                                 "name": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
                               },
                               {
-                                "category.value": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
+                                "category.key": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
                               }
                             ];
 
@@ -71,11 +71,6 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                             }
                           },
                           {
-                            "$project": {
-                              "category_id": 0
-                            }
-                          },
-                          {
                             "$match": {
                               "$and": [
                                 {
@@ -86,6 +81,66 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                                   "$or": _TARGET_MATCHING_CRITERIA
                                 }
                               ]
+                            }
+                          },
+                          {
+                            "$addFields": {
+                              "category.key": {
+                                "$ifNull": [ "$category.cumulative_value", "$category.value" ]
+                              },
+                              "features": {
+                                "$concatArrays": [
+                                  {
+                                    "$ifNull": [
+                                      {
+                                        "$map": {
+                                          "input": "$features",
+                                          "as": "feature",
+                                          "in": {
+                                            "$mergeObjects": [
+                                              "$$feature",
+                                              {
+                                                "parent": "PRODUCT"
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      []
+                                    ]
+                                  },
+                                  {
+                                    "$ifNull": [
+                                      {
+                                        "$map": {
+                                          "input": "$category.features",
+                                          "as": "feature",
+                                          "in": {
+                                            "$mergeObjects": [
+                                              "$$feature",
+                                              {
+                                                "parent": "CATEGORY"
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      []
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "$project": {
+                              "category_id": 0,
+                              "category.value": 0,
+                              "category.ancestors": 0,
+                              "category.created_at": 0,
+                              "category.modified_at": 0,
+                              "category.features": 0,
+                              "category.cumulative_value": 0
                             }
                           }
                         ];

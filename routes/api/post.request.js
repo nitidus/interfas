@@ -31,6 +31,9 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
         if (connectionError != null){
             res.json(_LOCAL_FUNCTIONS._throwConnectionError());
           }else{
+            var _DB = client.db(CONNECTION_CONFIG.DB_NAME),
+                _COLLECTION = _DB.collection(_COLLECTION_NAME);
+
             switch (_COLLECTION_NAME) {
               case 'verify':
                 if (typeof _THREAD.phone != 'undefined'){
@@ -543,6 +546,24 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       });
                     }
 
+                    switch (_THREAD.key) {
+                      case 'PRODUCT_CATEGORY':
+                      if (typeof _THREAD.features != 'undefined'){
+                        _THREAD.features = _THREAD.features.map((item, i) => {
+                          let _FINAL_ITEM = item;
+
+                          _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+
+                          if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                            _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                          }
+
+                          return _FINAL_ITEM;
+                        });
+                      }
+                        break;
+                    }
+
                     _IS_COLLECTION_READY_TO_ABSORB = true;
                   }
                 }
@@ -573,35 +594,24 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'products':
-                if ((typeof _THREAD.name != 'undefined') && (typeof _THREAD.category_id != 'undefined')){
+                if ((typeof _THREAD.name != 'undefined') && (typeof _THREAD.photos != 'undefined') && (typeof _THREAD.category_id != 'undefined')){
+                  const _TARGET_URI = _THREAD.category_id;
+
                   _THREAD.category_id = new ObjectID(_THREAD.category_id);
 
-                  _IS_COLLECTION_READY_TO_ABSORB = true;
-                }
-                break;
+                  if (typeof _THREAD.features != 'undefined'){
+                    _THREAD.features = _THREAD.features.map((item, i) => {
+                      let _FINAL_ITEM = item;
 
-              case 'fragments':
-                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.features != 'undefined') && (typeof _THREAD.photos != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
-                  const _END_USER_ID = new ObjectID(_THREAD.end_user_id),
-                        _WAREHOUSE_ID = new ObjectID(_THREAD.warehouse_id),
-                        _PRODUCT_ID = new ObjectID(_THREAD.product_id),
-                        _TARGET_URI = `${_THREAD.product_id}/${_THREAD.warehouse_id}`;
+                      _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
 
-                  _THREAD.end_user_id = _END_USER_ID;
-                  _THREAD.warehouse_id = _WAREHOUSE_ID;
-                  _THREAD.product_id = _PRODUCT_ID;
+                      if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                        _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                      }
 
-                  _THREAD.features = _THREAD.features.map((item, i) => {
-                    let _FINAL_ITEM = item;
-
-                    _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
-
-                    if (typeof _FINAL_ITEM.unit_id != 'undefined'){
-                      _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
-                    }
-
-                    return _FINAL_ITEM;
-                  });
+                      return _FINAL_ITEM;
+                    });
+                  }
 
                   _THREAD.photos = _THREAD.photos.map((item, i) => {
                     let _FINAL_ITEM = item;
@@ -614,6 +624,30 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     return _FINAL_ITEM;
                   });
+
+                  _IS_COLLECTION_READY_TO_ABSORB = true;
+                }
+                break;
+
+              case 'fragments':
+                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
+                  _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
+                  _THREAD.warehouse_id = new ObjectID(_THREAD.warehouse_id);
+                  _THREAD.product_id = new ObjectID(_THREAD.product_id);
+
+                  if (typeof _THREAD.features != 'undefined'){
+                    _THREAD.features = _THREAD.features.map((item, i) => {
+                      let _FINAL_ITEM = item;
+
+                      _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+
+                      if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                        _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                      }
+
+                      return _FINAL_ITEM;
+                    });
+                  }
 
                   _THREAD.prices = _THREAD.prices.map((item, i) => {
                     let _FINAL_ITEM = item;
@@ -1484,9 +1518,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
             if (_IS_COLLECTION_READY_TO_ABSORB){
               _THREAD.modified_at = _THREAD.created_at = _TODAY;
-
-              const _DB = client.db(CONNECTION_CONFIG.DB_NAME),
-                    _COLLECTION = _DB.collection(_COLLECTION_NAME);
 
               _COLLECTION.insertOne(_THREAD, function(insertQueryError, doc){
                 if (insertQueryError != null){

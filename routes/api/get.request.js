@@ -103,13 +103,68 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   },
                   {
-                    "$project": {
-                      "category_id": 0
+                    "$match": {
+                      "category.key": "PRODUCT_CATEGORY"
                     }
                   },
                   {
-                    "$match": {
-                      "category.key": "PRODUCT_CATEGORY"
+                    "$addFields": {
+                      "category.key": {
+                        "$ifNull": [ "$category.cumulative_value", "$category.value" ]
+                      },
+                      "features": {
+                        "$concatArrays": [
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "PRODUCT"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          },
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$category.features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "CATEGORY"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "$project": {
+                      "category_id": 0,
+                      "category.value": 0,
+                      "category.ancestors": 0,
+                      "category.created_at": 0,
+                      "category.modified_at": 0,
+                      "category.features": 0,
+                      "category.cumulative_value": 0
                     }
                   }
                 ];
@@ -168,7 +223,92 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   },
                   {
                     "$match": {
-                      "product.category.key": "PRODUCT_CATEGORY"
+                      "product.category.key": "PRODUCT_CATEGORY",
+                      "product.verified": true
+                    }
+                  },
+                  {
+                    "$addFields": {
+                      "product.category.key": {
+                        "$ifNull": [ "$product.category.cumulative_value", "$product.category.value" ]
+                      },
+                      "features": {
+                        "$concatArrays": [
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "FRAGMENT"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          },
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$product.features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "PRODUCT"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          },
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$product.category.features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "CATEGORY"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "$project": {
+                      "product_id": 0,
+                      "product.category_id": 0,
+                      "product.category.value": 0,
+                      "product.category.ancestors": 0,
+                      "product.category.created_at": 0,
+                      "product.category.modified_at": 0,
+                      "product.category.features": 0,
+                      "product.category.cumulative_value": 0,
+                      "product.features": 0,
+                      "product.created_at": 0,
+                      "product.modified_at": 0,
+                      "product.verified": 0,
                     }
                   }
                 ];
@@ -673,6 +813,13 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
               ];
 
+              let _NORMAL_PROJECTION = {
+                "key": "$value",
+                "ancestors": 1,
+                "created_at": 1,
+                "modified_at": 1
+              };
+
               if (Modules.Functions._checkIsAValidObjectID(req.params.token) !== true){
                 var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_TOKEN);
 
@@ -680,6 +827,8 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'PC':
                   case 'P.C':
                   case 'P.C.':
+                    _NORMAL_PROJECTION["features"] = 1;
+                    _NORMAL_PROJECTION["cumulative_key"] = "$cumulative_value";
                     _TOKEN_KEYWORD = 'PRODUCT_CATEGORY';
                     break;
 
@@ -707,12 +856,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   },
                   {
-                    "$project": {
-                      "key": "$value",
-                      "ancestors": 1,
-                      "created_at": 1,
-                      "modified_at": 1
-                    }
+                    "$project": _NORMAL_PROJECTION
                   }
                 ];
               }
@@ -1268,11 +1412,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   },
                   {
-                    "$project": {
-                      "category_id": 0
-                    }
-                  },
-                  {
                     "$match": {
                       "$and": [
                         {
@@ -1282,6 +1421,66 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           "$or": _TARGET_MATCHING_CRITERIA
                         }
                       ]
+                    }
+                  },
+                  {
+                    "$addFields": {
+                      "category.key": {
+                        "$ifNull": [ "$category.cumulative_value", "$category.value" ]
+                      },
+                      "features": {
+                        "$concatArrays": [
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "PRODUCT"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          },
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$category.features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "CATEGORY"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "$project": {
+                      "category_id": 0,
+                      "category.value": 0,
+                      "category.ancestors": 0,
+                      "category.created_at": 0,
+                      "category.modified_at": 0,
+                      "category.features": 0,
+                      "category.cumulative_value": 0
                     }
                   }
                 ];
@@ -1364,21 +1563,100 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
                   },
                   {
-                    "$project": {
-                      "product_id": 0,
-                      "product.category_id": 0
-                    }
-                  },
-                  {
                     "$match": {
                       "$and": [
                         {
-                          "product.category.key": "PRODUCT_CATEGORY"
+                          "product.category.key": "PRODUCT_CATEGORY",
+                          "product.verified": true
                         },
                         {
                           "$or": _TARGET_MATCHING_CRITERIA
                         }
                       ]
+                    }
+                  },
+                  {
+                    "$addFields": {
+                      "product.category.key": {
+                        "$ifNull": [ "$product.category.cumulative_value", "$product.category.value" ]
+                      },
+                      "features": {
+                        "$concatArrays": [
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "FRAGMENT"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          },
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$product.features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "PRODUCT"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          },
+                          {
+                            "$ifNull": [
+                              {
+                                "$map": {
+                                  "input": "$product.category.features",
+                                  "as": "feature",
+                                  "in": {
+                                    "$mergeObjects": [
+                                      "$$feature",
+                                      {
+                                        "parent": "CATEGORY"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              []
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "$project": {
+                      "product_id": 0,
+                      "product.category_id": 0,
+                      "product.category.value": 0,
+                      "product.category.ancestors": 0,
+                      "product.category.created_at": 0,
+                      "product.category.modified_at": 0,
+                      "product.category.features": 0,
+                      "product.category.cumulative_value": 0,
+                      "product.features": 0,
+                      "product.created_at": 0,
+                      "product.modified_at": 0,
+                      "product.verified": 0,
                     }
                   }
                 ];
@@ -1541,13 +1819,13 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     if (typeof _TARGET_QUERY != 'undefined'){
                       var _TARGET_MATCHING_CRITERIA = [
-                            {
-                              "name": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
-                            },
-                            {
-                              "category.value": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
-                            }
-                          ];
+                        {
+                          "name": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
+                        },
+                        {
+                          "category.key": new RegExp(`\.*${_TARGET_QUERY}\.*`, 'gi')
+                        }
+                      ];
 
                       _CRITERIA = [
                         {
@@ -1565,11 +1843,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           }
                         },
                         {
-                          "$project": {
-                            "category_id": 0
-                          }
-                        },
-                        {
                           "$match": {
                             "$and": [
                               {
@@ -1580,6 +1853,66 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                 "$or": _TARGET_MATCHING_CRITERIA
                               }
                             ]
+                          }
+                        },
+                        {
+                          "$addFields": {
+                            "category.key": {
+                              "$ifNull": [ "$category.cumulative_value", "$category.value" ]
+                            },
+                            "features": {
+                              "$concatArrays": [
+                                {
+                                  "$ifNull": [
+                                    {
+                                      "$map": {
+                                        "input": "$features",
+                                        "as": "feature",
+                                        "in": {
+                                          "$mergeObjects": [
+                                            "$$feature",
+                                            {
+                                              "parent": "PRODUCT"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    []
+                                  ]
+                                },
+                                {
+                                  "$ifNull": [
+                                    {
+                                      "$map": {
+                                        "input": "$category.features",
+                                        "as": "feature",
+                                        "in": {
+                                          "$mergeObjects": [
+                                            "$$feature",
+                                            {
+                                              "parent": "CATEGORY"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    []
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "$project": {
+                            "category_id": 0,
+                            "category.value": 0,
+                            "category.ancestors": 0,
+                            "category.created_at": 0,
+                            "category.modified_at": 0,
+                            "category.features": 0,
+                            "category.cumulative_value": 0
                           }
                         }
                       ];

@@ -464,8 +464,84 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'products':
+                let _TARGET_URI = _TOKEN;
+
                 if (typeof _THREAD.category_id != 'undefined'){
-                  _THREAD.category_id = new ObjectID(_THREAD.category_id);
+                  _TARGET_URI = _THREAD.category_id = new ObjectID(_THREAD.category_id);
+                }
+
+                if (typeof _THREAD.features != 'undefined'){
+                  _THREAD.features = _THREAD.features.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+
+                    if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                      _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    }
+
+                    return _FINAL_ITEM;
+                  });
+                }
+
+                if (typeof _THREAD.photos != 'undefined'){
+                  _THREAD.photos = _THREAD.photos.map((item, i) => {
+                    let _FINAL_ITEM = item;
+
+                    if (_FINAL_ITEM.content.match(/\.*base64\.*/gi)){
+                      const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}`,
+                            _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_TARGET_URI).digest('hex'),
+                            _FILE_EXTENSION_MIMETYPE = _FINAL_ITEM.content.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
+
+                      _FINAL_ITEM.content = `http://${req.headers.host}/${Modules.Functions._uploadProductPhoto(_FINAL_ITEM.content, `${_TARGET_URI}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`)}`;
+                    }
+
+                    return _FINAL_ITEM;
+                  });
+                }
+
+                _IS_COLLECTION_READY_TO_UPDATE = true;
+                break;
+
+              case 'taxonomies':
+                if (typeof _THREAD.key != 'undefined'){
+                  _THREAD.key = Modules.Functions._convertTokenToKeyword(_THREAD.key);
+                }
+
+                if (typeof _THREAD.value != 'undefined'){
+                  const _OPTIONS = req.query,
+                        _CONTENT_PROCESS_OPTION = _OPTIONS.process_content || _OPTIONS.processContent || _OPTIONS.pc || _OPTIONS.PC,
+                        _HAS_CONTENT_PROCESS_OPTION = (typeof _CONTENT_PROCESS_OPTION == 'undefined')? true: (((_CONTENT_PROCESS_OPTION.toLowerCase() == 'false') || (_CONTENT_PROCESS_OPTION == '0'))? false: true);
+
+                  if (_HAS_CONTENT_PROCESS_OPTION){
+                    _THREAD.value = Modules.Functions._convertTokenToKeyword(_THREAD.value);
+                  }
+                }
+
+                if (typeof _THREAD.ancestors != 'undefined'){
+                  _THREAD.ancestors = _THREAD.ancestors.map((ancestor, i) => {
+                    const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                    return _FINAL_ANCESTOR;
+                  });
+                }
+
+                switch (_THREAD.key) {
+                  case 'PRODUCT_CATEGORY':
+                    if (typeof _THREAD.features != 'undefined'){
+                      _THREAD.features = _THREAD.features.map((item, i) => {
+                        let _FINAL_ITEM = item;
+
+                        _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
+
+                        if (typeof _FINAL_ITEM.unit_id != 'undefined'){
+                          _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                        }
+
+                        return _FINAL_ITEM;
+                      });
+                    }
+                    break;
                 }
 
                 _IS_COLLECTION_READY_TO_UPDATE = true;
@@ -495,32 +571,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     }
 
                     return _FINAL_ITEM;
-                  });
-                }
-
-                if (typeof _THREAD.photos != 'undefined'){
-                  const _CHECKING_FRAGMENT_CRITERIA = {
-                    _id: new ObjectID(_TOKEN)
-                  };
-
-                  _COLLECTION.findOne(_CHECKING_FRAGMENT_CRITERIA, function(productFindQueryError, doc){
-                    if (productFindQueryError == null){
-                      const _TARGET_URI = `${doc.product_id}/${doc.warehouse_id}`;
-
-                      _THREAD.photos = _THREAD.photos.map((item, i) => {
-                        let _FINAL_ITEM = item;
-
-                        if (_FINAL_ITEM.content.match(/\.*base64\.*/gi)){
-                          const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}`,
-                                _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_TARGET_URI).digest('hex'),
-                                _FILE_EXTENSION_MIMETYPE = _FINAL_ITEM.content.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, '');
-
-                          _FINAL_ITEM.content = `http://${req.headers.host}/${Modules.Functions._uploadProductPhoto(_FINAL_ITEM.content, `${_TARGET_URI}/${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`)}`;
-                        }
-
-                        return _FINAL_ITEM;
-                      });
-                    }
                   });
                 }
 
