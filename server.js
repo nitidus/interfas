@@ -15,7 +15,7 @@ const CONNECTION_URL = 'mongodb://localhost:27017/interfas',
         }
       },
       INTERFAS_KEY = 'vqoE3yZn+BRN01pwhCvzWqeDXaot7Nix81qX3bZUgY36LMqjPdYd17H8oJID3I4W5CejHp/ozVshq8yu6KLhsA==',
-      TARGET_PORT = (typeof process.env.APP_PORT != 'undefined')? process.env.APP_PORT: 16374;
+      TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374;
 
 app.set('json spaces', 2);
 
