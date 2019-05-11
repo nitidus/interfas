@@ -135,6 +135,9 @@ module.exports = {
  _convertTokenToKeyword: (token) => {
    return token.replace(/(_|-| )+/ig, '_').toUpperCase();
  },
+ _convertTokenToSnakeword: (token) => {
+    return token.replace(/(_|-| )+/ig, '-').toLowerCase();
+  },
  _convertKeywordToToken: (keyword) => {
     return keyword.toLowerCase().replace(/(_|-| )/ig, ' ').replace(/\b\w/ig, char => char.toUpperCase());
   },

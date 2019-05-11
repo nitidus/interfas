@@ -546,24 +546,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       });
                     }
 
-                    switch (_THREAD.key) {
-                      case 'PRODUCT_CATEGORY':
-                      if (typeof _THREAD.features != 'undefined'){
-                        _THREAD.features = _THREAD.features.map((item, i) => {
-                          let _FINAL_ITEM = item;
-
-                          _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
-
-                          if (typeof _FINAL_ITEM.unit_id != 'undefined'){
-                            _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
-                          }
-
-                          return _FINAL_ITEM;
-                        });
-                      }
-                        break;
-                    }
-
                     _IS_COLLECTION_READY_TO_ABSORB = true;
                   }
                 }
@@ -613,6 +595,14 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     });
                   }
 
+                  if (typeof _THREAD.inventory_units != 'undefined'){
+                    _THREAD.inventory_units = _THREAD.inventory_units.map((item, i) => {
+                      let _FINAL_ITEM = new ObjectID(item);
+
+                      return _FINAL_ITEM;
+                    });
+                  }
+
                   _THREAD.photos = _THREAD.photos.map((item, i) => {
                     let _FINAL_ITEM = item;
 
@@ -630,9 +620,8 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 break;
 
               case 'fragments':
-                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
+                if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
                   _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
-                  _THREAD.warehouse_id = new ObjectID(_THREAD.warehouse_id);
                   _THREAD.product_id = new ObjectID(_THREAD.product_id);
 
                   if (typeof _THREAD.features != 'undefined'){
@@ -643,6 +632,12 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       if (typeof _FINAL_ITEM.unit_id != 'undefined'){
                         _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                      }
+
+                      if (typeof _FINAL_ITEM.warehouse != 'undefined'){
+                        if (typeof _FINAL_ITEM.warehouse._id != 'undefined'){
+                          _FINAL_ITEM.warehouse._id = new ObjectID(_FINAL_ITEM.warehouse._id);
+                        }
                       }
 
                       return _FINAL_ITEM;
@@ -666,27 +661,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     return _FINAL_ITEM;
                   });
 
-                  _THREAD.modified_at = _THREAD.created_at = _TODAY;
-
-                  _COLLECTION.insertOne(_THREAD, function(insertQueryError, doc){
-                    if (insertQueryError != null){
-                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection insert request could\'t be processed.`, 700);
-
-                      res.json(RECURSIVE_CONTENT);
-                    }else{
-                      if (doc.insertedCount != 1){
-                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The document in ${_COLLECTION_NAME} collection could\'t be inserted.`, 700);
-
-                        res.json(RECURSIVE_CONTENT);
-                      }else{
-                        const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc.ops[0]);
-
-                        res.json(RECURSIVE_CONTENT);
-
-                        client.close();
-                      }
-                    }
-                  });
+                  _IS_COLLECTION_READY_TO_ABSORB = true;
                 }
                 break;
 

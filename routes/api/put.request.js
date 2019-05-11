@@ -484,6 +484,14 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   });
                 }
 
+                if (typeof _THREAD.inventory_units != 'undefined'){
+                  _THREAD.inventory_units = _THREAD.inventory_units.map((item, i) => {
+                    let _FINAL_ITEM = new ObjectID(item);
+
+                    return _FINAL_ITEM;
+                  });
+                }
+
                 if (typeof _THREAD.photos != 'undefined'){
                   _THREAD.photos = _THREAD.photos.map((item, i) => {
                     let _FINAL_ITEM = item;
@@ -526,24 +534,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   });
                 }
 
-                switch (_THREAD.key) {
-                  case 'PRODUCT_CATEGORY':
-                    if (typeof _THREAD.features != 'undefined'){
-                      _THREAD.features = _THREAD.features.map((item, i) => {
-                        let _FINAL_ITEM = item;
-
-                        _FINAL_ITEM.feature_id = new ObjectID(_FINAL_ITEM.feature_id);
-
-                        if (typeof _FINAL_ITEM.unit_id != 'undefined'){
-                          _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
-                        }
-
-                        return _FINAL_ITEM;
-                      });
-                    }
-                    break;
-                }
-
                 _IS_COLLECTION_READY_TO_UPDATE = true;
                 break;
 
@@ -568,6 +558,12 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                     if (typeof _FINAL_ITEM.unit_id != 'undefined'){
                       _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    }
+
+                    if (typeof _FINAL_ITEM.warehouse != 'undefined'){
+                      if (typeof _FINAL_ITEM.warehouse._id != 'undefined'){
+                        _FINAL_ITEM.warehouse._id = new ObjectID(_FINAL_ITEM.warehouse._id);
+                      }
                     }
 
                     return _FINAL_ITEM;
