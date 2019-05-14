@@ -10,6 +10,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
         SOCKET_REQUESTS = require('./sockets/socket.request')(app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
 
   app.get('/', async (req, res) => {
+    console.log(req.session)
     if (req.session.authenticated === true) {
       res.render('dashoard');
     }else{
