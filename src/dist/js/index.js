@@ -14,21 +14,21 @@ document.addEventListener('click', (event) => {
       case 'login-btn':
         let username = document.querySelector('input[name="username"]').value,
             password = document.querySelector('input[name="password"]').value;
-alert('ok')
-        // if (username != '' && password != ''){
-        //   axios.post('/auth', {
-        //     username,
-        //     password
-        //   }).then((response) => {
-        //     if (response.status === 200){
-        //       let token = response.data.authenticated;
-        //
-        //       if ((typeof token != 'undefined') && (token === true)){
-        //         location.reload();
-        //       }
-        //     }
-        //   })
-        // }
+
+        if (username != '' && password != ''){
+          axios.post('/auth', {
+            username,
+            password
+          }).then((response) => {
+            if (response.status === 200){
+              let token = response.data.authenticated;
+
+              if ((typeof token != 'undefined') && (token === true)){
+                location.reload();
+              }
+            }
+          })
+        }
         break;
     }
   }
