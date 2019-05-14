@@ -59,17 +59,17 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     if (typeof credential != 'undefined'){
       if ((credential.username == 'admin') && (credential.password == 'admin')){
         req.session.authenticated = true;
-        req.session.save();
-
-        res.json(req.session)
+        req.session.save(() => {
+          res.json(req.session);
+        });
       }
     }
   })
 
   app.get('/logout', async (req, res) => {
     delete req.session.authenticated;
-    req.session.save();
-
-    res.redirect('/');
+    req.session.save(() => {
+      res.redirect('/');
+    });
   })
 };
