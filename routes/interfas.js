@@ -28,10 +28,10 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
     axios(`${Modules.Functions._getFullEndpointOfAPI()}/taxonomies/pc${parametersString}`)
     .then((response) => {
-      // if (response.status === 200){
+      if (response.status === 200){
         let knowledge = response.data;
 
-        if (req.session.authenticated === true) {
+        // if (req.session.authenticated === true) {
           let finalResponse = {
             path: 'categories',
             data: knowledge.data
