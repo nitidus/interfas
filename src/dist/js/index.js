@@ -24,7 +24,8 @@ document.addEventListener('click', (event) => {
               let token = response.data.authenticated;
 
               if ((typeof token != 'undefined') && (token === true)){
-                location.reload();
+                console.log(token)
+                // location.reload();
               }
             }
           })
