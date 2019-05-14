@@ -1,4 +1,5 @@
 var express = require('express'),
+    cors = require('cors'),
     app = express(),
     http = require('http').Server(app),
     io = require('socket.io')(http),
@@ -21,6 +22,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.set('json spaces', 2);
 
+app.use(cors());
 app.use(cookieParser());
 
 app.use(
