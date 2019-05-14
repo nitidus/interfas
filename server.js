@@ -27,6 +27,7 @@ app.use(cookieParser());
 
 app.use(
   session({
+    name: 'interfas',
     secret: INTERFAS_KEY,
     resave: true,
     saveUninitialized: true,
