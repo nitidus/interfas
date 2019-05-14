@@ -58,8 +58,10 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     if (typeof credential != 'undefined'){
       if ((credential.username == 'admin') && (credential.password == 'admin')){
         req.session.authenticated = true;
-        req.session.save(() => {
-          console.log(req.session)
+        req.session.save((error) => {
+          console.log(error)
+          if (error) return next(err);
+
           res.json(req.session);
         });
       }
@@ -68,7 +70,9 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
   app.get('/logout', async (req, res) => {
     delete req.session.authenticated;
-    req.session.save(() => {
+    req.session.save((error) => {
+      if (error) return next(err);
+
       res.redirect('/');
     });
   })
