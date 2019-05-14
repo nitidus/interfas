@@ -20,7 +20,7 @@ const _LOCAL_FUNCTIONS = {
 };
 
 module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
-  app.delete('/:collection/:token', (req, res) => {
+  app.delete(`${Modules.Functions._getEndpointOfAPI()}/:collection/:token`, (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase(),
             _TOKEN = new ObjectID(req.params.token),

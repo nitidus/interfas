@@ -20,7 +20,7 @@ const _LOCAL_FUNCTIONS = {
 };
 
 module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
-  app.get('/:collection', (req, res) => {
+  app.get(`${Modules.Functions._getEndpointOfAPI()}/:collection`, (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase();
 
@@ -629,7 +629,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     }
   });
 
-  app.get('/:collection/:token', (req, res) => {
+  app.get(`${Modules.Functions._getEndpointOfAPI()}/:collection/:token`, (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       const _COLLECTION_NAME = req.params.collection.toLowerCase(),
             _TOKEN = (Modules.Functions._checkIsAValidObjectID(req.params.token) === true)? new ObjectID(req.params.token): req.params.token,
@@ -746,12 +746,13 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
               ];
 
-              let _NORMAL_PROJECTION = {
-                "key": "$value",
-                "ancestors": 1,
-                "created_at": 1,
-                "modified_at": 1
-              };
+              let _MATCHING_CRITERIA = {},
+                  _NORMAL_PROJECTION = {
+                    "key": "$value",
+                    "ancestors": 1,
+                    "created_at": 1,
+                    "modified_at": 1
+                  };
 
               if (Modules.Functions._checkIsAValidObjectID(req.params.token) !== true){
                 var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_TOKEN);
@@ -763,30 +764,65 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     _NORMAL_PROJECTION["features"] = 1;
                     _NORMAL_PROJECTION["cumulative_key"] = "$cumulative_value";
                     _TOKEN_KEYWORD = 'PRODUCT_CATEGORY';
+
+                    _MATCHING_CRITERIA['$and'] = [
+                      {
+                        "key": _TOKEN_KEYWORD
+                      }
+                    ];
+
+                    if ((typeof _THREAD.depth != 'undefined') && (!isNaN(_THREAD.depth))){
+                      let _ANCESTORS_CRITERIA = {
+                        "ancestors": {
+                          "$exists": false
+                        }
+                      };
+
+                      if (_THREAD.depth > 0){
+                        _ANCESTORS_CRITERIA = {
+                          "ancestors": {
+                            "$size": parseInt(_THREAD.depth)
+                          }
+                        }
+                      }
+
+                      _MATCHING_CRITERIA['$and'].push(_ANCESTORS_CRITERIA);
+
+                      if (typeof _THREAD.ancestors != 'undefined'){
+                        const _PREFERED_REFERENCE_TOKEN = _THREAD.ancestors,
+                              _FINAL_REFERENCE_ANCESTORS = _PREFERED_REFERENCE_TOKEN.split(",").map((ancestorID, i) => {
+                                const _FINAL_ANCESTOR_ID = new ObjectID(ancestorID.trim());
+
+                                return _FINAL_ANCESTOR_ID;
+                              });
+
+                        _MATCHING_CRITERIA['$and'].push({
+                          "ancestors": {
+                            "$all": _FINAL_REFERENCE_ANCESTORS
+                          }
+                        });
+                      }
+                    }
                     break;
 
                   case 'PF':
                   case 'P.F':
                   case 'P.F.':
                     _TOKEN_KEYWORD = 'PRODUCT_FEATURE';
+                    _MATCHING_CRITERIA.key = _TOKEN_KEYWORD;
                     break;
 
                   case 'PSH':
                   case 'P.S.H':
                   case 'P.F.H.':
                     _TOKEN_KEYWORD = 'PRODUCT_SHIPPING_METHOD';
+                    _MATCHING_CRITERIA.key = _TOKEN_KEYWORD;
                     break;
                 }
 
-                _TARGET_MATCHING_CRITERIA = {
-                  "key": _TOKEN_KEYWORD
-                };
-
                 _CRITERIA = [
                   {
-                    "$match": {
-                      "key": _TOKEN_KEYWORD
-                    }
+                    "$match": _MATCHING_CRITERIA
                   },
                   {
                     "$project": _NORMAL_PROJECTION
@@ -1821,7 +1857,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     }
   });
 
-  app.get('/usergroups/type/:token', (req, res) => {
+  app.get(`${Modules.Functions._getEndpointOfAPI()}/usergroups/type/:token`, (req, res) => {
     const _TOKEN = req.params.token,
           _THREAD = req.query;
 
@@ -1870,7 +1906,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     });
   });
 
-  app.get('/usergroups/type/:token/:head', (req, res) => {
+  app.get(`${Modules.Functions._getEndpointOfAPI()}/usergroups/type/:token/:head`, (req, res) => {
     const _TOKEN = req.params.token,
           _HEAD = req.params.head;
 
@@ -1923,7 +1959,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     }
   });
 
-  app.get('/role/brand/:brand_name/:token', (req, res) => {
+  app.get(`${Modules.Functions._getEndpointOfAPI()}/role/brand/:brand_name/:token`, (req, res) => {
     const _BRAND_NAME = req.params.brand_name,
           _TOKEN = req.params.token;
 

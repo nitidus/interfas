@@ -1,0 +1,107 @@
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../fonts/material-icons/MaterialIcons-Regular.eot'); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url('../fonts/material-icons/MaterialIcons-Regular.woff2') format('woff2'),
+       url('../fonts/material-icons/MaterialIcons-Regular.woff') format('woff'),
+       url('../fonts/material-icons/MaterialIcons-Regular.ttf') format('truetype');
+}
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('../fonts/vazir/Vazir-FD.eot');
+    src: local('Vazir'), local('Vazir-FD'),
+        url('../fonts/vazir/Vazir-FD.eot?#iefix') format('embedded-opentype'),
+        url('../fonts/vazir/Vazir-FD.woff2') format('woff2'),
+        url('../fonts/vazir/Vazir-FD.woff') format('woff'),
+        url('../fonts/vazir/Vazir-FD.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('../fonts/vazir/Vazir-Medium-FD.eot');
+    src: local('Vazir Medium FD'), local('Vazir-Medium-FD'),
+        url('../fonts/vazir/Vazir-Medium-FD.eot?#iefix') format('embedded-opentype'),
+        url('../fonts/vazir/Vazir-Medium-FD.woff2') format('woff2'),
+        url('../fonts/vazir/Vazir-Medium-FD.woff') format('woff'),
+        url('../fonts/vazir/Vazir-Medium-FD.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('../fonts/vazir/Vazir-Bold-FD.eot');
+    src: local('Vazir Bold FD'), local('Vazir-Bold-FD'),
+        url('../fonts/vazir/Vazir-Bold-FD.eot?#iefix') format('embedded-opentype'),
+        url('../fonts/vazir/Vazir-Bold-FD.woff2') format('woff2'),
+        url('../fonts/vazir/Vazir-Bold-FD.woff') format('woff'),
+        url('../fonts/vazir/Vazir-Bold-FD.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('../fonts/vazir/Vazir-Black-FD.eot');
+    src: local('Vazir Black FD'), local('Vazir-Black-FD'),
+        url('../fonts/vazir/Vazir-Black-FD.eot?#iefix') format('embedded-opentype'),
+        url('../fonts/vazir/Vazir-Black-FD.woff2') format('woff2'),
+        url('../fonts/vazir/Vazir-Black-FD.woff') format('woff'),
+        url('../fonts/vazir/Vazir-Black-FD.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('../fonts/vazir/Vazir-Thin-FD.eot');
+    src: local('Vazir Thin FD'), local('Vazir-Thin-FD'),
+        url('../fonts/vazir/Vazir-Thin-FD.eot?#iefix') format('embedded-opentype'),
+        url('../fonts/vazir/Vazir-Thin-FD.woff2') format('woff2'),
+        url('../fonts/vazir/Vazir-Thin-FD.woff') format('woff'),
+        url('../fonts/vazir/Vazir-Thin-FD.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Vazir';
+    src: url('../fonts/vazir/Vazir-Light-FD.eot');
+    src: local('Vazir Light FD'), local('Vazir-Light-FD'),
+        url('../fonts/vazir/Vazir-Light-FD.eot?#iefix') format('embedded-opentype'),
+        url('../fonts/vazir/Vazir-Light-FD.woff2') format('woff2'),
+        url('../fonts/vazir/Vazir-Light-FD.woff') format('woff'),
+        url('../fonts/vazir/Vazir-Light-FD.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}

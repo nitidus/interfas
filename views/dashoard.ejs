@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <%- include('layouts/header', {
+      page: {
+        title: 'Dashboard'
+      }
+    }); %>
+  <body>
+    <!-- Content -->
+    <% if (typeof path != 'undefined'){ %>
+      <% if (path === 'categories'){ %>
+        <%- include('layouts/nav', { screen: 'دسته‌بندی‌ها' }); %>
+        <%- include('dashboard/categories'); %>
+      <% } %>
+    <% }else{ %>
+        <%- include('layouts/nav', { screen: 'داشبورد' }); %>
+    <% } %>
+
+    <%- include('layouts/footer'); %>
+  </body>
+</html>

@@ -1,0 +1,64 @@
+@import "fonts";
+@import "variables";
+@import "layouts";
+
+@import "~bootstrap/scss/bootstrap";
+
+.capsule {
+  &.login {
+    display: flex;
+    width: 100%;
+
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      background: url('../img/ui/bg.svg') no-repeat center/contain;
+      width: 100%;
+      height: 400px;
+      z-index: -1;
+
+      @include media-breakpoint-up(md) {
+        left: -12rem;
+        background-position-x: left;
+        height: 800px;
+      }
+    }
+
+    @include media-breakpoint-up(md) {
+      justify-content: flex-end;
+      margin-top: 340px;
+    }
+
+    .login-form-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      direction: rtl;
+      width: 100%;
+      padding: 4.5em 2.5em !important;
+      background: rgb(243,248,251);
+      background: -moz-linear-gradient(180deg, rgba(243,248,251,1) 0%, rgba(255,255,255,0) 90%);
+      background: -webkit-linear-gradient(180deg, rgba(243,248,251,1) 0%, rgba(255,255,255,0) 90%);
+      background: linear-gradient(180deg, rgba(243,248,251,1) 0%, rgba(255,255,255,0) 90%);
+      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#f3f8fb",endColorstr="#ffffff",GradientType=1);
+
+      @include media-breakpoint-up(md) {
+        width: 400px;
+        margin-right: 25px;
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+        background-color: $romance !important;
+        border-radius: 0.25rem !important;
+      }
+
+      h5 {
+        text-align: right;
+        margin-bottom: 2rem;
+      }
+
+      .form-control {
+        margin-bottom: 15px;
+      }
+    }
+  }
+}

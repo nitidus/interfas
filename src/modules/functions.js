@@ -236,6 +236,12 @@ module.exports = {
 
    return _FILE_DIRECTORY;
  },
+ _getEndpointOfAPI: () => {
+   return GLOBAL.API.ENDPOINT;
+ },
+ _getFullEndpointOfAPI: () => {
+   return `http://localhost:16374${GLOBAL.API.ENDPOINT}`;
+ },
  _sendMessage: async (receptorPhoneNumber, receptorToken) => {
    const _TARGET_URL = `${GLOBAL.URLS.SMS_PROVIDER.HOST_NAME}/verify/lookup.json`,
          _SEED = {

@@ -1,4 +1,10 @@
-const _SMS_PROVIDER = {
+const _API = {
+        VERSION: {
+          VALUE: "1.0.0",
+          NAME: "v1"
+        }
+      },
+      _SMS_PROVIDER = {
         PROTOCOL: 'https',
         DOMAIN: 'api.kavenegar.com',
         VERSION: 'v1',
@@ -16,6 +22,9 @@ const _SMS_PROVIDER = {
       };
 
 module.exports = {
+  API: {
+    ENDPOINT: `/api/${_API.VERSION.NAME}`
+  },
   URLS: {
     SMS_PROVIDER: {
       HOST_NAME: `${_SMS_PROVIDER.PROTOCOL}://${_SMS_PROVIDER.DOMAIN}/${_SMS_PROVIDER.VERSION}/${_SMS_PROVIDER.API_KEY}`,

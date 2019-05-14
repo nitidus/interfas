@@ -1,0 +1,111 @@
+<%
+  var depth = (typeof previous != 'undefined')? previous.depth: 0,
+      currentAncestors = (typeof previous != 'undefined')? previous.ancestors: [],
+      categories = data.filter(function(category, i) {
+        if (depth > 0){
+          return (depth === category.ancestors.length);
+        }else{
+          return (typeof category.ancestors == 'undefined');
+        }
+      });
+%>
+
+<div class="container-fluid mt-3">
+  <% if (categories.length > 0) { %>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <% if (depth > 0) { %>
+          <li class="breadcrumb-item mt-2">
+            <% let parentUrl = (depth > 1)? `?depth=${depth - 1}&ancestors=${currentAncestors.shift().toString()}`: ''; %>
+
+            <a href="/categories<%= parentUrl %>" class="btn btn-primary">
+              <i class="material-icons align-middle">chevron_right</i>
+              <span>بازگشت به دسته‌بندی مرجع</span>
+            </a>
+          </li>
+        <% } %>
+
+        <li class="breadcrumb-item mt-2">
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#category-modal">
+            <i class="material-icons align-middle">add</i>
+            <span>اضافه‌کردن دسته‌بندی جدید</span>
+          </button>
+        </li>
+      </ol>
+    </nav>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">نام دسته بندی</th>
+
+          <% if (depth > 0){ %>
+            <th scope="col">نام کامل دسته‌بندی</th>
+          <% } %>
+
+          <th scope="col">عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% categories.forEach((category, i) => { %>
+          <%
+            var ancestors = (depth > 0)? [...category.ancestors, category._id]: [category._id],
+                ancestorsString = ancestors.toString();
+          %>
+          <tr>
+            <th scope="row"><%= i %></th>
+            <td><%= category.key %></td>
+
+            <% if (depth > 0){ %>
+              <td><%= category.cumulative_key %></td>
+            <% } %>
+
+            <td>
+              <a href="/categories?depth=<%= (depth + 1) %>&ancestors=<%= ancestorsString %>" title="نمایش دسته‌بندی‌های <%= ((depth > 0)? category.cumulative_key: category.key) %>">
+                <i class="material-icons">visibility</i>
+              </a>
+            </td>
+          </tr>
+        <% }); %>
+
+      </tbody>
+    </table>
+  <% }else{ %>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item mt-2">
+          <% let parentUrl = (depth > 1)? `?depth=${depth - 1}&ancestors=${currentAncestors.shift().toString()}`: ''; %>
+
+          <a href="/categories<%= parentUrl%>" class="btn btn-link">
+            <i class="material-icons align-middle">chevron_right</i>
+            <span>بازگشت به دسته‌بندی مرجع</span>
+          </a>
+        </li>
+      </ol>
+    </nav>
+    <div class="alert alert-primary" role="alert">
+      هیچ دسته بندی در این شاخه وجود ندارد.
+    </div>
+  <% } %>
+</div>
+
+<div class="modal fade" id="category-modal" tabindex="-1" role="dialog" aria-labelledby="category-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="category-modal-label">اضافه‌کردن دسته‌بندی جدید</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        ...
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>

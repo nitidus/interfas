@@ -1,0 +1,53 @@
+@import "../variables";
+
+@mixin diagonal-gradient($from, $to) {
+  background: $from; /* Old browsers */
+  background: -moz-linear-gradient(-45deg, $from 0%, $to 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(-45deg, $from 0%, $to 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(135deg, $from 0%, $to 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=$from, endColorstr=$to, GradientType=1); /* IE6-9 fallback on horizontal gradient */
+}
+
+@mixin ongerine() {
+  @include diagonal-gradient($orange-yellow, $vivid-tangerine);
+}
+
+@mixin aqrulean() {
+  @include diagonal-gradient($aquamarine, $pale-cerulean);
+}
+
+@mixin vink() {
+  @include diagonal-gradient($violet, $carmine-pink);
+}
+
+@mixin tilan() {
+  @include diagonal-gradient($milan, $tickle-me-pink);
+}
+
+@mixin Brilue() {
+  @include diagonal-gradient($brillant-lavender, $ligh-sky-blue);
+}
+
+@mixin linow() {
+  @include diagonal-gradient($lily-white, $snow);
+}
+
+@mixin analue() {
+  @include diagonal-gradient($anakiwa, $cornflower-blue);
+}
+
+@mixin peroly() {
+  @include diagonal-gradient($perano, $froly);
+}
+
+@mixin chaid() {
+  @include diagonal-gradient($chardonnay, $orchid);
+}
+
+@mixin mipple() {
+  @include diagonal-gradient($mindaro, $granny-smith-apple);
+}
+
+@mixin bass() {
+  @include diagonal-gradient($baby-blue-eyes, $french-pass);
+}

@@ -1,0 +1,50 @@
+$light-coral: #FC726F;
+$carmine-pink: #F64848;
+$chetwode-blue: #6C76D8;
+$black-squeeze: #F3F8FB;
+$rangoon-green: #171717;
+$lavender-gray: #BBBCC5;
+$mercury: #E2E2E2;
+$wild-sand: #F2F2F2;
+$romance: #FDFDFD;
+$transparent: transparent;
+$orange-yellow: #F6D264;
+$vivid-tangerine: #FDA188;
+$aquamarine: #74F7B4;
+$pale-cerulean: #99C0E8;
+$violet: #F095FF;
+$carmine-pink: #F64848;
+$milan: #FDF294;
+$tickle-me-pink: #FF8BB3;
+$brillant-lavender: #E8C3FD;
+$ligh-sky-blue: #86C5FC;
+$lily-white: #FDF294;
+$snow: #FF8BB3;
+$anakiwa: #99F5FC;
+$cornflower-blue: #5BA1FF;
+$perano: #A3BFFF;
+$froly: #F67A7E;
+$chardonnay: #FCC989;
+$orchid: #D57DEA;
+$mindaro: #D4FC78;
+$granny-smith-apple: #98E7A3;
+$baby-blue-eyes: #A0C4FD;
+$french-pass: #C1E9FC;
+
+$theme-colors: (
+  "primary": $vivid-tangerine,
+  "secondary": $orange-yellow,
+  "success": $aquamarine,
+  "info": $chetwode-blue,
+  "warning": $orange-yellow,
+  "danger": $carmine-pink,
+  "light": $romance,
+  "dark": $rangoon-green
+);
+
+$body-bg: $black-squeeze;
+$body-color: $rangoon-green;
+
+$default-font-system: 'Vazir' !default;
+
+$font-family-base: $default-font-system;

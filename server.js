@@ -17,6 +17,8 @@ const CONNECTION_URL = 'mongodb://localhost:27017/interfas',
       INTERFAS_KEY = 'vqoE3yZn+BRN01pwhCvzWqeDXaot7Nix81qX3bZUgY36LMqjPdYd17H8oJID3I4W5CejHp/ozVshq8yu6KLhsA==',
       TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374;
 
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 app.set('json spaces', 2);
 
 app.use(cookieParser());
@@ -41,6 +43,8 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use(express.static('public'));
+
+app.use('/assets/', express.static('public/assets'));
 
 const ROUTES = require('./routes/interfas')(app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
 

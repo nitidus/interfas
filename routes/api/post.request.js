@@ -20,7 +20,7 @@ const _LOCAL_FUNCTIONS = {
 };
 
 module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
-  app.post('/:collection', (req, res) => {
+  app.post(`${Modules.Functions._getEndpointOfAPI()}/:collection`, (req, res) => {
     if (typeof req.params.collection != 'undefined'){
       var _COLLECTION_NAME = req.params.collection.toLowerCase(),
           _TODAY = new Date(),

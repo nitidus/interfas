@@ -1,0 +1,60 @@
+@import "mixins/index";
+
+:root {
+  --font-family-vazir: $default-font-system;
+}
+
+input {
+  &.form-control {
+    direction: rtl;
+  }
+}
+
+nav {
+  &.navbar {
+    direction: rtl;
+
+    .navbar-collapse {
+      .navbar-nav {
+        .nav-link {
+          text-align: right;
+        }
+      }
+    }
+  }
+
+  &[aria-label="breadcrumb"]{
+    direction: rtl;
+
+    .breadcrumb-item + .breadcrumb-item {
+      padding: 0;
+
+      &::before {
+        content: '';
+        padding: 0;
+      }
+    }
+  }
+}
+
+table {
+  &.table {
+    direction: rtl;
+
+    th, td {
+      text-align: right;
+    }
+  }
+}
+
+.alert {
+  direction: rtl;
+  text-align: right;
+}
+
+.btn-label {
+  display: inline-block;
+  padding: 6px 12px;
+}
+.btn-labeled {padding-top: 0;padding-bottom: 0;}
+.btn { margin-bottom:10px; }
