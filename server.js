@@ -31,7 +31,13 @@ app.use(
     secret: INTERFAS_KEY,
     resave: true,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: {
+      maxAge: (1000 * 60 * 60 * 2),
+      secure: false
+    },
+    store: new MongoStore({
+      url: CONNECTION_URL
+    })
   })
 );
 
