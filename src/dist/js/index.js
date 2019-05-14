@@ -3,7 +3,8 @@ import styles from '../scss/app.scss';
 
 //Scripts
 import 'bootstrap';
-import axios from 'axios';
+
+import { axios } from './modules';
 
 document.addEventListener('click', (event) => {
   if (event.target){
@@ -15,7 +16,7 @@ document.addEventListener('click', (event) => {
             password = document.querySelector('input[name="password"]').value;
 
         if (username != '' && password != ''){
-          axios.post('http://localhost:16374/auth', {
+          axios.post('/auth', {
             username,
             password
           }).then((response) => {
