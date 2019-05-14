@@ -6,7 +6,7 @@ const GLOBAL = require('../../../modules/global'),
 
 axiosInstance.interceptors.request.use(config => {
   const progressEvent = config.onLoading || config.onProgress || config.loading || config.progress;
-
+console.log(config)
   if (typeof progressEvent != 'undefined'){
     progressEvent();
   }
