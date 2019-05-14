@@ -10,11 +10,11 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
         SOCKET_REQUESTS = require('./sockets/socket.request')(app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY);
 
   app.get('/', async (req, res) => {
-    if (req.session.authenticated === true) {
+    // if (req.session.authenticated === true) {
       res.render('dashoard');
-    }else{
-      res.render('authorization');
-    }
+    // }else{
+    //   res.render('authorization');
+    // }
   });
 
   app.get('/categories', async (req, res) => {
@@ -28,7 +28,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
     axios(`${Modules.Functions._getFullEndpointOfAPI()}/taxonomies/pc${parametersString}`)
     .then((response) => {
-      if (response.status === 200){
+      // if (response.status === 200){
         let knowledge = response.data;
 
         if (req.session.authenticated === true) {
@@ -45,9 +45,9 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
           }
 
           res.render('dashoard', finalResponse);
-        }else{
-          res.render('authorization');
-        }
+        // }else{
+        //   res.render('authorization');
+        // }
       }
     })
   });

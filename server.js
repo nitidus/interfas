@@ -22,7 +22,7 @@ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.set('json spaces', 2);
 
-// app.use(cors());
+app.use(cors());
 app.use(cookieParser());
 
 app.use(
