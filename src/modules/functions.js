@@ -240,7 +240,10 @@ module.exports = {
    return GLOBAL.API.ENDPOINT;
  },
  _getFullEndpointOfAPI: () => {
-   return `${GLOBAL.API.URL}${GLOBAL.API.ENDPOINT}`;
+   const _TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374,
+         _TARGET_HOST = process.env.APP_HOST || process.env.HOST || 'http://localhost';
+
+   return `${_TARGET_HOST}:${_TARGET_PORT}${GLOBAL.API.ENDPOINT}`;
  },
  _sendMessage: async (receptorPhoneNumber, receptorToken) => {
    const _TARGET_URL = `${GLOBAL.URLS.SMS_PROVIDER.HOST_NAME}/verify/lookup.json`,

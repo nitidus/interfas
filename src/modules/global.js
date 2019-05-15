@@ -21,19 +21,9 @@ const _API = {
         API_KEY: 'sk_test_h88TQbVd5UPP4HGZdM2SQpbv'
       };
 
-let TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374,
-    _HOST = `http://localhost:${TARGET_PORT}`;
-
-if ((typeof process.env.DEVELOPMENT_MODE != 'undefined') || (typeof process.env.RELEASE_MODE != 'undefined')){
-  if ((process.env.DEVELOPMENT_MODE != 'true') || (process.env.RELEASE_MODE == 'true')){
-    _HOST = `http://99.79.48.155:${TARGET_PORT}`;
-  }
-}
-
 module.exports = {
   API: {
-    ENDPOINT: `/api/${_API.VERSION.NAME}`,
-    URL: _HOST
+    ENDPOINT: `/api/${_API.VERSION.NAME}`
   },
   URLS: {
     SMS_PROVIDER: {

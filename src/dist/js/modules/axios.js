@@ -1,7 +1,8 @@
-const GLOBAL = require('../../../modules/global'),
+const _TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374,
+      _TARGET_HOST = process.env.APP_HOST || process.env.HOST || 'http://localhost',
       axios = require('axios'),
       axiosInstance = axios.create({
-        baseURL: GLOBAL.API.URL
+        baseURL: `${_TARGET_HOST}:${_TARGET_PORT}`
       });
 
 axiosInstance.interceptors.request.use(config => {

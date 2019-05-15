@@ -1,9 +1,9 @@
 const Path = require('path'),
       MiniCssExtractPlugin = require('mini-css-extract-plugin'),
       TerserJSPlugin = require('terser-webpack-plugin'),
-      OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-
-let autoprefixer = require('autoprefixer');
+      OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
+      AutoPrefixer = require('autoprefixer'),
+      DotEnv = require('dotenv-webpack');
 
 const _ORIGIN = 'src/dist',
       _TARGET = 'public/assets',
@@ -48,7 +48,7 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              plugins: () => [autoprefixer()]
+              plugins: () => [AutoPrefixer()]
             }
           },
           {
@@ -83,7 +83,8 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: `../css/[name].css`
-    })
+    }),
+    new DotEnv()
   ],
   optimization: {
     minimizer: [new TerserJSPlugin({}), new OptimizeCSSAssetsPlugin({})],
