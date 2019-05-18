@@ -748,8 +748,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
               let _MATCHING_CRITERIA = {},
                   _NORMAL_PROJECTION = {
-                    "key": "$value",
-                    "ancestors": 1,
                     "created_at": 1,
                     "modified_at": 1
                   };
@@ -761,8 +759,11 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'PC':
                   case 'P.C':
                   case 'P.C.':
+                    _NORMAL_PROJECTION["ancestors"] = 1;
+                    _NORMAL_PROJECTION["key"] = "$value";
                     _NORMAL_PROJECTION["features"] = 1;
                     _NORMAL_PROJECTION["cumulative_key"] = "$cumulative_value";
+
                     _TOKEN_KEYWORD = 'PRODUCT_CATEGORY';
 
                     _MATCHING_CRITERIA['$and'] = [
@@ -808,6 +809,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'PF':
                   case 'P.F':
                   case 'P.F.':
+                    _NORMAL_PROJECTION["key"] = "$value";
                     _TOKEN_KEYWORD = 'PRODUCT_FEATURE';
                     _MATCHING_CRITERIA.key = _TOKEN_KEYWORD;
                     break;
@@ -817,6 +819,14 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'P.F.H.':
                     _TOKEN_KEYWORD = 'PRODUCT_SHIPPING_METHOD';
                     _MATCHING_CRITERIA.key = _TOKEN_KEYWORD;
+                    _NORMAL_PROJECTION["key"] = 1;
+                    _NORMAL_PROJECTION["value"] = 1;
+                    break;
+
+                  case 'UNIT':
+                    _TOKEN_KEYWORD = 'UNIT';
+                    _MATCHING_CRITERIA.key = _TOKEN_KEYWORD;
+                    _NORMAL_PROJECTION["key"] = "$value";
                     break;
                 }
 
