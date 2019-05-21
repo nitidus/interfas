@@ -5,7 +5,7 @@
         title: 'Dashboard'
       }
     }); %>
-  <body>
+  <body data-source="dashboard<%= (typeof path != 'undefined')? `/${path}`: '' %>">
     <!-- Content -->
     <% if (typeof path != 'undefined'){ %>
       <% if (path === 'categories'){ %>

@@ -7,7 +7,8 @@
         }else{
           return (typeof category.ancestors == 'undefined');
         }
-      });
+      }),
+      nextAncestors = currentAncestors.toString();
 %>
 
 <div class="container-fluid mt-3">
@@ -26,7 +27,17 @@
         <% } %>
 
         <li class="breadcrumb-item mt-2">
-          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#category-modal">
+          <%
+            let parameters = ' data-category="ریشه" data-is-root="true"';
+
+            if (currentAncestors.length > 0){
+              let parentCategoryKey = categories[0].cumulative_key.replace(categories[0].key, '').replace(/\"/gi, '');
+
+              parameters = ` data-category="${parentCategoryKey}" data-ancestors="${nextAncestors}"`;
+            }
+          %>
+
+          <button type="button" class="btn btn-primary append-category"<%= parameters %>>
             <i class="material-icons align-middle">add</i>
             <span>اضافه‌کردن دسته‌بندی جدید</span>
           </button>
@@ -44,7 +55,8 @@
             <th scope="col">نام کامل دسته‌بندی</th>
           <% } %>
 
-          <th scope="col">عملیات</th>
+          <th scope="col">مشاهده</th>
+          <th scope="col">اضافه‌کردن زیردسته‌بندی</th>
         </tr>
       </thead>
       <tbody>
@@ -62,9 +74,29 @@
             <% } %>
 
             <td>
-              <a href="/categories?depth=<%= (depth + 1) %>&ancestors=<%= ancestorsString %>" title="نمایش دسته‌بندی‌های <%= ((depth > 0)? category.cumulative_key: category.key) %>">
+              <%
+                let targetURL = `/categories?depth=${(depth + 1)}&ancestors=${ancestorsString}&key=${category.key}`;
+
+                if (depth > 0){
+                  targetURL += `&cumulative_key=${category.cumulative_key}`;
+                }
+              %>
+              <a href="<%= targetURL %>" title="نمایش دسته‌بندی‌های <%= ((depth > 0)? category.cumulative_key: category.key) %>">
                 <i class="material-icons">visibility</i>
               </a>
+            </td>
+            <td>
+              <%
+                let ancestorsParameter = '';
+
+                if (ancestorsString != ''){
+                  ancestorsParameter = ` data-ancestors="${ancestorsString}"`;
+                }
+              %>
+
+              <button type="button" class="btn btn-link append-category" data-category="<%= (category.cumulative_key || category.key) %>"<%= ancestorsParameter %>>
+                <i class="material-icons">add</i>
+              </button>
             </td>
           </tr>
         <% }); %>
@@ -77,10 +109,24 @@
         <li class="breadcrumb-item mt-2">
           <% let parentUrl = (depth > 1)? `?depth=${depth - 1}&ancestors=${currentAncestors.shift().toString()}`: ''; %>
 
-          <a href="/categories<%= parentUrl%>" class="btn btn-link">
+          <a href="/categories<%= parentUrl %>" class="btn btn-primary">
             <i class="material-icons align-middle">chevron_right</i>
             <span>بازگشت به دسته‌بندی مرجع</span>
           </a>
+        </li>
+
+        <li class="breadcrumb-item mt-2">
+          <%
+            if (previous.ancestors.length > 0){ %>
+              <span class="cumulative_key" style="display: none;"><%= previous.cumulative_key %></span>
+              <span class="ancestors" style="display: none;"><%= nextAncestors %></span>
+            <% }
+          %>
+
+          <button type="button" class="btn btn-primary append-category">
+            <i class="material-icons align-middle">add</i>
+            <span>اضافه‌کردن دسته‌بندی جدید</span>
+          </button>
         </li>
       </ol>
     </nav>
@@ -94,17 +140,17 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="category-modal-label">اضافه‌کردن دسته‌بندی جدید</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <h5 class="modal-title" id="category-modal-label">اضافه‌کردن دسته‌بندی <span>جدید</span></h5>
       </div>
       <div class="modal-body">
-        ...
+        <div class="form-group">
+          <label for="category-name">نام دسته‌بندی</label>
+          <input type="email" class="form-control" id="category-name" placeholder="مثال: سوسیس">
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+        <button type="button" class="btn btn-primary submit-category">اضافه‌کردن</button>
       </div>
     </div>
   </div>

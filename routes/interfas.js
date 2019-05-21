@@ -11,7 +11,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
   app.get('/', async (req, res) => {
     if (req.session.authenticated === true) {
-      res.render('dashoard');
+      res.render('dashboard');
     }else{
       res.render('authorization');
     }
@@ -37,14 +37,19 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
             data: knowledge.data
           };
 
-          if (typeof _THREAD.depth != 'undefined'){
+          if ((typeof _THREAD.depth != 'undefined') && (typeof _THREAD.ancestors != 'undefined') && (typeof _THREAD.key != 'undefined')){
             finalResponse.previous = {
               depth: parseInt(_THREAD.depth),
-              ancestors: _THREAD.ancestors.split(',')
+              ancestors: _THREAD.ancestors.split(','),
+              key: _THREAD.key.replace(/\"/gi, '')
             };
+
+            if (typeof _THREAD.cumulative_key != 'undefined'){
+              finalResponse.previous.cumulative_key = _THREAD.cumulative_key.replace(/\"/gi, '');
+            }
           }
 
-          res.render('dashoard', finalResponse);
+          res.render('dashboard', finalResponse);
         }else{
           res.render('authorization');
         }

@@ -43,6 +43,13 @@ table {
 
     th, td {
       text-align: right;
+
+      button {
+        &.btn {
+          padding: 0;
+          margin-bottom: 0;
+        }
+      }
     }
   }
 }
@@ -58,3 +65,28 @@ table {
 }
 .btn-labeled {padding-top: 0;padding-bottom: 0;}
 .btn { margin-bottom:10px; }
+
+.modal {
+  .modal-dialog {
+    .modal-content {
+      direction: rtl;
+
+      .modal-body {
+        text-align: right;
+      }
+
+      .modal-footer {
+        justify-content: flex-start;
+
+        & > :not(:first-child) {
+          margin-left: 0;
+          margin-right: .25rem;
+        }
+
+        & > :not(:last-child) {
+          margin-left: .25rem;
+        }
+      }
+    }
+  }
+}
