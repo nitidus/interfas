@@ -1,0 +1,49 @@
+<%
+  let product = data;
+%>
+
+<div class="container-fluid mt-3">
+  <div id="product-photos" class="carousel slide" data-ride="carousel">
+    <ol class="carousel-indicators">
+      <% product.photos.forEach((photo, i) => { %>
+        <li data-target="#carousel-caption" data-slide-to="<%= i %>"></li>
+      <% }); %>
+    </ol>
+    <div class="carousel-inner">
+      <% product.photos.forEach((photo, i) => { %>
+        <div class="carousel-item<%= ((i === 0)? ' active': '') %>">
+          <img src="<%= photo.content %>" class="d-block w-100">
+          <div class="carousel-caption d-none d-md-block">
+            <% if (typeof photo.primary != 'undefined'){ %>
+              <% if (photo.primary === true){ %>
+                <p>تصویر اصلی</p>
+              <% } %>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+
+  <div class="list-group mt-3">
+    <% product.features.forEach((feature, i) => { %>
+      <a href="#" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+          <% if (typeof feature.description != 'undefined'){ %>
+            <h5 class="mb-1">توضیحات</h5>
+          <% }else if (typeof feature.feature_name != 'undefined') { %>
+            <h5 class="mb-1">شخصی‌سازی شده</h5>
+          <% } %>
+
+          <small class="text-muted">نوع ویژگی</small>
+        </div>
+
+        <% if (typeof feature.description != 'undefined'){ %>
+          <p class="mb-1"><%= feature.description %></p>
+        <% }else if (typeof feature.feature_name != 'undefined') { %>
+          <p class="mb-1"><%= feature.feature_name %></p>
+          <small class="text-muted"><%= feature.feature_value %></small>
+        <% } %>
+      </a>
+    <% }); %>
+</div>

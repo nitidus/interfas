@@ -11,9 +11,16 @@
       <% if (path === 'categories'){ %>
         <%- include('layouts/nav', { screen: 'دسته‌بندی‌ها' }); %>
         <%- include('dashboard/categories'); %>
+      <% }else if (path === 'products') { %>
+        <%- include('layouts/nav', { screen: 'محصولات' }); %>
+        <%- include('dashboard/products'); %>
+      <% }else if (path === 'products/tokenized') { %>
+        <%- include('layouts/nav', { screen: 'محصولات' }); %>
+        <%- include('dashboard/products/tokenized'); %>
       <% } %>
     <% }else{ %>
         <%- include('layouts/nav', { screen: 'داشبورد' }); %>
+        <%- include('dashboard/index'); %>
     <% } %>
 
     <%- include('layouts/footer'); %>

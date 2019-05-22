@@ -4,6 +4,17 @@
 
 @import "~bootstrap/scss/bootstrap";
 
+.carousel {
+  &.slide {
+    img {
+      @include media-breakpoint-up(md) {
+        background-size: cover;
+        height: 400px;
+      }
+    }
+  }
+}
+
 .capsule {
   &.login {
     display: flex;

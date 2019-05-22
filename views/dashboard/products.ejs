@@ -1,0 +1,52 @@
+<%
+  var products = data;
+%>
+
+<div class="container-fluid mt-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item mt-2">
+        <a href="#" class="btn btn-primary">
+          <i class="material-icons align-middle">add</i>
+          <span>اضافه‌کردن محصول جدید</span>
+        </a>
+      </li>
+    </ol>
+  </nav>
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">نام محصول</th>
+        <th scope="col">دسته‌بندی</th>
+        <th scope="col">وضعیت</th>
+        <th scope="col">مشاهده</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach((product, i) => { %>
+        <%
+          let isVerifiedStatus = 'تایید نشده';
+
+          if (typeof product.verified != 'undefined'){
+            if (product.verified === true){
+              isVerifiedStatus = 'تایید شده';
+            }
+          }
+        %>
+        <tr>
+          <th scope="row"><%= i %></th>
+          <td><%= product.name %></td>
+          <td><%= product.category.key %></td>
+          <td><%= isVerifiedStatus %></td>
+          <td>
+            <a href="/products/<%= product._id %>">
+              <i class="material-icons">visibility</i>
+            </a>
+          </td>
+        </tr>
+      <% }); %>
+
+    </tbody>
+  </table>
+</div>

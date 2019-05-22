@@ -90,3 +90,15 @@ table {
     }
   }
 }
+
+.list-group {
+  direction: rtl;
+
+  .list-group-item {
+    text-align: right;
+    
+    p, small {
+      text-align: right;
+    }
+  }
+}

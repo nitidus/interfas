@@ -57,6 +57,47 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     })
   });
 
+  app.get('/products', async (req, res) => {
+    const _THREAD = req.query;
+
+    axios(`${Modules.Functions._getFullEndpointOfAPI()}/products`)
+    .then((response) => {
+      if (response.status === 200){
+        let knowledge = response.data;
+
+        if (req.session.authenticated === true) {
+          res.render('dashboard', {
+            path: 'products',
+            data: knowledge.data
+          });
+        }else{
+          res.render('authorization');
+        }
+      }
+    })
+  });
+
+  app.get('/products/:token', async (req, res) => {
+    const _TOKEN = req.params.token,
+          _THREAD = req.query;
+
+    axios(`${Modules.Functions._getFullEndpointOfAPI()}/products/${_TOKEN}`)
+    .then((response) => {
+      if (response.status === 200){
+        let knowledge = response.data;
+
+        if (req.session.authenticated === true) {
+          res.render('dashboard', {
+            path: 'products/tokenized',
+            data: knowledge.data
+          });
+        }else{
+          res.render('authorization');
+        }
+      }
+    })
+  });
+
   app.post('/auth', async (req, res) => {
     const credential = req.body;
 
