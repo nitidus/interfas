@@ -45,7 +45,8 @@
     "popper.js": "^1.15.0",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
-    "stripe": "^6.25.1"
+    "stripe": "^6.25.1",
+    "typeahead": "^0.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",

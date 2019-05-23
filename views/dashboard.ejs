@@ -17,6 +17,9 @@
       <% }else if (path === 'products/tokenized') { %>
         <%- include('layouts/nav', { screen: 'محصولات' }); %>
         <%- include('dashboard/products/tokenized'); %>
+      <% }else if (path === 'products/new') { %>
+        <%- include('layouts/nav', { screen: 'محصولات' }); %>
+        <%- include('dashboard/products/new'); %>
       <% } %>
     <% }else{ %>
         <%- include('layouts/nav', { screen: 'داشبورد' }); %>

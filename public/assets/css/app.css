@@ -132,6 +132,41 @@ table.table {
     .list-group .list-group-item p, .list-group .list-group-item small {
       text-align: right; }
 
+.jumbotron {
+  direction: rtl; }
+  .jumbotron .container h1, .jumbotron .container h4, .jumbotron .container p {
+    text-align: right; }
+
+.form-check {
+  padding-left: 0 !important;
+  padding-right: 1.25rem; }
+  .form-check input.form-check-input {
+    margin-left: 0 !important;
+    margin-right: -1.25rem; }
+
+.tag-input.form-control {
+  display: flex;
+  flex-wrap: wrap;
+  height: auto;
+  padding: 0.6rem 0.7rem;
+  box-sizing: border-box; }
+  .tag-input.form-control .badge {
+    max-height: 36px;
+    font-size: 1rem;
+    padding: 0.43rem 0.7rem;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none; }
+    .tag-input.form-control .badge i {
+      vertical-align: middle;
+      cursor: pointer; }
+  .tag-input.form-control input[type="text"].inprocess-tag-input {
+    flex: 1;
+    border: none;
+    outline: none; }
+
 /*!
  * Bootstrap v4.3.1 (https://getbootstrap.com/)
  * Copyright 2011-2019 The Bootstrap Authors
@@ -7228,6 +7263,22 @@ a.text-dark:hover, a.text-dark:focus {
     background-size: cover;
     height: 400px; } }
 
+.form-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  direction: rtl;
+  text-align: right;
+  background-color: #F2F2F2;
+  padding: 2.2em 1.5em;
+  width: 100%;
+  border-radius: 0.25rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175); }
+  @media (min-width: 768px) {
+    .form-container {
+      width: 50%;
+      margin: 0 auto; } }
+
 .capsule.login {
   display: flex;
   width: 100%; }
@@ -7248,26 +7299,22 @@ a.text-dark:hover, a.text-dark:focus {
     .capsule.login {
       justify-content: flex-end;
       margin-top: 340px; } }
-  .capsule.login .login-form-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    direction: rtl;
-    width: 100%;
+  .capsule.login .form-container {
     padding: 4.5em 2.5em !important;
     background: #f3f8fb;
     background: linear-gradient(180deg, #f3f8fb 0%, rgba(255, 255, 255, 0) 90%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#f3f8fb",endColorstr="#ffffff",GradientType=1); }
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#f3f8fb",endColorstr="#ffffff",GradientType=1);
+    box-shadow: none; }
     @media (min-width: 768px) {
-      .capsule.login .login-form-container {
+      .capsule.login .form-container {
         width: 400px;
         margin-right: 25px;
-        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
-        background-color: #FDFDFD !important;
-        border-radius: 0.25rem !important; } }
-    .capsule.login .login-form-container h5 {
+        background-color: #F2F2F2 !important;
+        background-image: none;
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175); } }
+    .capsule.login .form-container h5 {
       text-align: right;
       margin-bottom: 2rem; }
-    .capsule.login .login-form-container .form-control {
+    .capsule.login .form-container .form-control {
       margin-bottom: 15px; }
 

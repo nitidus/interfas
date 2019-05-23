@@ -96,9 +96,67 @@ table {
 
   .list-group-item {
     text-align: right;
-    
+
     p, small {
       text-align: right;
+    }
+  }
+}
+
+.jumbotron {
+  direction: rtl;
+
+  .container {
+    h1, h4, p {
+      text-align: right;
+    }
+  }
+}
+
+.form-check {
+  padding-left: 0 !important;
+  padding-right: 1.25rem;
+
+  input {
+    &.form-check-input {
+      margin-left: 0 !important;
+      margin-right: -1.25rem;
+    }
+  }
+}
+
+.tag-input {
+  &.form-control {
+    display: flex;
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.6rem 0.7rem;
+    box-sizing: border-box;
+
+    .badge {
+      max-height: 36px;
+      font-size: 1rem;
+      padding: 0.43rem 0.7rem;
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+
+      i {
+        vertical-align: middle;
+        cursor: pointer;
+      }
+    }
+
+    input {
+      &[type="text"] {
+        &.inprocess-tag-input {
+          flex: 1;
+          border: none;
+          outline: none;
+        }
+      }
     }
   }
 }

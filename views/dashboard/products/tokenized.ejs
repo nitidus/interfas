@@ -3,6 +3,17 @@
 %>
 
 <div class="container-fluid mt-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item mt-2">
+        <a href="/products" class="btn btn-primary">
+          <i class="material-icons align-middle">chevron_right</i>
+          <span>بازگشت به محصولات</span>
+        </a>
+      </li>
+    </ol>
+  </nav>
+
   <div id="product-photos" class="carousel slide" data-ride="carousel">
     <ol class="carousel-indicators">
       <% product.photos.forEach((photo, i) => { %>
@@ -25,7 +36,21 @@
     </div>
   </div>
 
-  <div class="list-group mt-3">
+  <div class="jumbotron jumbotron-fluid mt-3 mb-3">
+    <div class="container">
+      <h1 class="display-4"><%= product.name %></h1>
+      <h4>
+        <span class="badge badge-primary">دسته‌بندی: <%= product.category.key %></span>
+      </h4>
+      <p class="lead">
+        <% product.tags.forEach((tag) => { %>
+          <span class="badge badge-secondary"><%= tag %></span>
+        <% }); %>
+      </p>
+    </div>
+  </div>
+
+  <div class="list-group mt-3 mb-3">
     <% product.features.forEach((feature, i) => { %>
       <a href="#" class="list-group-item list-group-item-action">
         <div class="d-flex w-100 justify-content-between">
@@ -46,4 +71,5 @@
         <% } %>
       </a>
     <% }); %>
+  </div>
 </div>

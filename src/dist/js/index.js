@@ -6,6 +6,68 @@ import $ from 'jquery';
 import 'bootstrap';
 import axios from 'axios';
 
+let tagInputs = document.querySelectorAll('input[type="tags"], input[data-role="tags"]');
+
+if (tagInputs.length > 0){
+  tagInputs.forEach((tagInput, i) => {
+    let tags = tagInput.getAttribute('value'),
+        tagContainer = document.createElement('div'),
+        tagInprocessInput = document.createElement('input');
+
+    tagContainer.className = `tag-input ${tagInput.classList}`;
+    tagInprocessInput.setAttribute('type', 'text');
+    tagInprocessInput.classList.add('inprocess-tag-input');
+
+    if ((tagInput.getAttribute('disabled') !== null) || (tagInput.getAttribute('readonly') !== null)){
+      tagInprocessInput.setAttribute('disabled', 'disabled');
+    }
+
+    if ((tags !== null) && (tags !== '')){
+      tags = tags.split(',');
+
+      tags.forEach((tag, j) => {
+        let badge = document.createElement('span'),
+            badgeCloseBtn = document.createElement('i'),
+            badgeText = document.createTextNode(tag.trim());;
+
+        badge.classList.add('badge', 'badge-primary', 'ml-2');
+        badgeCloseBtn.classList.add('material-icons');
+        badgeCloseBtn.innerHTML = 'close';
+
+        badgeCloseBtn.addEventListener('click', () => badge.parentNode.removeChild(badge));
+
+        badge.appendChild(badgeCloseBtn);
+        badge.appendChild(badgeText);
+        tagContainer.appendChild(badge);
+      });
+    }
+
+    tagInprocessInput.addEventListener('keyup', (event) => {
+      if (event.keyCode === 13){
+        let newBadge = document.createElement('span'),
+            newBadgeCloseBtn = document.createElement('i'),
+            newBadgeText = document.createTextNode(tagInprocessInput.value.trim());
+
+        newBadge.classList.add('badge', 'badge-primary', 'ml-2', 'mb-2');
+        newBadgeCloseBtn.classList.add('material-icons');
+        newBadgeCloseBtn.innerHTML = 'close';
+
+        newBadgeCloseBtn.addEventListener('click', () => newBadge.parentNode.removeChild(newBadge));
+
+        newBadge.appendChild(newBadgeCloseBtn);
+        newBadge.appendChild(newBadgeText);
+
+        tagContainer.insertBefore(newBadge, tagInprocessInput);
+        tagInprocessInput.value = '';
+      }
+    });
+
+    tagContainer.appendChild(tagInprocessInput);
+
+    tagInput.parentNode.replaceChild(tagContainer, tagInput);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const CONTENT = document.querySelector('body'),
         SOURCE = (CONTENT.getAttribute('data-source') !== null)? CONTENT.getAttribute('data-source'): '';
@@ -88,6 +150,41 @@ document.addEventListener('DOMContentLoaded', () => {
           })
         }
       })
+      break;
+
+    case 'dashboard/products/new':
+      document.querySelectorAll('.form-container').forEach((item, i) => {
+        let selectedTab = item.getAttribute('data-tab').toLowerCase();
+
+        switch (selectedTab) {
+          case 'primary-information':
+            let productCategoryElement = document.querySelector('#product-category');
+
+            if (productCategoryElement.childElementCount === 1){
+              const _TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374,
+                    _TARGET_HOST = process.env.APP_HOST || process.env.HOST || 'http://localhost',
+                    _TARGET_API_VERSION = process.env.APP_API_VERSION || process.env.API_VERSION || 'v1';
+
+              axios.get(`${_TARGET_HOST}:${_TARGET_PORT}/api/${_TARGET_API_VERSION}/taxonomies/pc`)
+              .then((response) => {
+                if (response.status === 200){
+                  let categoriesResponse = response.data;
+
+                  if (categoriesResponse.meta.code === 200){
+                    let categories = categoriesResponse.data;
+
+                    categories.forEach((category, j) => {
+                      productCategoryElement.innerHTML += `<option value="${category._id}">${(category.cumulative_key || category.key)}</option>`
+                    });
+                  }
+                }
+              })
+            }
+            break;
+          default:
+
+        }
+      });
       break;
   }
 })

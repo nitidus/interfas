@@ -81,21 +81,31 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     const _TOKEN = req.params.token,
           _THREAD = req.query;
 
-    axios(`${Modules.Functions._getFullEndpointOfAPI()}/products/${_TOKEN}`)
-    .then((response) => {
-      if (response.status === 200){
-        let knowledge = response.data;
-
-        if (req.session.authenticated === true) {
-          res.render('dashboard', {
-            path: 'products/tokenized',
-            data: knowledge.data
-          });
-        }else{
-          res.render('authorization');
-        }
+    if (Modules.Functions._checkIsAValidObjectID(_TOKEN) !== true){
+      if (req.session.authenticated === true) {
+        res.render('dashboard', {
+          path: 'products/new'
+        });
+      }else{
+        res.render('authorization');
       }
-    })
+    }else{
+      axios(`${Modules.Functions._getFullEndpointOfAPI()}/products/${_TOKEN}`)
+      .then((response) => {
+        if (response.status === 200){
+          let knowledge = response.data;
+
+          if (req.session.authenticated === true) {
+            res.render('dashboard', {
+              path: 'products/tokenized',
+              data: knowledge.data
+            });
+          }else{
+            res.render('authorization');
+          }
+        }
+      })
+    }
   });
 
   app.post('/auth', async (req, res) => {
