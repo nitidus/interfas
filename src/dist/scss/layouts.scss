@@ -160,3 +160,65 @@ table {
     }
   }
 }
+
+.inprocess-tag-input::-webkit-input-placeholder {
+    color: #6c757d;
+    opacity: 1;
+}
+
+.inprocess-tag-input::-moz-placeholder {
+  color: #6c757d;
+  opacity: 1;
+}
+
+.inprocess-tag-input:-ms-input-placeholder {
+  color: #6c757d;
+  opacity: 1;
+}
+
+.inprocess-tag-input::-ms-input-placeholder {
+  color: #6c757d;
+  opacity: 1;
+}
+
+.inprocess-tag-input::placeholder {
+  color: #6c757d;
+  opacity: 1;
+}
+
+.list-group {
+  &.depended-popover {
+    display: block;
+    height: 195px;
+    overflow-y: scroll;
+    border-radius: 0.25rem !important;
+    position: absolute;
+    width: calc(100% - (1.5em * 2));
+    z-index: 1;
+
+    &.hide {
+      display: none;
+    }
+  }
+}
+
+.form-container {
+  &.tab-container {
+    display: none;
+
+    &.active {
+      display: flex;
+    }
+  }
+}
+
+textarea {
+  &.form-control {
+    resize: none;
+  }
+}
+
+.customized-feature-container {
+  background-color: #e9ecef;
+  padding: 1.5rem 1.5rem  .5rem 1.5rem;
+}

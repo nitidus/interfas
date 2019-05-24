@@ -1,21 +1,48 @@
 <div class="container-fluid mt-3">
-  <div class="form-container active" data-tab="primary-information">
+  <div class="form-container tab-container" data-tab="primary-information">
     <div class="form-group">
-      <label for="exampleFormControlInput1">نام محصول</label>
-      <input type="text" class="form-control" id="product-name" placeholder="مثال: ژامبون مرغ دودی سولیکو">
+      <input type="text" class="form-control" id="product-name" placeholder="نام محصول">
     </div>
 
     <select class="custom-select" id="product-category">
       <option selected>انتخاب دسته‌بندی</option>
     </select>
 
-    <input type="tags" class="form-control mt-3" value="کیلوگرم, جعبه" readonly />
+    <div class="product-units-container">
+      <input type="tags" id="product-units" class="form-control mt-3" placeholder="واحدهای انتخاب‌شده" preventReturnKey/>
+      <div class="list-group depended-popover product-unit-items mt-3 hide"></div>
+    </div>
 
-    <div class="form-check mt-3">
+    <div class="product-tags-container">
+      <input type="tags" id="product-tags" class="form-control mt-3" placeholder="عناوین دیگر، عناوین چند زبانه و تگ‌ها"/>
+    </div>
+
+    <div class="form-check mt-3 mb-3">
       <input class="form-check-input" type="checkbox" id="verified-checkbox" checked>
       <label class="form-check-label" for="verified-checkbox">
         تایید‌شده
       </label>
     </div>
+
+    <button type="button" class="btn btn-primary handler-btn" data-target="features-information">اضافه‌کردن ویژگی‌ها</button>
+  </div>
+
+  <div class="form-container tab-container active" data-tab="features-information">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb product-features-controller"></ol>
+    </nav>
+
+    <div id="features-container">
+      <textarea class="form-control mb-3" data-type="description" placeholder="توضیحات" rows="5"></textarea>
+
+      <div class="customized-feature-container mb-3" data-type="customized">
+        <div class="form-group">
+          <input type="text" class="form-control" data-type="feature-name" placeholder="نام ویژگی شخصی‌سازی‌شده">
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control" data-type="feature-value" placeholder="مقدار ویژگی شخصی‌سازی‌شده">
+        </div>
+      </div>
+    <div>
   </div>
 </div>
