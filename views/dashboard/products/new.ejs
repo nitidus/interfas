@@ -27,22 +27,89 @@
     <button type="button" class="btn btn-primary handler-btn" data-target="features-information">اضافه‌کردن ویژگی‌ها</button>
   </div>
 
-  <div class="form-container tab-container active" data-tab="features-information">
+  <div class="form-container tab-container" data-tab="features-information">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb product-features-controller"></ol>
     </nav>
 
     <div id="features-container">
-      <textarea class="form-control mb-3" data-type="description" placeholder="توضیحات" rows="5"></textarea>
-
-      <div class="customized-feature-container mb-3" data-type="customized">
-        <div class="form-group">
-          <input type="text" class="form-control" data-type="feature-name" placeholder="نام ویژگی شخصی‌سازی‌شده">
-        </div>
-        <div class="form-group">
-          <input type="text" class="form-control" data-type="feature-value" placeholder="مقدار ویژگی شخصی‌سازی‌شده">
-        </div>
+      <div class="alert alert-warning empty-warning" role="alert">
+        هنوز هیچ ویژگی ایجاد نکرده‌اید.
       </div>
-    <div>
+    </div>
+
+    <button type="button" class="btn btn-primary handler-btn hide" data-target="photos-information">اضافه‌کردن عکس‌ها</button>
+  </div>
+
+  <div class="form-container tab-container active" data-tab="photos-information">
+    <!--input type="file" data-role="dropzone" id="product-photos-dropzone" /-->
+    <div class="dropzone">
+      <div class="label-container hide">
+        <i class="material-icons">photo</i>
+        <label for="product-photos-dropzone">
+          <strong>تصاویر را انتخاب کنید</strong>
+        </label>
+         یا اینجا رها کنید.
+       </div>
+     <input type="file" name="files" multiple="multiple" id="product-photos-dropzone">
+
+     <div class="dropped-files">
+       <div class="dropped-file-item">
+         <img src="/assets/img/ui/eucle.png"/>
+         <div class="dropped-file-conntroller">
+           <button type="button" class="btn btn-secondary">
+             <i class="material-icons">bookmark</i>
+           </button>
+           <button type="button" class="btn btn-danger">
+             <i class="material-icons">delete</i>
+           </button>
+         </div>
+       </div>
+       <div class="dropped-file-item">
+         <img src="/assets/img/ui/eucle.png"/>
+         <div class="dropped-file-conntroller">
+           <button type="button" class="btn btn-secondary">
+             <i class="material-icons">bookmark</i>
+           </button>
+           <button type="button" class="btn btn-danger">
+             <i class="material-icons">delete</i>
+           </button>
+         </div>
+       </div>
+       <div class="dropped-file-item">
+         <img src="/assets/img/ui/eucle.png"/>
+         <div class="dropped-file-conntroller">
+           <button type="button" class="btn btn-secondary">
+             <i class="material-icons">bookmark</i>
+           </button>
+           <button type="button" class="btn btn-danger">
+             <i class="material-icons">delete</i>
+           </button>
+         </div>
+       </div>
+       <div class="dropped-file-item">
+         <img src="/assets/img/ui/eucle.png"/>
+         <div class="dropped-file-conntroller">
+           <button type="button" class="btn btn-secondary">
+             <i class="material-icons">bookmark</i>
+           </button>
+           <button type="button" class="btn btn-danger">
+             <i class="material-icons">delete</i>
+           </button>
+         </div>
+       </div>
+       <div class="dropped-file-item">
+         <img src="/assets/img/ui/eucle.png"/>
+         <div class="dropped-file-conntroller">
+           <button type="button" class="btn btn-secondary">
+             <i class="material-icons">bookmark</i>
+           </button>
+           <button type="button" class="btn btn-danger">
+             <i class="material-icons">delete</i>
+           </button>
+         </div>
+       </div>
+     </div>
+   </div>
   </div>
 </div>

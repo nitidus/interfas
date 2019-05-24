@@ -85,6 +85,97 @@ if (tagInputs.length > 0){
   });
 }
 
+let dropzoneFileInputs = document.querySelectorAll('input[type="file"].dropzone, input[type="file"][data-role="dropzone"], input[data-role="upload"], input[data-role="upload"].dropzone, input[data-role="upload"][data-role="dropzone"]');
+
+if (dropzoneFileInputs.length > 0){
+  dropzoneFileInputs.forEach((fileInput, i) => {
+    let dropzone = document.createElement('div'),
+        dropzoneFileInput = document.createElement('input');
+
+    dropzoneFileInput.setAttribute('type', 'file');
+    dropzoneFileInput.setAttribute('name', 'files');
+    dropzoneFileInput.setAttribute('multiple', 'multiple');
+
+    if (fileInput.id !== ''){
+      let dropzoneFileLabelContainer = document.createElement('div'),
+          dropzoneFileLabel = document.createElement('label');
+
+      dropzoneFileInput.id = fileInput.id;
+      dropzoneFileLabel.innerHTML = `<strong>تصاویر را انتخاب کنید</strong>`;
+
+      dropzoneFileLabel.setAttribute('for', fileInput.id);
+      dropzoneFileLabelContainer.classList.add('label-container')
+
+      dropzoneFileLabelContainer.innerHTML = '<i class="material-icons">photo</i>';
+
+      dropzoneFileLabelContainer.appendChild(dropzoneFileLabel);
+      dropzoneFileLabelContainer.appendChild(document.createTextNode(' یا اینجا رها کنید.'));
+
+      dropzone.appendChild(dropzoneFileLabelContainer);
+    }
+
+    dropzone.classList.add('dropzone');
+
+    dropzone.appendChild(dropzoneFileInput);
+
+    let dragOverEvent = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (!dropzone.classList.contains('dragging')){
+            dropzone.classList.add('dragging');
+          }
+        },
+        dragLeaveEvent = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (dropzone.classList.contains('dragging')){
+            dropzone.classList.remove('dragging');
+          }
+        },
+        dropEvent = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          let droppedFiles = e.dataTransfer.files;
+
+          for (var k = 0; k < droppedFiles.length; k++) {
+            let droppedFile = droppedFiles[k],
+                fileReader = new FileReader();
+
+            fileReader.onload = function (event){
+              let cardContainer = document.createElement('div'),
+                  cardImg = document.createElement('img');
+
+              // <div class="card">
+              //   <img src="..." class="card-img-top" alt="...">
+              //   <div class="card-body">
+              //     <h5 class="card-title">Card title</h5>
+              //     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+              //     <a href="#" class="btn btn-primary">Go somewhere</a>
+              //   </div>
+              // </div>
+              document.getElementById('product-photos-dropzone').parentElement.querySelector('.label-container').classList.add('hide');
+            }
+
+            fileReader.readAsDataURL(droppedFile);
+          }
+        };
+
+    dropzone.addEventListener('dragover', (event) => dragOverEvent(event));
+    dropzone.addEventListener('dragenter', (event) => dragOverEvent(event));
+    dropzone.addEventListener('dragleave', (event) => dragLeaveEvent(event));
+    dropzone.addEventListener('dragend', (event) => dragLeaveEvent(event));
+    dropzone.addEventListener('drop', (event) => {
+      dragLeaveEvent(event);
+      dropEvent(event);
+    });
+
+    fileInput.parentNode.replaceChild(dropzone, fileInput);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const CONTENT = document.querySelector('body'),
         SOURCE = (CONTENT.getAttribute('data-source') !== null)? CONTENT.getAttribute('data-source'): '';
@@ -267,13 +358,6 @@ document.addEventListener('DOMContentLoaded', () => {
           case 'features-information':
             let productFeaturesControllerElement = document.querySelector('.product-features-controller');
 
-            // <li class="breadcrumb-item mt-2">
-            //   <button type="button" class="btn btn-primary append-category">
-            //     <i class="material-icons align-middle">add</i>
-            //     <span>اضافه‌کردن دسته‌بندی جدید</span>
-            //   </button>
-            // </li>
-
             if (productFeaturesControllerElement.childElementCount === 0){
               axios.get(`${_TARGET_HOST}:${_TARGET_PORT}/api/${_TARGET_API_VERSION}/taxonomies/pf`)
               .then((response) => {
@@ -305,13 +389,107 @@ document.addEventListener('DOMContentLoaded', () => {
                       switch (feature.key.toLowerCase()) {
                         case 'description':
                           breadcrumbItemEvent = () => {
-                            alert(feature.key.toLowerCase())
+                            let featureContainer = document.createElement('div'),
+                                featureDescription = document.createElement('textarea'),
+                                featureRemoveHandler = document.createElement('button'),
+                                featureRemoveHandlerIcon = document.createElement('i'),
+                                featuresContainer = document.getElementById('features-container');
+
+                            if (featuresContainer.querySelector('.alert.empty-warning') !== null){
+                              featuresContainer.removeChild(featuresContainer.querySelector('.alert.empty-warning'));
+
+                              if (item.querySelector('.handler-btn').classList.contains('hide')){
+                                item.querySelector('.handler-btn').classList.remove('hide');
+                              }
+                            }
+
+                            featureContainer.setAttribute('data-type', 'description');
+                            featureContainer.classList.add('feature-container', 'mb-3');
+                            featureDescription.setAttribute('placeholder', 'توضیحات');
+                            featureDescription.setAttribute('rows', '5');
+                            featureDescription.classList.add('form-control');
+                            featureRemoveHandler.classList.add('badge', 'badge-danger', 'feature-remove-handler');
+                            featureRemoveHandlerIcon.classList.add('material-icons');
+
+                            featureRemoveHandlerIcon.innerHTML = 'delete';
+
+                            featureRemoveHandler.addEventListener('click', () => {
+                              featureContainer.parentNode.removeChild(featureContainer);
+
+                              if ((featuresContainer.childElementCount) === 0){
+                                featuresContainer.innerHTML = `<div class="alert alert-warning empty-warning" role="alert">` +
+                                  `هنوز هیچ ویژگی ایجاد نکرده‌اید.` +
+                                `</div>`;
+
+                                if (!item.querySelector('.handler-btn').classList.contains('hide')){
+                                  item.querySelector('.handler-btn').classList.add('hide');
+                                }
+                              }
+                            });
+
+                            featureRemoveHandler.appendChild(featureRemoveHandlerIcon);
+                            featureContainer.appendChild(featureDescription);
+                            featureContainer.appendChild(featureRemoveHandler);
+
+                            featuresContainer.appendChild(featureContainer);
                           };
                           break;
 
                         case 'customized':
                           breadcrumbItemEvent = () => {
+                            let featureContainer = document.createElement('div'),
+                                featureFormGroup = document.createElement('div'),
+                                featureNameInput = document.createElement('input'),
+                                featureValueInput = document.createElement('input'),
+                                featureRemoveHandler = document.createElement('button'),
+                                featureRemoveHandlerIcon = document.createElement('i'),
+                                featuresContainer = document.getElementById('features-container');
 
+                            if (featuresContainer.querySelector('.alert.empty-warning') !== null){
+                              featuresContainer.removeChild(featuresContainer.querySelector('.alert.empty-warning'));
+
+                              if (item.querySelector('.handler-btn').classList.contains('hide')){
+                                item.querySelector('.handler-btn').classList.remove('hide');
+                              }
+                            }
+
+                            featureContainer.setAttribute('data-type', 'customized');
+                            featureContainer.classList.add('feature-container', 'mb-3');
+                            featureFormGroup.classList.add('feature-form-group');
+                            featureNameInput.setAttribute('type', 'text');
+                            featureNameInput.setAttribute('data-type', 'feature-name');
+                            featureNameInput.setAttribute('placeholder', 'نام ویژگی شخصی‌سازی‌شده');
+                            featureNameInput.classList.add('form-control', 'mb-3');
+                            featureValueInput.setAttribute('type', 'text');
+                            featureValueInput.setAttribute('data-type', 'feature-value');
+                            featureValueInput.setAttribute('placeholder', 'مقدار ویژگی شخصی‌سازی‌شده');
+                            featureValueInput.classList.add('form-control');
+                            featureRemoveHandler.classList.add('badge', 'badge-danger', 'feature-remove-handler');
+                            featureRemoveHandlerIcon.classList.add('material-icons');
+
+                            featureRemoveHandlerIcon.innerHTML = 'delete';
+
+                            featureRemoveHandler.addEventListener('click', () => {
+                              featureContainer.parentNode.removeChild(featureContainer);
+
+                              if ((featuresContainer.childElementCount) === 0){
+                                featuresContainer.innerHTML = `<div class="alert alert-warning empty-warning" role="alert">` +
+                                  `هنوز هیچ ویژگی ایجاد نکرده‌اید.` +
+                                `</div>`;
+
+                                if (!item.querySelector('.handler-btn').classList.contains('hide')){
+                                  item.querySelector('.handler-btn').classList.add('hide');
+                                }
+                              }
+                            });
+
+                            featureFormGroup.appendChild(featureNameInput);
+                            featureFormGroup.appendChild(featureValueInput);
+                            featureRemoveHandler.appendChild(featureRemoveHandlerIcon);
+                            featureContainer.appendChild(featureFormGroup);
+                            featureContainer.appendChild(featureRemoveHandler);
+
+                            featuresContainer.appendChild(featureContainer);
                           };
                           break;
                       }
@@ -332,11 +510,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       document.querySelectorAll('.form-container button.handler-btn').forEach((item, i) => {
-        item.addEventListener('click', () => {
-          let selectedHandlerBtn = item.getAttribute('data-target').toLowerCase();
+        let selectedHandlerBtn = item.getAttribute('data-target').toLowerCase();
 
-          switch (selectedHandlerBtn) {
-            case 'features-information':
+        switch (selectedHandlerBtn) {
+          case 'features-information':
+            item.addEventListener('click', () => {
               let productName = document.getElementById('product-name').value,
                   productCategory = document.getElementById('product-category').options[document.getElementById('product-category').selectedIndex].value,
                   productInventoryUnits = document.querySelectorAll('.product-units-container .tag-input span.badge'),
@@ -346,9 +524,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector('.form-container[data-tab="primary-information"]').classList.remove('active');
                 document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
               }
-              break;
-          }
-        });
+            });
+            break;
+
+          case 'photos-information':
+            item.addEventListener('click', () => {
+              let featuresItem = document.querySelectorAll('#features-container .feature-container');
+
+              if (featuresItem.length > 0){
+                var isAllFeaturesValidated = true;
+
+                featuresItem.forEach((featureItem, j) => {
+                  if (isAllFeaturesValidated !== false){
+                    let featureType = featureItem.getAttribute('data-type').toLowerCase(),
+                        isFeatureValid = true;
+
+                    switch (featureType) {
+                      case 'description':
+                        if (featureItem.querySelector('textarea').value == ''){
+                          isFeatureValid = false;
+                        }
+                        break;
+
+                      case 'customized':
+                        if ((featureItem.querySelector('.feature-form-group input[data-type="feature-name"]').value == '') && (featureItem.querySelector('.feature-form-group input[data-type="feature-value"]').value == '')){
+                          isFeatureValid = false;
+                        }
+                        break;
+                    }
+
+                    if (isFeatureValid === false){
+                      isAllFeaturesValidated = false;
+                    }
+                  }
+                });
+
+                if (isAllFeaturesValidated !== false){
+                    document.querySelector('.form-container[data-tab="features-information"]').classList.remove('active');
+                    document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
+                }
+              }
+            });
+            break;
+        }
       });
       break;
   }

@@ -218,7 +218,8 @@ textarea {
   }
 }
 
-.customized-feature-container {
-  background-color: #e9ecef;
-  padding: 1.5rem 1.5rem  .5rem 1.5rem;
+.handler-btn {
+  &.hide {
+    display: none;
+  }
 }
