@@ -115,6 +115,7 @@
   }
 
   .dropped-files {
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
 
@@ -131,20 +132,36 @@
       }
 
       &:hover {
-        & > .dropped-file-conntroller {
+        & > .dropped-file-controller {
           @include media-breakpoint-up(md) {
             opacity: 1;
           }
         }
       }
 
-      img {
-        background-size: cover;
-        max-width: 100%;
-        height: auto;
+      &.primary {
+        .dropped-file-controller {
+          background: -moz-linear-gradient(180deg, $vivid-tangerine 0%, rgba(23,23,23,0) 100%);
+          background: -webkit-linear-gradient(180deg, $vivid-tangerine 0%, rgba(23,23,23,0) 100%);
+          background: linear-gradient(180deg, $vivid-tangerine 0%, rgba(23,23,23,0) 100%);
+          filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="$vivid-tangerine",endColorstr="$vivid-tangerine",GradientType=1);
+
+          button {
+            &.make-primary-photo {
+              display: none;
+            }
+          }
+        }
       }
 
-      .dropped-file-conntroller {
+      .dropped-file-image-preview {
+        background-position: center;
+        background-size: cover;
+        max-width: 100%;
+        height: 200px;
+      }
+
+      .dropped-file-controller {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -152,10 +169,10 @@
         left: 0;
         padding: 1rem;
         box-sizing: border-box;
-        background: -moz-linear-gradient(180deg, rgba(23,23,23,1) 0%, rgba(23,23,23,0) 100%);
-        background: -webkit-linear-gradient(180deg, rgba(23,23,23,1) 0%, rgba(23,23,23,0) 100%);
-        background: linear-gradient(180deg, rgba(23,23,23,1) 0%, rgba(23,23,23,0) 100%);
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#171717",endColorstr="#171717",GradientType=1);
+        background: -moz-linear-gradient(180deg, $rangoon-green 0%, rgba(23,23,23,0) 100%);
+        background: -webkit-linear-gradient(180deg, $rangoon-green 0%, rgba(23,23,23,0) 100%);
+        background: linear-gradient(180deg, $rangoon-green 0%, rgba(23,23,23,0) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="$rangoon-green",endColorstr="$rangoon-green",GradientType=1);
         -webkit-transition: opacity .2s ease-in-out;
         -moz-transition: opacity .2s ease-in-out;
       	transition: opacity .2s ease-in-out;

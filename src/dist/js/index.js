@@ -114,11 +114,75 @@ if (dropzoneFileInputs.length > 0){
       dropzone.appendChild(dropzoneFileLabelContainer);
     }
 
-    dropzone.classList.add('dropzone');
+    dropzone.className = `dropzone ${fileInput.classList}`;
 
     dropzone.appendChild(dropzoneFileInput);
 
-    let dragOverEvent = (e) => {
+    let createPhotoItemBasedOnTemplate = (files) => {
+          for (var k = 0; k < files.length; k++) {
+            let droppedFile = files[k],
+                fileReader = new FileReader();
+
+            fileReader.onload = function (event){
+              let droppedFilesContainer = dropzone.querySelector('.dropped-files'),
+                  droppedFileItemContainer = document.createElement('div'),
+                  droppedFileItemImage = document.createElement('div'),
+                  droppedFileItemController = document.createElement('div'),
+                  droppedFileItemControllerMakePrimaryBtn = document.createElement('button'),
+                  droppedFileItemControllerMakePrimaryBtnIcon = document.createElement('i'),
+                  droppedFileItemControllerRemoveBtn = document.createElement('button'),
+                  droppedFileItemControllerRemoveBtnIcon = document.createElement('i');
+
+              if (droppedFilesContainer === null){
+                droppedFilesContainer = document.createElement('div');
+
+                droppedFilesContainer.classList.add('dropped-files');
+
+                dropzone.appendChild(droppedFilesContainer);
+              }
+
+              droppedFileItemImage.setAttribute('style', `background-image: url(${event.target.result});`);
+              droppedFileItemControllerMakePrimaryBtn.setAttribute('type', 'button');
+              droppedFileItemControllerRemoveBtn.setAttribute('type', 'button');
+
+              droppedFileItemContainer.classList.add('dropped-file-item');
+              droppedFileItemController.classList.add('dropped-file-controller');
+              droppedFileItemImage.classList.add('dropped-file-image-preview');
+              droppedFileItemControllerMakePrimaryBtn.classList.add('btn', 'btn-secondary', 'make-primary-photo');
+              droppedFileItemControllerMakePrimaryBtnIcon.classList.add('material-icons');
+              droppedFileItemControllerRemoveBtn.classList.add('btn', 'btn-danger', 'remove-photo-btn');
+              droppedFileItemControllerRemoveBtnIcon.classList.add('material-icons');
+
+              droppedFileItemControllerMakePrimaryBtnIcon.innerHTML = 'bookmark';
+              droppedFileItemControllerRemoveBtnIcon.innerHTML = 'delete';
+
+              droppedFileItemControllerRemoveBtn.addEventListener('click', () => {
+                droppedFileItemContainer.parentNode.removeChild(droppedFileItemContainer);
+              });
+
+              droppedFileItemControllerMakePrimaryBtn.addEventListener('click', () => {
+                let primarySelectedItem = droppedFilesContainer.querySelector('.dropped-file-item.primary');
+
+                if (primarySelectedItem !== null){
+                  primarySelectedItem.classList.remove('primary');
+                }
+
+                droppedFileItemContainer.classList.add('primary');
+              });
+
+              droppedFileItemControllerMakePrimaryBtn.appendChild(droppedFileItemControllerMakePrimaryBtnIcon);
+              droppedFileItemControllerRemoveBtn.appendChild(droppedFileItemControllerRemoveBtnIcon);
+              droppedFileItemController.appendChild(droppedFileItemControllerMakePrimaryBtn);
+              droppedFileItemController.appendChild(droppedFileItemControllerRemoveBtn);
+              droppedFileItemContainer.appendChild(droppedFileItemImage);
+              droppedFileItemContainer.appendChild(droppedFileItemController);
+              droppedFilesContainer.appendChild(droppedFileItemContainer);
+            }
+
+            fileReader.readAsDataURL(droppedFile);
+          }
+        },
+        dragOverEvent = (e) => {
           e.preventDefault();
           e.stopPropagation();
 
@@ -140,27 +204,7 @@ if (dropzoneFileInputs.length > 0){
 
           let droppedFiles = e.dataTransfer.files;
 
-          for (var k = 0; k < droppedFiles.length; k++) {
-            let droppedFile = droppedFiles[k],
-                fileReader = new FileReader();
-
-            fileReader.onload = function (event){
-              let cardContainer = document.createElement('div'),
-                  cardImg = document.createElement('img');
-
-              // <div class="card">
-              //   <img src="..." class="card-img-top" alt="...">
-              //   <div class="card-body">
-              //     <h5 class="card-title">Card title</h5>
-              //     <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-              //     <a href="#" class="btn btn-primary">Go somewhere</a>
-              //   </div>
-              // </div>
-              document.getElementById('product-photos-dropzone').parentElement.querySelector('.label-container').classList.add('hide');
-            }
-
-            fileReader.readAsDataURL(droppedFile);
-          }
+          createPhotoItemBasedOnTemplate(droppedFiles);
         };
 
     dropzone.addEventListener('dragover', (event) => dragOverEvent(event));
@@ -171,6 +215,7 @@ if (dropzoneFileInputs.length > 0){
       dragLeaveEvent(event);
       dropEvent(event);
     });
+    dropzoneFileInput.addEventListener('change', (event) => createPhotoItemBasedOnTemplate(dropzoneFileInput.files));
 
     fileInput.parentNode.replaceChild(dropzone, fileInput);
   });
@@ -271,7 +316,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     let categories = categoriesResponse.data;
 
                     categories.forEach((category, j) => {
-                      productCategoryElement.innerHTML += `<option value="${category._id}">${(category.cumulative_key || category.key)}</option>`
+                      let categoryValue = (category.cumulative_key || category.key),
+                          categoryOption = document.createElement('option'),
+                          categoryOptionContent = document.createTextNode(categoryValue);
+
+                      categoryOption.setAttribute('value', category._id);
+
+                      categoryOption.appendChild(categoryOptionContent);
+                      productCategoryElement.appendChild(categoryOption);
+                    });
+
+                    productCategoryElement.addEventListener('change', (event) => {
+                      let selectedItem = productCategoryElement.options[productCategoryElement.selectedIndex];
+
+                      document.getElementById('product-name').value = selectedItem.innerText;
                     });
                   }
                 }
@@ -403,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
                               }
                             }
 
+                            featureContainer.setAttribute('data-type-token', feature._id);
                             featureContainer.setAttribute('data-type', 'description');
                             featureContainer.classList.add('feature-container', 'mb-3');
                             featureDescription.setAttribute('placeholder', 'توضیحات');
@@ -453,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                               }
                             }
 
+                            featureContainer.setAttribute('data-type-token', feature._id);
                             featureContainer.setAttribute('data-type', 'customized');
                             featureContainer.classList.add('feature-container', 'mb-3');
                             featureFormGroup.classList.add('feature-form-group');
@@ -521,8 +581,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   productTags = document.querySelectorAll('.product-tags-container .tag-input span.badge');
 
               if ((productName != '') && (productCategory != 'انتخاب دسته‌بندی') && (productInventoryUnits.length > 0) && (productTags.length > 0)){
-                document.querySelector('.form-container[data-tab="primary-information"]').classList.remove('active');
-                document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
+                let selectedItem = document.getElementById('product-category').options[document.getElementById('product-category').selectedIndex].innerText,
+                    productNameRegex = new RegExp(`${selectedItem}`, 'gi');
+
+                if (productName.replace(/\"/gi, '').match(productNameRegex) !== null){
+                  document.querySelector('.form-container[data-tab="primary-information"]').classList.remove('active');
+                  document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
+                }
               }
             });
             break;
@@ -562,6 +627,100 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isAllFeaturesValidated !== false){
                     document.querySelector('.form-container[data-tab="features-information"]').classList.remove('active');
                     document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
+                }
+              }
+            });
+            break;
+
+          case 'submit-information':
+            item.addEventListener('click', () => {
+              let productName = document.getElementById('product-name').value,
+                  productCategory = document.getElementById('product-category').options[document.getElementById('product-category').selectedIndex].value,
+                  productInventoryUnits = document.querySelectorAll('.product-units-container .tag-input span.badge'),
+                  productTags = document.querySelectorAll('.product-tags-container .tag-input span.badge'),
+                  productIsVerified = document.querySelector('#verified-checkbox').checked,
+                  featuresItem = document.querySelectorAll('#features-container .feature-container'),
+                  photosItem = document.querySelectorAll('.product-photos-dropzone .dropped-files .dropped-file-item'),
+                  requestParameters = {};
+
+              if ((productName != '') && (productCategory != 'انتخاب دسته‌بندی') && (productInventoryUnits.length > 0) && (productTags.length > 0) && (photosItem.length > 0)){
+                let isPrimaryPhotoDefined = false,
+                    targetProductInventoryUnits = [],
+                    targetProductTags = [],
+                    targetProductFeatures = [],
+                    targetProductPhotos = [];
+
+                requestParameters.name = productName;
+                requestParameters.category_id = productCategory;
+
+                for (var j = 0; j < productInventoryUnits.length; j++) {
+                  targetProductInventoryUnits.push(productInventoryUnits[j].getAttribute('data-value'));
+                }
+
+                for (var j = 0; j < productTags.length; j++) {
+                  let productTagRow = productTags[j].innerText.replace(/^close/gi, '');
+
+                  targetProductTags.push(productTagRow);
+                }
+
+                for (var j = 0; j < featuresItem.length; j++) {
+                  let featureItem = featuresItem[j],
+                      featureType = featureItem.getAttribute('data-type').toLowerCase();
+
+                  switch (featureType) {
+                    case 'description':
+                      targetProductFeatures.push({
+                        feature_id: featureItem.getAttribute('data-type-token'),
+                        description: featureItem.querySelector('textarea').value
+                      });
+                      break;
+
+                    case 'customized':
+                      targetProductFeatures.push({
+                        feature_id: featureItem.getAttribute('data-type-token'),
+                        feature_name: featureItem.querySelector('.feature-form-group input[data-type="feature-name"]').value,
+                        feature_value: prototypes._convertDigitsToEnglish(featureItem.querySelector('.feature-form-group input[data-type="feature-value"]').value)
+                      });
+                      break;
+                  }
+                }
+
+                for (var j = 0; j < photosItem.length; j++) {
+                  let photoItem = photosItem[j],
+                      photoItemURI = photoItem.querySelector('.dropped-file-image-preview').style.backgroundImage,
+                      strippedPhotoItemURI = photoItemURI.replace(/^url\("/gi, '').replace(/"\)$/gi, '').trim(),
+                      photoRow = {
+                        content: strippedPhotoItemURI
+                      };
+
+                  if (photoItem.classList.contains('primary')){
+                    photoRow.primary = true;
+                    isPrimaryPhotoDefined = true;
+                  }
+
+                  targetProductPhotos.push(photoRow);
+                }
+
+                if (isPrimaryPhotoDefined === true){
+                  requestParameters.tags = targetProductTags;
+                  requestParameters.inventory_units = targetProductInventoryUnits;
+                  requestParameters.features = targetProductFeatures;
+                  requestParameters.photos = targetProductPhotos;
+
+                  if (productIsVerified === true){
+                    requestParameters.verified = true;
+                  }
+
+                  axios.post(`${_TARGET_HOST}:${_TARGET_PORT}/products`, requestParameters)
+                  .then((response) => {
+                    if (response.status === 200){
+                      let productResponse = response.data;
+
+                      if (productResponse.meta.code === 200){
+                        location.replace('/products');
+                      }
+                    }
+                  })
                 }
               }
             });

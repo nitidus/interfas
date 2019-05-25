@@ -1,12 +1,12 @@
 <div class="container-fluid mt-3">
-  <div class="form-container tab-container" data-tab="primary-information">
-    <div class="form-group">
-      <input type="text" class="form-control" id="product-name" placeholder="نام محصول">
-    </div>
-
+  <div class="form-container tab-container active" data-tab="primary-information">
     <select class="custom-select" id="product-category">
       <option selected>انتخاب دسته‌بندی</option>
     </select>
+
+    <div class="form-group mt-3 mb-0">
+      <input type="text" class="form-control" id="product-name" placeholder="نام محصول">
+    </div>
 
     <div class="product-units-container">
       <input type="tags" id="product-units" class="form-control mt-3" placeholder="واحدهای انتخاب‌شده" preventReturnKey/>
@@ -41,75 +41,9 @@
     <button type="button" class="btn btn-primary handler-btn hide" data-target="photos-information">اضافه‌کردن عکس‌ها</button>
   </div>
 
-  <div class="form-container tab-container active" data-tab="photos-information">
-    <!--input type="file" data-role="dropzone" id="product-photos-dropzone" /-->
-    <div class="dropzone">
-      <div class="label-container hide">
-        <i class="material-icons">photo</i>
-        <label for="product-photos-dropzone">
-          <strong>تصاویر را انتخاب کنید</strong>
-        </label>
-         یا اینجا رها کنید.
-       </div>
-     <input type="file" name="files" multiple="multiple" id="product-photos-dropzone">
+  <div class="form-container tab-container" data-tab="photos-information">
+    <input type="file" data-role="dropzone" id="product-photos-dropzone" class="product-photos-dropzone mb-3" />
 
-     <div class="dropped-files">
-       <div class="dropped-file-item">
-         <img src="/assets/img/ui/eucle.png"/>
-         <div class="dropped-file-conntroller">
-           <button type="button" class="btn btn-secondary">
-             <i class="material-icons">bookmark</i>
-           </button>
-           <button type="button" class="btn btn-danger">
-             <i class="material-icons">delete</i>
-           </button>
-         </div>
-       </div>
-       <div class="dropped-file-item">
-         <img src="/assets/img/ui/eucle.png"/>
-         <div class="dropped-file-conntroller">
-           <button type="button" class="btn btn-secondary">
-             <i class="material-icons">bookmark</i>
-           </button>
-           <button type="button" class="btn btn-danger">
-             <i class="material-icons">delete</i>
-           </button>
-         </div>
-       </div>
-       <div class="dropped-file-item">
-         <img src="/assets/img/ui/eucle.png"/>
-         <div class="dropped-file-conntroller">
-           <button type="button" class="btn btn-secondary">
-             <i class="material-icons">bookmark</i>
-           </button>
-           <button type="button" class="btn btn-danger">
-             <i class="material-icons">delete</i>
-           </button>
-         </div>
-       </div>
-       <div class="dropped-file-item">
-         <img src="/assets/img/ui/eucle.png"/>
-         <div class="dropped-file-conntroller">
-           <button type="button" class="btn btn-secondary">
-             <i class="material-icons">bookmark</i>
-           </button>
-           <button type="button" class="btn btn-danger">
-             <i class="material-icons">delete</i>
-           </button>
-         </div>
-       </div>
-       <div class="dropped-file-item">
-         <img src="/assets/img/ui/eucle.png"/>
-         <div class="dropped-file-conntroller">
-           <button type="button" class="btn btn-secondary">
-             <i class="material-icons">bookmark</i>
-           </button>
-           <button type="button" class="btn btn-danger">
-             <i class="material-icons">delete</i>
-           </button>
-         </div>
-       </div>
-     </div>
-   </div>
+    <button type="button" class="btn btn-primary handler-btn" data-target="submit-information">ثبت محصول</button>
   </div>
 </div>
