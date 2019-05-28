@@ -1457,13 +1457,19 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     "_id": _TOKEN
                   },
                   {
-                    "warehouse_id": _TOKEN
+                    "end_user_id": _TOKEN
+                  },
+                  {
+                    "cardinal_id": _TOKEN
                   },
                   {
                     "product.category._id": _TOKEN
                   },
                   {
                     "features.feature_id": _TOKEN
+                  },
+                  {
+                    "features.warehouse._id": _TOKEN
                   }
                 ];
 

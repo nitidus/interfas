@@ -82,8 +82,11 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                 case 'fragments':
                   if ((typeof _THREAD.end_user_id != 'undefined') && (typeof _THREAD.warehouse_id != 'undefined') && (typeof _THREAD.product_id != 'undefined') && (typeof _THREAD.prices != 'undefined') && (typeof _THREAD.shipping_plans != 'undefined')){
                     _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
-                    _THREAD.warehouse_id = new ObjectID(_THREAD.warehouse_id);
                     _THREAD.product_id = new ObjectID(_THREAD.product_id);
+
+                    if (typeof _THREAD.cardinal_id != 'undefined'){
+                      _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                    }
 
                     if (typeof _THREAD.features != 'undefined'){
                       _THREAD.features = _THREAD.features.map((item, i) => {
@@ -108,7 +111,7 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                     _THREAD.prices = _THREAD.prices.map((item, i) => {
                       let _FINAL_ITEM = item;
 
-                      _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                      _FINAL_ITEM.feature_reference_id = new ObjectID(_FINAL_ITEM.feature_reference_id);
 
                       return _FINAL_ITEM;
                     });
@@ -116,7 +119,7 @@ module.exports = (app, { io, socket }, CONNECTION_URL, CONNECTION_CONFIG, INTERF
                     _THREAD.shipping_plans = _THREAD.shipping_plans.map((item, i) => {
                       let _FINAL_ITEM = item;
 
-                      _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                      _FINAL_ITEM.feature_reference_id = new ObjectID(_FINAL_ITEM.feature_reference_id);
                       _FINAL_ITEM.shipping_method_id = new ObjectID(_FINAL_ITEM.shipping_method_id);
 
                       return _FINAL_ITEM;

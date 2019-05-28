@@ -624,6 +624,10 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   _THREAD.end_user_id = new ObjectID(_THREAD.end_user_id);
                   _THREAD.product_id = new ObjectID(_THREAD.product_id);
 
+                  if (typeof _THREAD.cardinal_id != 'undefined'){
+                    _THREAD.cardinal_id = new ObjectID(_THREAD.cardinal_id);
+                  }
+
                   if (typeof _THREAD.features != 'undefined'){
                     _THREAD.features = _THREAD.features.map((item, i) => {
                       let _FINAL_ITEM = item;
@@ -647,7 +651,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   _THREAD.prices = _THREAD.prices.map((item, i) => {
                     let _FINAL_ITEM = item;
 
-                    _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    _FINAL_ITEM.feature_reference_id = new ObjectID(_FINAL_ITEM.feature_reference_id);
 
                     return _FINAL_ITEM;
                   });
@@ -655,7 +659,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   _THREAD.shipping_plans = _THREAD.shipping_plans.map((item, i) => {
                     let _FINAL_ITEM = item;
 
-                    _FINAL_ITEM.unit_id = new ObjectID(_FINAL_ITEM.unit_id);
+                    _FINAL_ITEM.feature_reference_id = new ObjectID(_FINAL_ITEM.feature_reference_id);
                     _FINAL_ITEM.shipping_method_id = new ObjectID(_FINAL_ITEM.shipping_method_id);
 
                     return _FINAL_ITEM;
