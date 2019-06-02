@@ -1120,8 +1120,8 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }else{
                   var _TOKEN_KEYWORD = Modules.Functions._convertTokenToKeyword(_CURRENCY);
 
-                  if (_TOKEN_KEYWORD == 'TRANSACTION_POINT' || _TOKEN_KEYWORD == 'T.P' || _TOKEN_KEYWORD == 'T.P.'){
-                    _TOKEN_KEYWORD = 'TP';
+                  if (_TOKEN_KEYWORD == 'TP' || _TOKEN_KEYWORD == 'T.P' || _TOKEN_KEYWORD == 'T.P.'){
+                    _TOKEN_KEYWORD = 'TRANSACTION_POINT';
                   }
 
                   _TOKENIZED_MATCH_CRITERIA["currency.type"] = _TOKEN_KEYWORD;
@@ -1179,6 +1179,81 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }else{
                     res.json(Modules.Functions._throwResponseWithData(docs[0]));
                   }
+
+                  client.close();
+                }
+              });
+              break;
+
+            case 'overall':
+              let WALLETS_COLLECTION = _DB.collection('wallets'),
+                  WALLETS_CRITERIA = [
+                    {
+                      "$match": {
+                        "end_user_id": _TOKEN
+                      }
+                    },
+                    {
+                      "$group": {
+                        "_id": "$end_user_id",
+                        "count": { "$sum": 1 }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 0
+                      }
+                    },
+                    {
+                      "$limit": 1
+                    }
+                  ];
+
+              WALLETS_COLLECTION.aggregate(WALLETS_CRITERIA)
+              .toArray(function(walletsFindQueryError, walletsDocs){
+                if (walletsFindQueryError != null){
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The wallets collection find request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  let ROLES_COLLECTION = _DB.collection('endusers'),
+                      ROLES_CRITERIA = [
+                        {
+                          "$match": {
+                            "cardinal_id": _TOKEN
+                          }
+                        },
+                        {
+                          "$group": {
+                            "_id": "$cardinal_id",
+                            "count": { "$sum": 1 }
+                          }
+                        },
+                        {
+                          "$project": {
+                            "_id": 0
+                          }
+                        },
+                        {
+                          "$limit": 1
+                        }
+                      ];
+
+                  ROLES_COLLECTION.aggregate(ROLES_CRITERIA)
+                  .toArray(function(rolesFindQueryError, rolesDocs){
+                    if (rolesFindQueryError != null){
+                      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The roles collection find request could\'t be processed.`, 700);
+
+                      res.json(RECURSIVE_CONTENT);
+                    }else{
+                      res.json(Modules.Functions._throwResponseWithData({
+                        wallets: walletsDocs[0],
+                        roles: rolesDocs[0]
+                      }));
+
+                      client.close();
+                    }
+                  });
 
                   client.close();
                 }
