@@ -761,6 +761,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'P.C.':
                     _NORMAL_PROJECTION["ancestors"] = 1;
                     _NORMAL_PROJECTION["key"] = "$value";
+                    _NORMAL_PROJECTION["hello"] = "$value";
                     _NORMAL_PROJECTION["features"] = 1;
                     _NORMAL_PROJECTION["cumulative_key"] = "$cumulative_value";
 
@@ -838,11 +839,143 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     "$project": _NORMAL_PROJECTION
                   }
                 ];
+
+                switch (_TOKEN_KEYWORD) {
+                  case 'PRODUCT_CATEGORY':
+                    _CRITERIA = [
+                      ..._CRITERIA,
+                      {
+                        "$unwind": {
+                          "path": "$ancestors",
+                          "preserveNullAndEmptyArrays": true
+                        }
+                      },
+                      {
+                        "$graphLookup": {
+                          "from": _COLLECTION_NAME,
+                          "startWith": "$ancestors",
+                          "connectFromField": "ancestors",
+                          "connectToField": "_id",
+                          "as": "nested_rows"
+                        }
+                      },
+                      {
+                        "$group": {
+                          "_id": {
+                            "_id": "$_id",
+                            "key": "$key",
+                            "cumulative_key": "$cumulative_key",
+                            "nested_rows": "$nested_rows",
+                            "created_at": "$created_at",
+                            "modified_at": "$modified_at"
+                          },
+                          "ancestors": {
+                            "$push": "$ancestors"
+                          }
+                        }
+                      },
+                      {
+                        "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
+                      },
+                      {
+                        "$addFields": {
+                          "_id": "$_id._id",
+                          "features": {
+                            "$cond": [
+                              {
+                                "$and": [
+                                  {
+                                    "$eq": [
+                                      {
+                                        "$cond": [
+                                          {
+                                            "$isArray": "$nested_rows"
+                                          },
+                                          {
+                                            "$size": "$nested_rows"
+                                          },
+                                          0
+                                        ]
+                                      },
+                                      0
+                                    ]
+                                  },
+                                  {
+                                    "$eq": [
+                                      {
+                                        "$cond": [
+                                          {
+                                            "$isArray": "$features"
+                                          },
+                                          {
+                                            "$size": "$features"
+                                          },
+                                          0
+                                        ]
+                                      },
+                                      0
+                                    ]
+                                  }
+                                ]
+                              },
+                              "$$REMOVE",
+                              {
+                                "$concatArrays": [
+                                  {
+                                    "$ifNull": [
+                                      {
+                                        "$map": {
+                                          "input": {
+                                            "$filter": {
+                                              "input": "$nested_rows",
+                                              "as": "row",
+                                              "cond": {
+                                                "$and": [
+                                                  {
+                                                    "$ne": [
+                                                      "$_id._id",
+                                                      "$$row._id"
+                                                    ]
+                                                  },
+                                                  {
+                                                    "$isArray": "$$row.features"
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "as": "row",
+                                          "in": "$$row.features"
+                                        }
+                                      },
+                                      []
+                                    ]
+                                  },
+                                  {
+                                    "$ifNull": [
+                                      "$features",
+                                      []
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        "$project": {
+                          "nested_rows": 0
+                        }
+                      }
+                    ];
+                    break;
+                  }
               }
 
               _COLLECTION.aggregate(_CRITERIA)
               .toArray(function(error, docs){
-                if (error != null){
+                if (error != null){console.log(error)
                   const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);
