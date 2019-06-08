@@ -127,7 +127,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 _COLLECTION.aggregate(_CRITERIA)
                 .toArray(function(productFindQueryError, doc){
                   if (productFindQueryError != null){
-                    console.log(productFindQueryError)
                     const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                     res.json(RECURSIVE_CONTENT);
@@ -975,7 +974,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
               _COLLECTION.aggregate(_CRITERIA)
               .toArray(function(error, docs){
-                if (error != null){console.log(error)
+                if (error != null){
                   const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection find request could\'t be processed.`, 700);
 
                   res.json(RECURSIVE_CONTENT);

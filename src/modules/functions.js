@@ -204,7 +204,7 @@ module.exports = {
    });
  },
  _removeFileWithPath: (directory) => {
-   const _REQUESTED_PATH = path.resolve(__dirname, '..', directory);
+   const _REQUESTED_PATH = path.resolve(__dirname, '../../public', directory);
 
    fs.unlink(_REQUESTED_PATH, (unlinkError) => {
       if (unlinkError){

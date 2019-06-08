@@ -374,7 +374,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       },
                       {
                         "$match": {
-                          "_id": _TOKEN
+                          "_id": new ObjectID(_TOKEN)
                         }
                       },
                       {
@@ -393,54 +393,111 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       }else{
                         const _CHECKED_ENDUSER = doc[0];
 
-                        if (typeof _CHECKED_ENDUSER.brand.photo != 'undefined'){
-                          const _IS_REMOVE_REQUEST_DONE = Modules.Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
-
-                          if (_IS_REMOVE_REQUEST_DONE !== false){
-                            const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.password}`,
-                                  _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_CHECKED_ENDUSER.password}`,
-                                  _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
-                                  _FILE_EXTENSION_MIMETYPE = _THREAD.brand.photo.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
-
-                            _TARGET["$set"]["brand.photo"] = Modules.Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+                        if (typeof _CHECKED_ENDUSER.brand != 'undefined'){
+                          if (typeof _CHECKED_ENDUSER.brand.photo != 'undefined'){
+                            Modules.Functions._removeFileWithPath(_CHECKED_ENDUSER.brand.photo);
                           }
                         }
+
+                        const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.user.password}`,
+                              _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_CHECKED_ENDUSER.user.password}`,
+                              _SECRET_CONTENT_OF_TOKEN = `${_TODAY.getTime()}${Math.random()}${_CHECKED_ENDUSER.user.email.content}${_CHECKED_ENDUSER.user.password}`,
+                              _SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY = crypto.createHmac('sha256', INTERFAS_KEY).update(_SECRET_CONTENT_OF_TOKEN).digest('hex'),
+                              _FILE_EXTENSION_MIMETYPE = _THREAD.brand.photo.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, ``);
+
+                        _TARGET["$set"]["brand.photo"] = Modules.Functions._uploadBrandProfilePhoto(_THREAD.brand.photo, `${_SECRET_CONTENT_OF_FILE_NAME_WITH_APPENDED_KEY}.${_FILE_EXTENSION_MIMETYPE}`);
+
+                        if (_THREAD.user_group_id){
+                          _TARGET["$set"]["user_group_id"] = new ObjectID(_THREAD.user_group_id);
+                        }
+
+                        if (typeof _THREAD.reference_id != 'undefined'){
+                          _TARGET["$set"]["reference_id"] = new ObjectID(_THREAD.reference_id);
+                        }
+
+                        if (typeof _THREAD.cardinal_id != 'undefined'){
+                          _TARGET["$set"]["cardinal_id"] = new ObjectID(_THREAD.cardinal_id);
+                        }
+
+                        if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+                          _TARGET["$set"]["cardinal_ancestors"] = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+                            const _FINAL_ANCESTOR = new ObjectID(ancestor);
+
+                            return _FINAL_ANCESTOR;
+                          });
+                        }
+
+                        _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
+                          if (updateQueryError != null){
+                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
+
+                            res.json(RECURSIVE_CONTENT);
+                          }else{
+                            _COLLECTION.aggregate(_CHECK_REQUEST_CRITERIA)
+                            .toArray(function(secondUserAuthQueryError, secondCheckedDoc){
+                              if (secondUserAuthQueryError != null){
+                                const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
+
+                                _IS_REMOVED_THE_RECENT_HOSTED_FILE = false;
+
+                                res.json(RECURSIVE_CONTENT);
+                              }else{
+                                const _SECOND_CHECKED_ENDUSER = secondCheckedDoc[0],
+                                      RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_SECOND_CHECKED_ENDUSER);
+
+                                res.json(RECURSIVE_CONTENT);
+
+                                client.close();
+                              }
+                            });
+                          }
+                        });
                       }
                     });
-                }
+                  }else{
+                    if (_THREAD.user_group_id){
+                      _TARGET["$set"]["user_group_id"] = new ObjectID(_THREAD.user_group_id);
+                    }
 
-                if (_THREAD.user_group_id){
-                  _TARGET["$set"]["user_group_id"] = new ObjectID(_THREAD.user_group_id);
-                }
+                    if (typeof _THREAD.reference_id != 'undefined'){
+                      _TARGET["$set"]["reference_id"] = new ObjectID(_THREAD.reference_id);
+                    }
 
-                if (typeof _THREAD.reference_id != 'undefined'){
-                  _TARGET["$set"]["reference_id"] = new ObjectID(_THREAD.reference_id);
-                }
+                    if (typeof _THREAD.cardinal_id != 'undefined'){
+                      _TARGET["$set"]["cardinal_id"] = new ObjectID(_THREAD.cardinal_id);
+                    }
 
-                if (typeof _THREAD.cardinal_id != 'undefined'){
-                  _TARGET["$set"]["cardinal_id"] = new ObjectID(_THREAD.cardinal_id);
-                }
+                    if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
+                      _TARGET["$set"]["cardinal_ancestors"] = _THREAD.cardinal_ancestors.map((ancestor, i) => {
+                        const _FINAL_ANCESTOR = new ObjectID(ancestor);
 
-                if ((typeof _THREAD.cardinal_ancestors != 'undefined') && Array.isArray(_THREAD.cardinal_ancestors)){
-                  _TARGET["$set"]["cardinal_ancestors"] = _THREAD.cardinal_ancestors.map((ancestor, i) => {
-                    const _FINAL_ANCESTOR = new ObjectID(ancestor);
+                        return _FINAL_ANCESTOR;
+                      });
+                    }
 
-                    return _FINAL_ANCESTOR;
-                  });
-                }
-
-                if (((typeof _THREAD.brand.photo != 'undefined') && _IS_REMOVED_THE_RECENT_HOSTED_FILE) || (typeof _THREAD.brand.photo == 'undefined')){
                     _COLLECTION.updateOne(_CRITERIA, _TARGET, function(updateQueryError, doc){
                       if (updateQueryError != null){
                         const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
-                        const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+                        _COLLECTION.aggregate(_CHECK_REQUEST_CRITERIA)
+                        .toArray(function(secondUserAuthQueryError, secondCheckedDoc){
+                          if (secondUserAuthQueryError != null){
+                            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The check request on ${_COLLECTION_NAME} collection could\'t be processed.`, 700);
 
-                        res.json(RECURSIVE_CONTENT);
+                            _IS_REMOVED_THE_RECENT_HOSTED_FILE = false;
 
-                        client.close();
+                            res.json(RECURSIVE_CONTENT);
+                          }else{
+                            const _SECOND_CHECKED_ENDUSER = secondCheckedDoc[0],
+                                  RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_SECOND_CHECKED_ENDUSER);
+
+                            res.json(RECURSIVE_CONTENT);
+
+                            client.close();
+                          }
+                        });
                       }
                     });
                   }
