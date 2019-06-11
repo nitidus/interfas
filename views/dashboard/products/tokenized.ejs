@@ -47,6 +47,8 @@
           <span class="badge badge-secondary"><%= tag %></span>
         <% }); %>
       </p>
+
+      <%- product.description %>
     </div>
   </div>
 
@@ -54,18 +56,14 @@
     <% product.features.forEach((feature, i) => { %>
       <a href="#" class="list-group-item list-group-item-action">
         <div class="d-flex w-100 justify-content-between">
-          <% if (typeof feature.description != 'undefined'){ %>
-            <h5 class="mb-1">توضیحات</h5>
-          <% }else if (typeof feature.feature_name != 'undefined') { %>
+          <% if (typeof feature.feature_name != 'undefined') { %>
             <h5 class="mb-1">شخصی‌سازی شده</h5>
           <% } %>
 
           <small class="text-muted">نوع ویژگی</small>
         </div>
 
-        <% if (typeof feature.description != 'undefined'){ %>
-          <p class="mb-1"><%= feature.description %></p>
-        <% }else if (typeof feature.feature_name != 'undefined') { %>
+        <% if (typeof feature.feature_name != 'undefined') { %>
           <p class="mb-1"><%= feature.feature_name %></p>
           <small class="text-muted"><%= feature.feature_value %></small>
         <% } %>

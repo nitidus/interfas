@@ -5,6 +5,7 @@ import styles from '../scss/app.scss';
 import $ from 'jquery';
 import 'bootstrap';
 import axios from 'axios';
+import Quill from 'quill';
 
 import modules from './modules';
 const { prototypes } = modules;
@@ -221,6 +222,35 @@ if (dropzoneFileInputs.length > 0){
   });
 }
 
+let richTextInputs = document.querySelectorAll('.editor');
+
+if (richTextInputs.length > 0){
+  richTextInputs.forEach((richTextInput, i) => {
+    var richTextEditor = new Quill(richTextInput, {
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline', 'strike', 'link'],
+          ['blockquote', 'code-block'],
+          // ['video', 'formula', 'image'],
+          [{ 'header': 1 }, { 'header': 2 }],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'script': 'sub'}, { 'script': 'super' }],
+          [{ 'indent': '-1'}, { 'indent': '+1' }],
+          [{ 'direction': 'rtl' }],
+          [{ 'size': ['small', false, 'large', 'huge'] }],
+          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+          [{ 'color': [] }, { 'background': [] }],
+          // [{ 'font': [] }],
+          [{ 'align': [] }],
+          ['clean']
+        ],
+        // formula: true
+      },
+      theme: 'snow'
+    });
+  })
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const CONTENT = document.querySelector('body'),
         SOURCE = (CONTENT.getAttribute('data-source') !== null)? CONTENT.getAttribute('data-source'): '';
@@ -364,17 +394,41 @@ document.addEventListener('DOMContentLoaded', () => {
                         return finalRowResponse;
                       })
                       .filter((unit, j) => {
-                        let letterMatchingRegex = new RegExp(`^${event.target.value}`, 'gi');
+                        let letterMatchingRegex = new RegExp(`^${event.target.value}`, 'gi'),
+                            extraUnitFeatures = '',
+                            targetText = '';
 
-                        return prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit').match(letterMatchingRegex);
+                        if (typeof unit.extra_features != 'undefined'){
+                          for (var extra_feature in unit.extra_features) {
+                            extraUnitFeatures += prototypes._getAppropriateTaxonomyBaseOnLocale(unit.extra_features[extra_feature], 'fa', `unit ${extra_feature}`);
+                          }
+
+                          targetText = `${prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit')} ${extraUnitFeatures}`;
+                        }else{
+                          targetText = prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit');
+                        }
+
+                        return targetText.match(letterMatchingRegex);
                       })
                       .forEach((unit, j) => {
-                        let unitRowElement = document.createElement('button');
+                        let unitRowElement = document.createElement('button'),
+                            extraUnitFeatures = '',
+                            targetText = '';
+
+                        if (typeof unit.extra_features != 'undefined'){
+                          for (var extra_feature in unit.extra_features) {
+                            extraUnitFeatures += prototypes._getAppropriateTaxonomyBaseOnLocale(unit.extra_features[extra_feature], 'fa', `unit ${extra_feature}`);
+                          }
+
+                          targetText = `${prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit')} ${extraUnitFeatures}`;
+                        }else{
+                          targetText = prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit');
+                        }
 
                         unitRowElement.setAttribute('type', 'button');
                         unitRowElement.setAttribute('data-value', unit._id);
                         unitRowElement.classList.add('list-group-item', 'list-group-item-action');
-                        unitRowElement.innerHTML = prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit');
+                        unitRowElement.innerHTML = targetText;
 
                         unitRowElement.addEventListener('click', () => {
                           let newBadge = document.createElement('span'),
@@ -573,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let selectedHandlerBtn = item.getAttribute('data-target').toLowerCase();
 
         switch (selectedHandlerBtn) {
-          case 'features-information':
+          case 'description-information':
             item.addEventListener('click', () => {
               let productName = document.getElementById('product-name').value,
                   productCategory = document.getElementById('product-category').options[document.getElementById('product-category').selectedIndex].value,
@@ -588,6 +642,18 @@ document.addEventListener('DOMContentLoaded', () => {
                   document.querySelector('.form-container[data-tab="primary-information"]').classList.remove('active');
                   document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
                 }
+              }
+            });
+            break;
+
+          case 'features-information':
+            item.addEventListener('click', () => {
+              let descriptionRichTextEditorElement = new Quill(document.getElementById('reach-text-editor')),
+                  productDescription = descriptionRichTextEditorElement.root.innerHTML;
+
+              if (productDescription != ''){
+                document.querySelector('.form-container[data-tab="description-information"]').classList.remove('active');
+                document.querySelector(`.form-container[data-tab="${item.getAttribute('data-target')}"]`).classList.add('active');
               }
             });
             break;
@@ -639,11 +705,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   productInventoryUnits = document.querySelectorAll('.product-units-container .tag-input span.badge'),
                   productTags = document.querySelectorAll('.product-tags-container .tag-input span.badge'),
                   productIsVerified = document.querySelector('#verified-checkbox').checked,
+                  descriptionRichTextEditorElement = new Quill(document.getElementById('reach-text-editor')),
+                  productDescription = descriptionRichTextEditorElement.root.innerHTML,
                   featuresItem = document.querySelectorAll('#features-container .feature-container'),
                   photosItem = document.querySelectorAll('.product-photos-dropzone .dropped-files .dropped-file-item'),
                   requestParameters = {};
 
-              if ((productName != '') && (productCategory != 'انتخاب دسته‌بندی') && (productInventoryUnits.length > 0) && (productTags.length > 0) && (photosItem.length > 0)){
+              if ((productName != '') && (productCategory != 'انتخاب دسته‌بندی') && (productInventoryUnits.length > 0) && (productTags.length > 0) && (photosItem.length > 0) && (productDescription != '')){
                 let isPrimaryPhotoDefined = false,
                     targetProductInventoryUnits = [],
                     targetProductTags = [],
@@ -652,6 +720,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 requestParameters.name = productName;
                 requestParameters.category_id = productCategory;
+
+                requestParameters.description = productDescription;
 
                 for (var j = 0; j < productInventoryUnits.length; j++) {
                   targetProductInventoryUnits.push(productInventoryUnits[j].getAttribute('data-value'));
@@ -668,13 +738,6 @@ document.addEventListener('DOMContentLoaded', () => {
                       featureType = featureItem.getAttribute('data-type').toLowerCase();
 
                   switch (featureType) {
-                    case 'description':
-                      targetProductFeatures.push({
-                        feature_id: featureItem.getAttribute('data-type-token'),
-                        description: featureItem.querySelector('textarea').value
-                      });
-                      break;
-
                     case 'customized':
                       targetProductFeatures.push({
                         feature_id: featureItem.getAttribute('data-type-token'),

@@ -827,6 +827,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     _TOKEN_KEYWORD = 'UNIT';
                     _MATCHING_CRITERIA.key = _TOKEN_KEYWORD;
                     _NORMAL_PROJECTION["key"] = "$value";
+                    _NORMAL_PROJECTION["extra_features"] = 1;
                     break;
                 }
 
