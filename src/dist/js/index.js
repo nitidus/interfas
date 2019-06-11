@@ -400,7 +400,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (typeof unit.extra_features != 'undefined'){
                           for (var extra_feature in unit.extra_features) {
-                            extraUnitFeatures += prototypes._getAppropriateTaxonomyBaseOnLocale(unit.extra_features[extra_feature], 'fa', `unit ${extra_feature}`);
+                            if (typeof unit.extra_features[extra_feature] == 'string'){
+                              extraUnitFeatures += prototypes._getAppropriateTaxonomyBaseOnLocale(unit.extra_features[extra_feature], 'fa', `unit ${extra_feature}`);
+                            }else if (typeof unit.extra_features[extra_feature] == 'boolean'){
+                              if (extra_feature.toLowerCase() == 'detachable'){
+                                extraUnitFeatures += ` (${prototypes._getAppropriateTaxonomyBaseOnLocale('Possibility to Detachable sales', 'fa', `unit ${extra_feature}`)})`;
+                              }
+                            }
                           }
 
                           targetText = `${prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit')} ${extraUnitFeatures}`;
@@ -417,7 +423,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (typeof unit.extra_features != 'undefined'){
                           for (var extra_feature in unit.extra_features) {
-                            extraUnitFeatures += prototypes._getAppropriateTaxonomyBaseOnLocale(unit.extra_features[extra_feature], 'fa', `unit ${extra_feature}`);
+                            if (typeof unit.extra_features[extra_feature] == 'string'){
+                              extraUnitFeatures += prototypes._getAppropriateTaxonomyBaseOnLocale(unit.extra_features[extra_feature], 'fa', `unit ${extra_feature}`);
+                            }else if (typeof unit.extra_features[extra_feature] == 'boolean'){
+                              if (extra_feature.toLowerCase() == 'detachable'){
+                                extraUnitFeatures += ` (${prototypes._getAppropriateTaxonomyBaseOnLocale('Possibility to Detachable sales', 'fa', `unit ${extra_feature}`)})`;
+                              }
+                            }
                           }
 
                           targetText = `${prototypes._getAppropriateTaxonomyBaseOnLocale(unit.key, 'fa', 'unit')} ${extraUnitFeatures}`;
