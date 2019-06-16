@@ -649,6 +649,28 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                 }
                 break;
 
+              case 'currencies':
+                if (typeof _THREAD.type != 'undefined'){
+                  _THREAD.type = Modules.Functions._convertTokenToKeyword(_THREAD.type);
+                }
+
+                if (typeof _THREAD.abbreviation != 'undefined'){
+                  _THREAD.abbreviation = Modules.Functions._convertTokenToKeyword(_THREAD.abbreviation);
+                }
+
+                if (typeof _THREAD.alternative != 'undefined'){
+                  if (typeof _THREAD.alternative.type != 'undefined'){
+                    _THREAD.alternative.type = Modules.Functions._convertTokenToKeyword(_THREAD.alternative.type);
+                  }
+
+                  if (typeof _THREAD.alternative.abbreviation != 'undefined'){
+                    _THREAD.alternative.abbreviation = Modules.Functions._convertTokenToKeyword(_THREAD.alternative.abbreviation);
+                  }
+                }
+
+                _IS_COLLECTION_READY_TO_UPDATE = true;
+                break;
+
               default:
                 const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('The name of your desired token has not been defined.');
 
