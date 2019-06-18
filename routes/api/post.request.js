@@ -48,25 +48,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         value: false
                       }
                     };
-
-                    if (typeof _THREAD.target != 'undefined'){
-                      if (typeof _THREAD.target.app_name != 'undefined'){
-                        Modules.Functions._sendVerification(_THREAD.target.app_name, {
-                          target: {
-                            email: _THREAD.email,
-                            token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
-                            created_at: _TODAY,
-                            modified_at: _TODAY
-                          }
-                        })
-                        .then((response) => {
-                          // handle sent message details
-                        })
-                        .catch((error) => {
-                          // throw error
-                        })
-                      }
-                    }
                   }
 
                   if (typeof _THREAD.phone != 'undefined') {
@@ -80,16 +61,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           modified_at: _TODAY
                         }
                       };
-
-                      Modules.Functions._sendMessage(_THREAD.phone.mobile.content, _THREAD.phone.mobile.validation.token)
-                      .then((response) => {
-                        //YOU CAN STORE YOUR RESPONSE IN DB
-                      })
-                      .catch((error) => {
-                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
-
-                        res.json(RECURSIVE_CONTENT);
-                      })
                     }
                   }
 
@@ -119,10 +90,67 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       res.json(RECURSIVE_CONTENT);
                     }else{
                       if (existingDoc != null){
-                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage('Email or phone is not available.', 700);
+                        let _FINAL_MESSAGE = '',
+                            _MESSAGE_ITEM_COUNTS = 0;
+
+                        if ((typeof existingDoc.email != 'undefined') && (typeof _THREAD.email.content != 'undefined')){
+                          if (_THREAD.email.content === existingDoc.email.content){
+                            _FINAL_MESSAGE += `${(_FINAL_MESSAGE != '')? ' and ': ''}Email`;
+                            _MESSAGE_ITEM_COUNTS++;
+                          }
+                        }
+
+                        if ((typeof existingDoc.phone != 'undefined') && (typeof _THREAD.phone.mobile.content != 'undefined')){
+                          if (_THREAD.phone.mobile.content === existingDoc.phone.mobile.content){
+                            _FINAL_MESSAGE += `${(_FINAL_MESSAGE != '')? ' and ': ''}Mobile phone`;
+                            _MESSAGE_ITEM_COUNTS++;
+                          }
+                        }
+
+                        if (_MESSAGE_ITEM_COUNTS > 1){
+                          _FINAL_MESSAGE += ' are not available.';
+                        }else{
+                          _FINAL_MESSAGE += ' is not available.';
+                        }
+
+                        const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(_FINAL_MESSAGE, 700);
 
                         res.json(RECURSIVE_CONTENT);
                       }else{
+                        if (typeof _THREAD.phone != 'undefined') {
+                          if (typeof _THREAD.phone.mobile != 'undefined'){
+                            Modules.Functions._sendMessage(_THREAD.phone.mobile.content, _THREAD.phone.mobile.validation.token)
+                            .then((response) => {
+                              //YOU CAN STORE YOUR RESPONSE IN DB
+                            })
+                            .catch((error) => {
+                              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(error.message, error.status);
+
+                              res.json(RECURSIVE_CONTENT);
+                            })
+                          }
+                        }
+
+                        if (typeof _THREAD.email != 'undefined'){
+                          if (typeof _THREAD.target != 'undefined'){
+                            if (typeof _THREAD.target.app_name != 'undefined'){
+                              Modules.Functions._sendVerification(_THREAD.target.app_name, {
+                                target: {
+                                  email: _THREAD.email,
+                                  token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
+                                  created_at: _TODAY,
+                                  modified_at: _TODAY
+                                }
+                              })
+                              .then((response) => {
+                                // handle sent message details
+                              })
+                              .catch((error) => {
+                                // throw error
+                              })
+                            }
+                          }
+                        }
 
                         const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_THREAD);
 

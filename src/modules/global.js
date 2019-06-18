@@ -28,7 +28,10 @@ module.exports = {
   URLS: {
     SMS_PROVIDER: {
       HOST_NAME: `${_SMS_PROVIDER.PROTOCOL}://${_SMS_PROVIDER.DOMAIN}/${_SMS_PROVIDER.VERSION}/${_SMS_PROVIDER.API_KEY}`,
-      PATTERN_NAME: 'DistroVerify'
+      PATTERN_NAME: {
+        PERSIAN: 'DistroVerifyPersian',
+        ENGLISH: 'DistroVerifyEnglish'
+      }
     }
   },
   TRANSPORTER: {

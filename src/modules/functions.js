@@ -250,7 +250,7 @@ module.exports = {
          _SEED = {
            receptor: receptorPhoneNumber,
            token: receptorToken,
-           template: GLOBAL.URLS.SMS_PROVIDER.PATTERN_NAME
+           template: GLOBAL.URLS.SMS_PROVIDER.PATTERN_NAME.PERSIAN
          };
 
    try {
