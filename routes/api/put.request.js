@@ -119,7 +119,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       }
                     };
 
-                    Modules.Functions._sendMessage(_TARGET["$set"]["phone.mobile"].content, _TARGET["$set"]["phone.mobile"].validation.token)
+                    Modules.Functions._sendMessageForVerify(_TARGET["$set"]["phone.mobile"].content, _TARGET["$set"]["phone.mobile"].validation.token)
                     .then((response) => {
                       //YOU CAN STORE YOUR RESPONSE IN DB
                     })

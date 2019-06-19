@@ -57,7 +57,7 @@ module.exports = {
      day: jd
    };
  },
- _convertDateFromJalaliToGregorian: (jy, jm, jd) => {
+  _convertDateFromJalaliToGregorian: (jy, jm, jd) => {
    if (jy > 979){
     gy = 1600;
     jy -= 979;
@@ -97,7 +97,7 @@ module.exports = {
 
    return (new Date(gy + '/' + gm + '/' + gd));
  },
- _throwErrorWithCodeAndMessage: (metaErrorMessage, metaCode = 600, metaErrorType = 'BadRequestException') => {
+  _throwErrorWithCodeAndMessage: (metaErrorMessage, metaCode = 600, metaErrorType = 'BadRequestException') => {
    return {
      meta: {
        code: metaCode,
@@ -106,7 +106,7 @@ module.exports = {
      }
    }
  },
- _throwResponseWithData: (response, metaCode = 200) => {
+  _throwResponseWithData: (response, metaCode = 200) => {
    return {
      meta: {
        code: metaCode
@@ -114,13 +114,13 @@ module.exports = {
      data: response
    }
  },
- _checkIsAValidObjectID: (token) => {
+  _checkIsAValidObjectID: (token) => {
    const _TARGET_REGEX = new RegExp(`^[0-9a-fA-F]{24}$`),
          _IS_OBJECT_ID_VALID = token.match(_TARGET_REGEX);
 
    return (_IS_OBJECT_ID_VALID !== null)? true: false;
  },
- _checkIsAValidNumericOnlyField: (content) => {
+  _checkIsAValidNumericOnlyField: (content) => {
     const _TARGET_REGEX = new RegExp(`^[0-9]+.?([0-9]+)?$`, 'g'),
           _IS_TEXT_ONLY_VALID = content.match(_TARGET_REGEX);
 
@@ -132,16 +132,16 @@ module.exports = {
 
     return (_IS_TEXT_ONLY_VALID !== null)? true: false;
   },
- _convertTokenToKeyword: (token) => {
+  _convertTokenToKeyword: (token) => {
    return token.replace(/(_|-| )+/ig, '_').toUpperCase();
  },
- _convertTokenToSnakeword: (token) => {
+  _convertTokenToSnakeword: (token) => {
     return token.replace(/(_|-| )+/ig, '-').toLowerCase();
   },
- _convertKeywordToToken: (keyword) => {
+  _convertKeywordToToken: (keyword) => {
     return keyword.toLowerCase().replace(/(_|-| )/ig, ' ').replace(/\b\w/ig, char => char.toUpperCase());
   },
- _writeBase64DataOnFile: (base64DataURI, requestedDirectoryPath) => {
+  _writeBase64DataOnFile: (base64DataURI, requestedDirectoryPath) => {
    const _REQUESTED_FILE_NAME = (requestedDirectoryPath.match(/.+\.\w/ig) !== null)? path.basename(requestedDirectoryPath): '',
          _FILE_MIME_TYPE = base64DataURI.match(/data:image\/\w+/ig)[0].replace(/data:image\//ig, ''),
          _FILE_EXTENSION_REGEX = new RegExp(`.+\.${_FILE_MIME_TYPE}$`, 'g');
@@ -159,7 +159,7 @@ module.exports = {
      })
    }
  },
- _uploadBase64DataURI: (base64DataURI, specificDirectory) => {
+  _uploadBase64DataURI: (base64DataURI, specificDirectory) => {
    const _REQUESTED_PATH = path.resolve(__dirname, '..', specificDirectory),
          _REQUESTED_FILE_NAME = (_REQUESTED_PATH.match(/.+\.\w/ig) !== null)? path.basename(_REQUESTED_PATH): '',
          _REQUESTED_DIRECTORY = _REQUESTED_PATH.replace(_REQUESTED_FILE_NAME, '');
@@ -180,7 +180,7 @@ module.exports = {
      }
    });
  },
- _removeFileWithEmptyDirectory: (directory) => {
+  _removeFileWithEmptyDirectory: (directory) => {
    const _REQUESTED_PATH = path.resolve(__dirname, '..', directory),
          _REQUESTED_FILE_NAME = (_REQUESTED_PATH.match(/.+\.\w/ig) !== null)? path.basename(_REQUESTED_PATH): '',
          _REQUESTED_DIRECTORY = _REQUESTED_PATH.replace(_REQUESTED_FILE_NAME, '');
@@ -203,7 +203,7 @@ module.exports = {
      }
    });
  },
- _removeFileWithPath: (directory) => {
+  _removeFileWithPath: (directory) => {
    const _REQUESTED_PATH = path.resolve(__dirname, '../../public', directory);
 
    fs.unlink(_REQUESTED_PATH, (unlinkError) => {
@@ -212,7 +212,7 @@ module.exports = {
       }
     });
  },
- _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
+  _uploadUserProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
    const _BASE_DIR = '../public/',
          _FILE_DIRECTORY = `assets/img/profile/users/${photoDirectoryWithOptionalExtendedPath}`;
 
@@ -220,7 +220,7 @@ module.exports = {
 
    return _FILE_DIRECTORY;
  },
- _uploadBrandProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
+  _uploadBrandProfilePhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
    const _BASE_DIR = '../public/',
          _FILE_DIRECTORY = `assets/img/profile/brands/${photoDirectoryWithOptionalExtendedPath}`;
 
@@ -228,7 +228,7 @@ module.exports = {
 
    return _FILE_DIRECTORY;
  },
- _uploadProductPhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
+  _uploadProductPhoto: (base64DataURI, photoDirectoryWithOptionalExtendedPath) => {
    const _BASE_DIR = '../public/',
          _FILE_DIRECTORY = `assets/img/products/${photoDirectoryWithOptionalExtendedPath}`;
 
@@ -236,21 +236,21 @@ module.exports = {
 
    return _FILE_DIRECTORY;
  },
- _getEndpointOfAPI: () => {
+  _getEndpointOfAPI: () => {
    return GLOBAL.API.ENDPOINT;
  },
- _getFullEndpointOfAPI: () => {
+  _getFullEndpointOfAPI: () => {
    const _TARGET_PORT = process.env.APP_PORT || process.env.PORT || 16374,
          _TARGET_HOST = process.env.APP_HOST || process.env.HOST || 'http://localhost';
 
    return `${_TARGET_HOST}:${_TARGET_PORT}${GLOBAL.API.ENDPOINT}`;
  },
- _sendMessage: async (receptorPhoneNumber, receptorToken) => {
+  _sendMessage: async (receptorPhoneNumber, templateName, receptorToken) => {
    const _TARGET_URL = `${GLOBAL.URLS.SMS_PROVIDER.HOST_NAME}/verify/lookup.json`,
          _SEED = {
            receptor: receptorPhoneNumber,
            token: receptorToken,
-           template: GLOBAL.URLS.SMS_PROVIDER.PATTERN_NAME.PERSIAN
+           template: templateName
          };
 
    try {
@@ -263,7 +263,9 @@ module.exports = {
      }
    }
  },
- _sendEmail: async (sender, receivers, subject, content) => {
+  _sendMessageForVerify: async (receptorPhoneNumber, receptorToken) => module.exports._sendMessage(receptorPhoneNumber, GLOBAL.URLS.SMS_PROVIDER.PATTERN_NAMES.VERIFY.PERSIAN, receptorToken),
+  _sendMessageForRecover: async (receptorPhoneNumber, receptorToken) => module.exports._sendMessage(receptorPhoneNumber, GLOBAL.URLS.SMS_PROVIDER.PATTERN_NAMES.RECOVER.PERSIAN, receptorToken),
+  _sendEmail: async (sender, receivers, subject, content) => {
    if (sender != '' && subject != '' && content != ''){
      var _RECEIVERS = receivers;
 
@@ -301,34 +303,8 @@ module.exports = {
      throw 'None of the parameters can not be empty.';
    }
 },
-_sendInvitation: async (appName, details) => {
-    const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/invitation.ejs'),
-          _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
-          _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
-          _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
-            const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
-                  APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
-
-            return TARGET_KEYWORD === APP_NAME_KEYWORD;
-          });
-
-    if (_APP_DETAILS.length === 1){
-      const _PARSED_APP_DETAILS = _APP_DETAILS[0],
-            _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
-              app: {
-                name: _PARSED_APP_DETAILS.name,
-                photo: _PARSED_APP_DETAILS.photo,
-                address: _PARSED_APP_DETAILS.address
-              },
-              ...details
-            }),
-            _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Invitation`, _EMAIL_BODY_CONTENT);
-
-      return _SENT_MAIL;
-    }
-  },
-  _sendVerification: async (appName, details) => {
-      const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/verification.ejs'),
+  _sendInvitation: async (appName, details) => {
+      const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/invitation.ejs'),
             _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
             _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
             _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
@@ -348,95 +324,147 @@ _sendInvitation: async (appName, details) => {
                 },
                 ...details
               }),
-              _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Verification`, _EMAIL_BODY_CONTENT);
+              _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Invitation`, _EMAIL_BODY_CONTENT);
 
         return _SENT_MAIL;
       }
     },
-  _chargeUsingToken: async (token) => {
-    if (typeof token != 'undefined'){
-      if (
-        ((typeof token.card != 'undefined') || (typeof token.creditCard != 'undefined') || (typeof token.credit_card != 'undefined') || (typeof token.debitCard != 'undefined') || (typeof token.debit_card != 'undefined')) &&
-        ((typeof token.amount != 'undefined') || (typeof token.charge_amount != 'undefined') || (typeof token.chargeAmount != 'undefined') || (typeof token.checkout_amount != 'undefined') || (typeof token.checkoutAmount != 'undefined')) &&
-        (typeof token.currency != 'undefined')
-      ) {
-        const _CARD = token.card || token.creditCard || token.credit_card || token.debitCard || token.debit_card,
-              _AMOUNT = token.amount || token.charge_amount || token.chargeAmount || token.checkout_amount || token.checkoutAmount,
-              _FINAL_AMOUNT = parseInt(_AMOUNT),
-              _CURRENCY = token.currency;
+  _sendVerification: async (appName, details) => {
+    const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/verification.ejs'),
+          _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
+          _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
+          _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
+            const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
+                  APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
 
-        try {
-          const _TOKEN = await stripe.tokens.create({
-            card: _CARD
+            return TARGET_KEYWORD === APP_NAME_KEYWORD;
           });
 
-          var _CHARGE_SEED = {
-            amount: (_FINAL_AMOUNT > 50)? _FINAL_AMOUNT: (_FINAL_AMOUNT * 100),
-            currency: _CURRENCY,
-            source: _TOKEN.id
-          };
+    if (_APP_DETAILS.length === 1){
+      const _PARSED_APP_DETAILS = _APP_DETAILS[0],
+            _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
+              app: {
+                name: _PARSED_APP_DETAILS.name,
+                photo: _PARSED_APP_DETAILS.photo,
+                address: _PARSED_APP_DETAILS.address
+              },
+              ...details
+            }),
+            _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Verification`, _EMAIL_BODY_CONTENT);
 
-          if ((typeof token.receipt_email != 'undefined') || (typeof token.receiptEmail != 'undefined') || (typeof token.email != 'undefined')){
-            const _RECEIPT_EMAIL = token.receipt_email || token.receiptEmail || token.email;
+      return _SENT_MAIL;
+    }
+  },
+  _sendRecoveryPassword: async (appName, details) => {
+    const _REQUESTED_PATH = path.resolve(__dirname, '..', 'templates/recovery-password.ejs'),
+          _TARGET_RESPONSE = fs.readFileSync(_REQUESTED_PATH, 'utf8'),
+          _TARGET_RESPONSE_CONTENT = _TARGET_RESPONSE.toString(),
+          _APP_DETAILS = __CONSTANT.GLOBAL.targets.filter((target) => {
+            const TARGET_KEYWORD = module.exports._convertTokenToKeyword(target.name),
+                  APP_NAME_KEYWORD = module.exports._convertTokenToKeyword(appName);
 
-            _CHARGE_SEED = {
-              ..._CHARGE_SEED,
-              receipt_email: _RECEIPT_EMAIL
-            };
-          }
+            return TARGET_KEYWORD === APP_NAME_KEYWORD;
+          });
 
-          if ((typeof token.description != 'undefined') || (typeof token.caption != 'undefined')){
-            const _DESCRIPTION = token.description || token.caption;
+    if (_APP_DETAILS.length === 1){
+      const _PARSED_APP_DETAILS = _APP_DETAILS[0],
+            _EMAIL_BODY_CONTENT = ejs.render(_TARGET_RESPONSE_CONTENT, {
+              app: {
+                name: _PARSED_APP_DETAILS.name,
+                photo: _PARSED_APP_DETAILS.photo,
+                address: _PARSED_APP_DETAILS.address
+              },
+              ...details
+            }),
+            _SENT_MAIL = await module.exports._sendEmail(`"${_PARSED_APP_DETAILS.name}" <${_PARSED_APP_DETAILS.email}>`, receivers, `${_PARSED_APP_DETAILS.name} Recovery Password`, _EMAIL_BODY_CONTENT);
 
-            _CHARGE_SEED = {
-              ..._CHARGE_SEED,
-              description: _DESCRIPTION
-            };
-          }
+      return _SENT_MAIL;
+    }
+  },
+  _chargeUsingToken: async (token) => {
+  if (typeof token != 'undefined'){
+    if (
+      ((typeof token.card != 'undefined') || (typeof token.creditCard != 'undefined') || (typeof token.credit_card != 'undefined') || (typeof token.debitCard != 'undefined') || (typeof token.debit_card != 'undefined')) &&
+      ((typeof token.amount != 'undefined') || (typeof token.charge_amount != 'undefined') || (typeof token.chargeAmount != 'undefined') || (typeof token.checkout_amount != 'undefined') || (typeof token.checkoutAmount != 'undefined')) &&
+      (typeof token.currency != 'undefined')
+    ) {
+      const _CARD = token.card || token.creditCard || token.credit_card || token.debitCard || token.debit_card,
+            _AMOUNT = token.amount || token.charge_amount || token.chargeAmount || token.checkout_amount || token.checkoutAmount,
+            _FINAL_AMOUNT = parseInt(_AMOUNT),
+            _CURRENCY = token.currency;
 
-          if ((typeof token.shipping != 'undefined') || (typeof token.shipping_detail != 'undefined') || (typeof token.shippingDetail != 'undefined')){
-            const _SHIPPINNG = token.shipping || token.shipping_detail || token.shippingDetail;
+      try {
+        const _TOKEN = await stripe.tokens.create({
+          card: _CARD
+        });
 
-            _CHARGE_SEED = {
-              ..._CHARGE_SEED,
-              shipping: _SHIPPINNG
-            };
-          }
-
-          if ((typeof token.meta_data != 'undefined') || (typeof token.metadata != 'undefined') || (typeof token.extra_data != 'undefined') || (typeof token.extradata != 'undefined')){
-            const _META_DATA = token.meta_data || token.extra_data || token.metadata || token.extradata;
-
-            _CHARGE_SEED = {
-              ..._CHARGE_SEED,
-              metadata: _META_DATA
-            };
-          }
-
-          const _CHARGE = await stripe.charges.create(_CHARGE_SEED);
-
-          return _CHARGE;
-        } catch (e) {
-          let _FINAL_RESPONSE = {
-            raw_type: e.rawType,
-            code: e.code,
-            message: e.message
-          };
-
-          if (_FINAL_RESPONSE.code === 'card_declined'){
-            _FINAL_RESPONSE.decline_code = e.raw.decline_code;
-          }
-
-          throw _FINAL_RESPONSE;
-        }
-      }else{
-        throw {
-          message: "You should define card, amount, currency as the token parameter."
+        var _CHARGE_SEED = {
+          amount: (_FINAL_AMOUNT > 50)? _FINAL_AMOUNT: (_FINAL_AMOUNT * 100),
+          currency: _CURRENCY,
+          source: _TOKEN.id
         };
+
+        if ((typeof token.receipt_email != 'undefined') || (typeof token.receiptEmail != 'undefined') || (typeof token.email != 'undefined')){
+          const _RECEIPT_EMAIL = token.receipt_email || token.receiptEmail || token.email;
+
+          _CHARGE_SEED = {
+            ..._CHARGE_SEED,
+            receipt_email: _RECEIPT_EMAIL
+          };
+        }
+
+        if ((typeof token.description != 'undefined') || (typeof token.caption != 'undefined')){
+          const _DESCRIPTION = token.description || token.caption;
+
+          _CHARGE_SEED = {
+            ..._CHARGE_SEED,
+            description: _DESCRIPTION
+          };
+        }
+
+        if ((typeof token.shipping != 'undefined') || (typeof token.shipping_detail != 'undefined') || (typeof token.shippingDetail != 'undefined')){
+          const _SHIPPINNG = token.shipping || token.shipping_detail || token.shippingDetail;
+
+          _CHARGE_SEED = {
+            ..._CHARGE_SEED,
+            shipping: _SHIPPINNG
+          };
+        }
+
+        if ((typeof token.meta_data != 'undefined') || (typeof token.metadata != 'undefined') || (typeof token.extra_data != 'undefined') || (typeof token.extradata != 'undefined')){
+          const _META_DATA = token.meta_data || token.extra_data || token.metadata || token.extradata;
+
+          _CHARGE_SEED = {
+            ..._CHARGE_SEED,
+            metadata: _META_DATA
+          };
+        }
+
+        const _CHARGE = await stripe.charges.create(_CHARGE_SEED);
+
+        return _CHARGE;
+      } catch (e) {
+        let _FINAL_RESPONSE = {
+          raw_type: e.rawType,
+          code: e.code,
+          message: e.message
+        };
+
+        if (_FINAL_RESPONSE.code === 'card_declined'){
+          _FINAL_RESPONSE.decline_code = e.raw.decline_code;
+        }
+
+        throw _FINAL_RESPONSE;
       }
     }else{
       throw {
-        message: "You should define token as an required object."
+        message: "You should define card, amount, currency as the token parameter."
       };
     }
+  }else{
+    throw {
+      message: "You should define token as an required object."
+    };
   }
+}
 };

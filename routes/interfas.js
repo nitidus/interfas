@@ -120,6 +120,8 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
     }
   })
 
+  app.get('/:app_name/recover/password/:token', async (req, res) => res.redirect(`${req.params.app_name}://recover/password/${_TARGET_TOKEN}`))
+
   app.get('/logout', async (req, res) => {
     delete req.session.authenticated;
 
