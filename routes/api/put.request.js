@@ -48,7 +48,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         modified_at: _TODAY
                       }
                     },
-                    _IS__LOCAL_COLLECTION_READY_TO_UPDATE = true;
+                    _IS_LOCAL_COLLECTION_READY_TO_UPDATE = true;
 
                 if (typeof _THREAD.password != 'undefined'){
                   const _SECRET_CONTENT_OF_PASSWORD = crypto.createCipher('aes192', _THREAD.password),
@@ -107,7 +107,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   }
                 }
 
-                if (typeof _THREAD.phone != 'undefined') {
+                if (typeof _THREAD.phone != 'undefined'){
                   if (typeof _THREAD.phone.mobile != 'undefined'){
                     _TARGET["$set"]["phone.mobile"] = {
                       content: _THREAD.phone.mobile,
@@ -144,7 +144,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
 
                       res.json(RECURSIVE_CONTENT);
 
-                      _IS__LOCAL_COLLECTION_READY_TO_UPDATE = false;
+                      _IS_LOCAL_COLLECTION_READY_TO_UPDATE = false;
                     }else{
                       const _SECRET_CONTENT_OF_FILE_NAME = `${_TODAY.getTime()}${Math.random()}${_TARGET.password}`,
                             _SECRET_CONTENT_OF_FILE_EXTENDED_PATH = `${_TODAY.getTime()}${_TARGET.password}`,
@@ -159,7 +159,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   })
                 }
 
-                if (_IS__LOCAL_COLLECTION_READY_TO_UPDATE){
+                if (_IS_LOCAL_COLLECTION_READY_TO_UPDATE){
                   _COLLECTION.updateOne(_CRITERIA, _THREAD, function(updateQueryError, doc){
                     if (updateQueryError != null){
                       const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The ${_COLLECTION_NAME} collection update request could\'t be processed.`, 700);
@@ -686,4 +686,63 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
       });
     }
   });
+
+  app.put(`${Modules.Functions._getEndpointOfAPI()}/password/reset/:token`, (req, res) => {
+    if ((typeof _THREAD.new_password != 'undefined') && (typeof _THREAD.old_password != 'undefined')){
+      const _SECRET_CONTENT_OF_OLD_PASSWORD = crypto.createCipher('aes192', _THREAD.old_password),
+            _SECRET_CONTENT_OF_OLD_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_OLD_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_OLD_PASSWORD.final('hex')}`,
+            _SECRET_CONTENT_OF_NEW_PASSWORD = crypto.createCipher('aes192', _THREAD.new_password),
+            _SECRET_CONTENT_OF_NEW_PASSWORD_WITH_APPENDED_KEY = `${_SECRET_CONTENT_OF_NEW_PASSWORD.update(INTERFAS_KEY, 'utf8', 'hex')}${_SECRET_CONTENT_OF_NEW_PASSWORD.final('hex')}`,
+            _COLLECTION = _DB.collection('users'),
+            _TODAY = new Date(),
+            _TOKEN = req.params.token,
+            _THREAD = req.body;
+
+      var _CRITERIA = {
+        "email.validation.token": _TOKEN
+      };
+
+      _COLLECTION.findOne(_CRITERIA, function(findQueryError, findDoc){
+        if (findQueryError != null){
+          const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The users collection find request could\'t be processed.`, 700);
+
+          res.json(RECURSIVE_CONTENT);
+        }else{
+          if (Object.keys(findDoc).length > 0){
+            if (findDoc.password == _SECRET_CONTENT_OF_OLD_PASSWORD_WITH_APPENDED_KEY){
+              _COLLECTION.updateOne(_CRITERIA, {
+                "$set": {
+                  "password": _SECRET_CONTENT_OF_NEW_PASSWORD_WITH_APPENDED_KEY
+                }
+              }, function(updateQueryError, doc){
+                if (updateQueryError != null){
+                  const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`The users collection update request could\'t be processed.`, 700);
+
+                  res.json(RECURSIVE_CONTENT);
+                }else{
+                  const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(doc);
+
+                  res.json(RECURSIVE_CONTENT);
+
+                  client.close();
+                }
+              });
+            }else{
+              const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`Your old password was incorrect.`, 700);
+
+              res.json(RECURSIVE_CONTENT);
+            }
+          }else{
+            const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`No one founded with related token.`, 700);
+
+            res.json(RECURSIVE_CONTENT);
+          }
+        }
+      });
+    }else{
+      const RECURSIVE_CONTENT = Modules.Functions._throwErrorWithCodeAndMessage(`You should define your old and new password.`, 700);
+
+      res.json(RECURSIVE_CONTENT);
+    }
+  })
 };
