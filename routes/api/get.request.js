@@ -760,7 +760,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                   case 'P.C.':
                     _NORMAL_PROJECTION["ancestors"] = 1;
                     _NORMAL_PROJECTION["key"] = "$value";
-                    _NORMAL_PROJECTION["hello"] = "$value";
                     _NORMAL_PROJECTION["features"] = 1;
                     _NORMAL_PROJECTION["cumulative_key"] = "$cumulative_value";
 
@@ -845,12 +844,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                     _CRITERIA = [
                       ..._CRITERIA,
                       {
-                        "$unwind": {
-                          "path": "$ancestors",
-                          "preserveNullAndEmptyArrays": true
-                        }
-                      },
-                      {
                         "$graphLookup": {
                           "from": _COLLECTION_NAME,
                           "startWith": "$ancestors",
@@ -858,24 +851,6 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                           "connectToField": "_id",
                           "as": "nested_rows"
                         }
-                      },
-                      {
-                        "$group": {
-                          "_id": {
-                            "_id": "$_id",
-                            "key": "$key",
-                            "cumulative_key": "$cumulative_key",
-                            "nested_rows": "$nested_rows",
-                            "created_at": "$created_at",
-                            "modified_at": "$modified_at"
-                          },
-                          "ancestors": {
-                            "$push": "$ancestors"
-                          }
-                        }
-                      },
-                      {
-                        "$replaceRoot": { "newRoot": { "$mergeObjects": [ "$_id", "$$ROOT" ] } }
                       },
                       {
                         "$addFields": {
@@ -960,7 +935,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                 ]
                               }
                             ]
-                          }
+                          },
                         }
                       },
                       {
