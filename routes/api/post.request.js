@@ -136,7 +136,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                             Modules.Functions._sendVerification(_THREAD.target.app_name, {
                               target: {
                                 email: _THREAD.email,
-                                token: _SECRET_CONTENT_OF_TOKEN_WITH_APPENDED_KEY,
+                                token: _THREAD.email.validation.token,
                                 created_at: _TODAY,
                                 modified_at: _TODAY
                               }
