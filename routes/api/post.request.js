@@ -255,7 +255,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                               end_user: endUserDoc.ops[0]
                             };
 
-                            res.redirect(`/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
+                            res.redirect(`${Modules.Functions._getEndpointOfAPI()}/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
                           }
                         }
 
@@ -424,7 +424,7 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                                     end_user: endUserDoc.ops[0]
                                   };
 
-                                  res.redirect(`/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
+                                  res.redirect(`${Modules.Functions._getEndpointOfAPI()}/endusers/${_RECURSIVE_RESPONSE.end_user._id}`);
                                 }
                               }
 
