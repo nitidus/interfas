@@ -151,6 +151,10 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                         }
                       }
 
+                      if (typeof _THREAD.target != 'undefined'){
+                        delete _THREAD.target;
+                      }
+
                       const RECURSIVE_CONTENT = Modules.Functions._throwResponseWithData(_THREAD);
 
                       res.json(RECURSIVE_CONTENT);

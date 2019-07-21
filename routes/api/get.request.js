@@ -1355,8 +1355,12 @@ module.exports = (app, io, CONNECTION_URL, CONNECTION_CONFIG, INTERFAS_KEY) => {
                       res.json(RECURSIVE_CONTENT);
                     }else{
                       res.json(Modules.Functions._throwResponseWithData({
-                        wallets: walletsDocs[0],
-                        roles: rolesDocs[0]
+                        wallets: (walletsDocs.length > 0)? walletsDocs[0]: {
+                          count: 0
+                        },
+                        roles: (rolesDocs.length > 0)? rolesDocs[0]: {
+                          count: 0
+                        }
                       }));
 
                       client.close();
