@@ -26,7 +26,7 @@
   "author": "Ali Alizade Haqiqi <alializade@peedes.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "body-parser": "^1.18.3",
     "bootstrap": "^4.3.1",
     "connect-mongo": "^2.0.1",
